@@ -1711,7 +1711,8 @@ html.pj-ready .app .sound {
     left: var(--pad);
   }
   .pj-top {
-    top: calc(var(--pad) + 58px);
+    /* below the (scaled) wordmark, whatever the width */
+    top: calc(18.5vw + 16px);
   }
   .pj-chap {
     bottom: 110px;
