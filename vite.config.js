@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
     base: './',
     plugins: [react(), single && viteSingleFile()].filter(Boolean),
     define: { __SINGLE__: JSON.stringify(single) },
+    assetsInclude: ['**/*.glb'],
     publicDir: single ? false : 'public',
     build: {
       outDir: single ? 'dist-single' : 'dist',

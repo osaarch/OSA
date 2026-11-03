@@ -1359,3 +1359,387 @@ html.is-loading .sound {
     transition-delay: 0s !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROJECTS WITH THEIR OWN 3D JOURNEY  (Al Rafidain Stadium)
+   A tall transparent section whose scroll drives the camera; a sticky instrument
+   layer rides over it; then the black project page begins.
+   The render loop writes --pj-ink / --pj-hud / --pj-black / --pj-logo.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stage-project {
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+html.pj-ready .stage-project {
+  opacity: 1;
+}
+.pj {
+  position: relative;
+  z-index: 1;
+}
+.pj-sticky {
+  --pj-fg: #4b3e2b;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  font-size: 10.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #4b3e2b; /* fallback */
+  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #f3e7d3);
+  transition: color 0.7s ease; /* --pj-ink flips 0 → 1 as the light turns red: dark ink by day, cream by night */
+}
+.pj-sticky::before {
+  /* the last black: whatever the 3D view shows, it ends in pure black */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--pj-black, 0);
+  pointer-events: none;
+}
+.pj-sticky > * {
+  position: absolute;
+}
+.pj-top,
+.pj-chap,
+.pj-read,
+.pj-scroll,
+.pj-back {
+  opacity: var(--pj-hud, 1);
+  transition: opacity 0.8s ease;
+}
+html:not(.pj-ready) .pj-top,
+html:not(.pj-ready) .pj-chap,
+html:not(.pj-ready) .pj-read,
+html:not(.pj-ready) .pj-scroll,
+html:not(.pj-ready) .pj-back {
+  opacity: 0;
+}
+.pj-back {
+  border-bottom-color: color-mix(in srgb, currentColor 30%, transparent);
+}
+.pj-back:hover {
+  border-bottom-color: currentColor;
+}
+/* on a 3D project the wordmark and the sound button follow the light: dark ink by day, cream by night */
+html.pj-ready .menu a,
+html.pj-ready .app .sound {
+  color: #4b3e2b; /* fallback */
+  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #f3e7d3);
+}
+html.pj-ready .menu a {
+  transition: color 0.7s ease, opacity 0.7s ease, transform 0.9s var(--ease);
+}
+html.pj-ready .app .sound {
+  transition: color 0.7s ease, border-color 0.4s, opacity 0.6s;
+}
+.pj-top {
+  left: calc(var(--rail) + var(--pad));
+  top: var(--pad);
+  display: grid;
+  gap: 1em;
+}
+.pj-title {
+  font-size: 13px;
+  letter-spacing: 0.5em;
+}
+.pj-sub {
+  opacity: 0.62;
+}
+.pj-chap {
+  left: var(--pad);
+  bottom: clamp(124px, 20vh, 230px);
+  display: grid;
+  gap: 1.1em;
+  max-width: 64vw;
+}
+.pj-chap span {
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  opacity: 0.7;
+}
+.pj-chap b {
+  font-weight: 400;
+  font-size: clamp(24px, 3.5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: 0.045em;
+}
+.pj-read {
+  right: var(--pad);
+  bottom: var(--pad);
+  margin: 0;
+  display: flex;
+  gap: clamp(20px, 3.4vw, 54px);
+}
+.pj-read dt {
+  font-size: 9px;
+  opacity: 0.55;
+  margin-bottom: 0.8em;
+}
+.pj-read dd {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+  min-width: 6.2em;
+}
+.pj-scroll {
+  left: 50%;
+  bottom: var(--pad);
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 1.3em;
+}
+.pj-scroll span {
+  padding-left: 0.3em;
+}
+.pj-scroll i {
+  display: block;
+  width: 1px;
+  height: 46px;
+  background: linear-gradient(to bottom, currentColor, transparent);
+  transform-origin: 50% 0;
+  animation: scrollcue 2.4s var(--ease) infinite;
+}
+
+/* the project's logo, revealed as the light goes out */
+.pj-logo {
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2.4em;
+  pointer-events: none;
+  opacity: var(--pj-logo, 0);
+  transform: scale(calc(0.94 + 0.06 * var(--pj-logo, 0)));
+  color: #f3e7d3;
+}
+.pj-logo img {
+  display: block;
+  width: min(36vw, 48vh, 440px);
+  height: auto;
+}
+.pj-logo span,
+.title-ar {
+  font-family: 'Cairo', var(--font);
+  font-weight: 300;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.pj-logo span {
+  font-size: clamp(22px, 2.4vw, 40px);
+  color: var(--sand);
+}
+
+.pj-load {
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1.8em;
+  color: var(--ink-2);
+  transition: opacity 0.9s ease 0.2s, visibility 0s linear 1.2s;
+}
+.pj-load.is-done {
+  opacity: 0;
+  visibility: hidden;
+}
+.pj-load-line {
+  width: min(240px, 50vw);
+  height: 1px;
+  background: rgba(242, 237, 227, 0.18);
+}
+.pj-load-line i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--sand);
+  transform-origin: 0 50%;
+  transition: transform 0.5s ease;
+}
+
+/* ── the black project page that follows ──────────────────────────────────── */
+.p-body {
+  position: relative;
+  z-index: 2;
+  background: #000;
+}
+.page.is-3d .p-body {
+  margin-top: -1px;
+}
+.pb-head {
+  padding: clamp(90px, 20vh, 240px) var(--pad) clamp(48px, 9vh, 110px) calc(var(--rail) + var(--pad));
+}
+.pb-head h1,
+.hero-copy h1 {
+  text-wrap: balance;
+}
+.pb-head h1 {
+  margin: 0.35em 0 0.3em;
+  font-size: clamp(36px, 7.4vw, 140px);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+.pb-head .hero-sum {
+  animation: none;
+}
+.title-ar {
+  display: block;
+  width: fit-content;
+  margin: 0 0 1.4em;
+  font-size: clamp(24px, 3vw, 52px);
+  line-height: 1.5;
+  color: var(--sand);
+}
+.hero-copy .title-ar {
+  margin: -0.15em 0 0.9em;
+  animation-delay: 0.78s;
+}
+.logo-img {
+  display: block;
+  width: clamp(84px, 8vw, 130px);
+  height: auto;
+}
+.pb-logo {
+  margin-bottom: clamp(28px, 6vh, 64px);
+}
+.cap-logo {
+  width: clamp(54px, 5.4vw, 92px);
+  margin-bottom: 0.7em;
+}
+.logo-slot {
+  display: grid;
+  place-items: center;
+  width: clamp(84px, 8vw, 130px);
+  aspect-ratio: 1;
+  border: 1px dashed var(--line);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.p-logo-row {
+  padding: 12vh var(--pad) 0 calc(var(--rail) + var(--pad));
+}
+
+.p-concept,
+.p-material {
+  margin-top: 0;
+}
+.p-h3 {
+  margin: 0 0 1.3em;
+  font-size: clamp(22px, 2.4vw, 40px);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.p-steps {
+  margin: 0 var(--pad) 14vh calc(var(--rail) + var(--pad));
+}
+.p-steps ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3.6em clamp(24px, 3vw, 54px);
+}
+.p-steps li {
+  padding-top: 1.7em;
+  border-top: 1px solid var(--line);
+}
+.st-n {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  color: var(--sand);
+}
+.st-t {
+  display: block;
+  margin: 1.2em 0 0.9em;
+  font-weight: 400;
+  font-size: clamp(15px, 1.25vw, 20px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.p-steps li p {
+  margin: 0;
+  max-width: 28em;
+  font-size: clamp(13px, 0.95vw, 15px);
+  line-height: 1.85;
+  color: var(--ink-2);
+}
+.shot figcaption.cap-rich {
+  display: grid;
+  gap: 0.8em;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.blk-full .shot figcaption {
+  padding: 0 var(--pad) 0 calc(var(--rail) + var(--pad));
+}
+.cap-rich b {
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.cap-rich span {
+  max-width: 38em;
+  font-size: 13px;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+@media (max-width: 1100px) {
+  .p-steps ol {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .pj-top,
+  .pj-chap {
+    left: var(--pad);
+  }
+  .pj-top {
+    top: calc(var(--pad) + 58px);
+  }
+  .pj-chap {
+    bottom: 110px;
+    max-width: 86vw;
+  }
+  .pj-scroll {
+    display: none;
+  }
+  .pj-read {
+    display: none;
+  }
+  .pb-head,
+  .p-steps {
+    padding-left: var(--pad);
+    margin-left: var(--pad);
+  }
+  .pb-head {
+    margin-left: 0;
+  }
+  .p-steps {
+    padding-left: 0;
+  }
+  .p-logo-row {
+    padding-left: var(--pad);
+  }
+}
+@media (max-width: 640px) {
+  .p-steps ol {
+    grid-template-columns: 1fr;
+  }
+}

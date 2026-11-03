@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { projects } from '../content'
 import { Frame } from '../ui/Frame'
 import { href } from '../router'
+import { ProjectLogo } from './Project'
 
 // WORKS — a full-bleed cinematic stage. Hover (or arrow-key / scroll-wheel) through
 // the index and the stage wipes between projects; click to open the project page.
@@ -66,13 +67,15 @@ export default function Works({ go }) {
         ))}
         <div className="stage-shade" />
         <div className="stage-cap" key={cur.slug}>
+          {/* the project's logo has its own place on the stage */}
+          {cur.logo && <ProjectLogo project={cur} className="cap-logo" />}
           <span className="cap-n">
             {cur.number}
             <i> / {String(projects.length).padStart(2, '0')}</i>
           </span>
           <span className="cap-t">{cur.title}</span>
           <span className="cap-m">
-            {cur.location} · {cur.year} · {cur.type}
+            {[cur.location, cur.year, cur.type].filter(Boolean).join(' · ')}
           </span>
         </div>
         <span className="stage-open" aria-hidden="true">
@@ -95,7 +98,7 @@ export default function Works({ go }) {
             >
               <span className="n">{p.number}</span>
               <span className="t">{p.title}</span>
-              <span className="y">{p.year}</span>
+              <span className="y">{p.year || ''}</span>
             </a>
           </li>
         ))}

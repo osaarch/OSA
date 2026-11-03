@@ -36,25 +36,25 @@ export function scrollMax() {
 
 // Critically damped spring: velocity stays continuous when the wheel / finger
 // changes direction, so reversing the journey is as smooth as playing it.
-export function stepJourney(dt, omega = 7.4) {
+export function stepJourney(dt, omega = 7.4, journey_ = journey) {
   const d = Math.min(dt, 1 / 20)
   const sub = 3
   const h = d / sub
-  let x = journey.current
-  let v = journey.velocity
+  let x = journey_.current
+  let v = journey_.velocity
   for (let i = 0; i < sub; i++) {
-    const a = omega * omega * (journey.target - x) - 2 * omega * v
+    const a = omega * omega * (journey_.target - x) - 2 * omega * v
     v += a * h
     x += v * h
   }
   x = clamp(x)
-  if (Math.abs(journey.target - x) < 1e-5 && Math.abs(v) < 1e-4) {
-    x = journey.target
+  if (Math.abs(journey_.target - x) < 1e-5 && Math.abs(v) < 1e-4) {
+    x = journey_.target
     v = 0
   }
-  const moved = x !== journey.current
-  journey.current = x
-  journey.velocity = v
+  const moved = x !== journey_.current
+  journey_.current = x
+  journey_.velocity = v
   return moved
 }
 

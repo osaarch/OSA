@@ -22,10 +22,15 @@ npm run build:single   # optional: ONE self-contained index.html in dist-single/
    `placeholder: true` when you are done.
 2. **Portrait** — save as `src/assets/profile/portrait.jpg`.
 3. **Project photographs** — one folder per project in `src/assets/projects/<slug>/`:
-   * `cover.jpg` is the hero image and the WORKS stage image
+   * `cover.jpg` is the hero image and the WORKS stage image (or name the file in `coverFile`)
    * `01.jpg`, `02.jpg`, … become the editorial sequence on that project's page
    * the folder name must equal the project's `slug` in `src/content.js`
-4. To add a project, add an entry to `projectData` and create its folder.
+   * **`logo.svg`** (or `.png` / `.webp`) is the project's **logo** — it has its own place on the WORKS
+     stage, at the end of the 3D journey and at the top of the project page
+4. **Captions** are looked up by the number a file starts with: `captions: { '03': { title, text } }`
+   applies to `03-anything.jpg`. Slots without an image yet (Al Rafidain Stadium: `01` and `03`) are simply
+   not shown — drop `01-….jpg` / `03-….jpg` into the folder and they appear with their captions.
+5. To add a project, add an entry to `projectData` and create its folder.
 
 Until real photographs exist, honest empty frames are shown. Nothing is faked.
 
@@ -65,6 +70,27 @@ field of view `FOV`) and the length of the scroll in `SPACER_VH` (`src/journey.j
 * The model's group has a **mirrored transform**; the render path bakes it into the vertices so the
   geometry is shown exactly as authored (same shape, same proportions, correct face orientation).
 * No geometry is scaled, simplified or replaced. 14,658 triangles, original scale (≈ 41 × 48.5 × 43 m).
+
+## Project 1 — Al Rafidain Stadium (its own 3D journey)
+
+Opening the project plays a scroll-driven journey built from the project's own Rhino file, in the colours of
+its renders: a golden, dusty day → dusk → a black night with the stadium glowing red from within → the camera
+climbs until it looks straight down into the bowl (the spectators appear) → everything goes black → the logo
+is revealed → the project page begins. Scroll back up and it plays in reverse.
+
+| File | Role |
+| --- | --- |
+| `public/assets/stadium/stadium.glb` | The stadium, made from `STADUAM.3dm` (roof planes, bowl, glazing, lettering, site, water, planting) |
+| `src/scene/stadium/StadiumScene.jsx` | Loads the model, lights it, owns the render loop (loaded only on this page) |
+| `src/scene/stadium/materials.js` | The clay / rammed-earth look, generated in the shader (no textures) + the red night glow |
+| `src/scene/stadium/path.js` · `grade.js` | The camera path (pure function of scroll) and the colour script |
+| `src/scene/stadium/Foliage.jsx` | Palms and trees scattered over the model's planted ground |
+| `src/scene/stadium/state.js` | Scroll length of the journey (`SJ_VH`) and the four chapter captions |
+
+`scene: 'stadium'` in `src/content.js` switches a project to this journey; without it a project uses the
+classic photographic hero. If WebGL or the model is unavailable the page falls back to the classic hero.
+Each place has its own music: the Malwiya plays maqam Bayati; the stadium plays maqam **Rast** with a soft
+low frame-drum that rises as the camera climbs over the bowl (`MOODS` in `src/audio.js`).
 
 ## Behaviour worth knowing
 

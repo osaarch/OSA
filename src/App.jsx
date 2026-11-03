@@ -8,6 +8,7 @@ import Loader from './ui/Loader'
 import Intro from './ui/Intro'
 import SoundToggle from './ui/SoundToggle'
 import { audio, createEngine, renderOffline } from './audio'
+import { findProject } from './content'
 import Osa from './pages/Osa'
 import Works from './pages/Works'
 import Project from './pages/Project'
@@ -109,6 +110,9 @@ export default function App() {
       // OSA / WORKS: the dust is gone — only the music remains
       audio.setScene({ wind: 0, music: 1, clarity: 1 })
     }
+    // each place has its own music: the Malwiya's maqam, or the stadium's (Rast + frame drum)
+    const proj = route.name === 'project' ? findProject(route.slug) : null
+    audio.setMood(proj && proj.scene === 'stadium' ? 'stadium' : 'malwiya')
   }, [route.name, route.path])
 
   // ── scroll → journey progress ─────────────────────────────────────────────
