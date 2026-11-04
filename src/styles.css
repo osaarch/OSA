@@ -1839,6 +1839,8 @@ html.pj-ready .app .lang {
 }
 .portrait-frame .frame-img {
   mix-blend-mode: multiply;
+  /* the photograph is taller than the frame: trim the empty white above the head, never the shirt */
+  object-position: 50% 100%;
 }
 .osa-headline {
   margin: 1.2em 0 0;
