@@ -299,20 +299,21 @@ function Rig({ grade, refs }) {
     const u = sj.current
     gradeAt(u, grade, nm)
 
-    // soundtrack: a stadium filling up — a far-off murmur and the sand at first, then stomps,
-    // clapping, a roaring crowd and brass over the bowl, a whistle as the stands light up, and
-    // finally only the music; the wind and the falling sand stay under all of it
+    // soundtrack: a modern groove from the first bar (kick, darbuka, shaker under a pad and a plucked
+    // arpeggio), then clapping, a roaring crowd, fills and brass as the stands fill, a whistle as they
+    // light up, and finally the music alone; the wind and the falling sand stay under all of it
     st.audioT += dt
     if (st.audioT > 0.12) {
       st.audioT = 0
       const live = 1 - grade.black
       audio.setScene({
         wind: (0.15 + 0.3 * grade.dust) * (1 - 0.3 * smoothstep(0.55, 0.9, u)) * live,
-        music: 0.62 + 0.38 * smoothstep(0, 0.3, u),
+        music: 0.7 + 0.3 * smoothstep(0, 0.3, u),
         clarity: 1,
-        pulse: 0.1 + 0.7 * smoothstep(0.3, 0.8, u) * live + 0.3 * grade.black,
-        crowd: (0.1 + 0.5 * smoothstep(0.1, 0.62, u) + 0.3 * smoothstep(0.62, 0.86, u)) * (1 - 0.8 * grade.black),
-        drive: smoothstep(0.26, 0.8, u) * (1 - 0.4 * grade.black),
+        // the modern groove is there from the first bar — calm (kick, darbuka, shaker) — and grows
+        pulse: 0.5 + 0.45 * smoothstep(0.3, 0.8, u) * live + 0.25 * grade.black,
+        crowd: (0.08 + 0.5 * smoothstep(0.1, 0.62, u) + 0.3 * smoothstep(0.62, 0.86, u)) * (1 - 0.8 * grade.black),
+        drive: (0.2 + 0.72 * smoothstep(0.26, 0.8, u)) * (1 - 0.45 * grade.black),
       })
       // the whistle and the roar, once, as the camera reaches the full stands
       if (u > 0.78 && !st.cheered) {

@@ -14,9 +14,11 @@ import { useSyncExternalStore } from 'react'
 //            disappears when you arrive at OSA / WORKS, leaving only the music.
 // ═════════════════════════════════════════════════════════════════════════════
 
-// Three moods share one engine. "malwiya" is the Bayati piece above; "stadium" is a warmer,
-// slower piece in maqam RAST on C (its neutral third — E half-flat — is the Arabic colour)
-// with a distant, low frame-drum pulse that rises as the camera climbs over the bowl.
+// Three moods share one engine. "malwiya" is the Bayati piece above; "stadium" is a different
+// piece altogether — a modern one: a maqsum groove (soft kick, darbuka, hand-claps, shaker), a
+// sub-bass and an airy pad pumping to the kick, a plucked qanun-like arpeggio and a reedy lead that
+// slides between the notes of maqam RAST on C (its neutral third — E half-flat — is the Arabic
+// colour), calm and driving at once. "port" is the quiet harbour piece for the other projects.
 const MOODS = {
   malwiya: {
     tonic: 146.83, // D3
@@ -67,15 +69,32 @@ const MOODS = {
     ney: [11, 14, 9, 11, 12, 14],
     startIdx: 2,
     gap: [3.4, 7.5],
-    // the stadium: a driving groove (stomps, a crowd's claps, a rim, tom fills), a crowd that
-    // breathes and chants, and brass-like fanfares on the Rast scale — over the same sand
-    sport: { bpm: 100 },
+    // the stadium: a modern groove at 104 bpm — see grooveModern() — over the sand and a crowd
+    // that breathes and chants; brass-like fanfares on the Rast scale at the peak
+    sport: { bpm: 104 },
+    modern: {
+      // the chord roots of the four-bar loop, as degrees of Rast:  C  –  A  –  F  –  G
+      bars: [0, 5, 3, 4],
+      // arpeggio shapes (scale steps above the chord root, in the octave above the tonic)
+      arps: [
+        [0, 2, 4, 7, 4, 2],
+        [7, 4, 2, 4, 7, 9],
+      ],
+      // rhythms for the lead, in sixteenth notes (3+3+2 is the dotted feel of the maqsum)
+      rhythms: [
+        [3, 3, 2, 3, 3, 2],
+        [2, 2, 4, 2, 2, 4],
+        [4, 2, 2, 4, 2, 2],
+        [3, 3, 2, 2, 2, 4],
+      ],
+    },
     horns: [
       [7, 11, 9, 7], //  C  G  E½♭ C  (an octave up)
       [7, 9, 11, 14],
       [11, 9, 7, 9, 7],
       [7, 7, 11, 9, 7],
     ],
+    trim: 0.75, // the groove is denser than the home piece: keep the two at a similar loudness
   },
   // the harbour: a quiet piece for the projects without a 3D journey — maqam HIJAZ on G, sparse and
   // slow, with a sea breeze where the sand would be (no grains, no drum)
@@ -209,6 +228,26 @@ export function createEngine(ctx, moodName = 'malwiya') {
     e.p.connect(pulseBus)
     e.d.connect(driveBus)
     e.c.connect(crowdBus)
+    // the modern piece: pad and bass go through a "duck" the kick pumps (side-chain), and the plucks
+    // and the lead through a bus with a dotted-eighth echo. Both live inside the epoch, so the
+    // echoes of a piece that has ended can never be heard in the next one.
+    e.duck = mk.gain(1)
+    e.duck.connect(e.m)
+    e.lead = mk.gain(1)
+    e.lead.connect(e.m)
+    if (M.modern) {
+      const dl = ctx.createDelay(2)
+      dl.delayTime.value = (60 / M.sport.bpm) * 0.75
+      const tone = mk.filter('lowpass', 2300, 0.5)
+      const fb = mk.gain(0.38)
+      const wet = mk.gain(0.36)
+      e.lead.connect(dl)
+      dl.connect(tone)
+      tone.connect(fb)
+      fb.connect(dl)
+      tone.connect(wet)
+      wet.connect(e.m)
+    }
     return e
   }
   let ep = makeEpoch(true)
@@ -216,10 +255,12 @@ export function createEngine(ctx, moodName = 'malwiya') {
   // ── drone: tonic + fifth, slowly breathing ────────────────────────────────
   const droneVoices = []
   const droneLp = mk.filter('lowpass', 480, 0.6)
+  const droneTrim = mk.gain(M.modern ? 0 : 1) // the modern piece has its own bass: no drone
+  droneLp.connect(droneTrim)
   {
     const dronePre = mk.gain(0.058)
     dronePre.connect(droneLp)
-    droneLp.connect(ep.m)
+    droneTrim.connect(ep.m)
     const breathe = mk.osc('sine', 0.045)
     const breatheG = mk.gain(0.025)
     breathe.connect(breatheG)
@@ -529,31 +570,6 @@ export function createEngine(ctx, moodName = 'malwiya') {
   }
 
   // ── the stadium's voices ─────────────────────────────────────────────────
-  // a stomp on the stands: a deep thud with a dull knock (on the heartbeat bus)
-  function stomp(t, vel) {
-    const o = mk.osc('sine', 96)
-    o.frequency.setValueAtTime(96, t)
-    o.frequency.exponentialRampToValueAtTime(38, t + 0.22)
-    const g = mk.gain(0)
-    g.gain.setValueAtTime(0.0001, t)
-    g.gain.linearRampToValueAtTime(0.62 * vel, t + 0.006)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.46)
-    o.connect(g)
-    g.connect(ep.p)
-    o.start(t)
-    o.stop(t + 0.5)
-    const [s] = noise()
-    const f = mk.filter('lowpass', 320, 0.8)
-    const ng = mk.gain(0)
-    ng.gain.setValueAtTime(0.0001, t)
-    ng.gain.linearRampToValueAtTime(0.28 * vel, t + 0.003)
-    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06)
-    s.connect(f)
-    f.connect(ng)
-    ng.connect(ep.p)
-    s.start(t, rnd(0, 3))
-    s.stop(t + 0.08)
-  }
   // thousands of hands: a dozen tiny claps landing within a few hundredths of a second
   function clap(t, vel) {
     for (let k = 0; k < 7; k++) {
@@ -570,20 +586,6 @@ export function createEngine(ctx, moodName = 'malwiya') {
       s.start(at, rnd(0, 3))
       s.stop(at + 0.2)
     }
-  }
-  // a rim / hi-hat tick
-  function hat(t, vel) {
-    const [s] = noise()
-    const f = mk.filter('highpass', 6200, 0.6)
-    const g = mk.gain(0)
-    g.gain.setValueAtTime(0.0001, t)
-    g.gain.linearRampToValueAtTime(0.07 * vel, t + 0.001)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045)
-    s.connect(f)
-    f.connect(g)
-    g.connect(ep.d)
-    s.start(t, rnd(0, 3))
-    s.stop(t + 0.06)
   }
   // a tom for the fills
   function tom(t, f0, vel) {
@@ -694,6 +696,305 @@ export function createEngine(ctx, moodName = 'malwiya') {
     s.stop(t + 7.2)
   }
 
+  // ── the modern stadium's voices ───────────────────────────────────────────
+  // a soft kick: a sub thump that drops in pitch, a small click, and the pump that ducks pad + bass
+  function kick(t, vel) {
+    const o = mk.osc('sine', 150)
+    o.frequency.setValueAtTime(150, t)
+    o.frequency.exponentialRampToValueAtTime(50, t + 0.13)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.46 * vel, t + 0.004)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4)
+    o.connect(g)
+    g.connect(ep.p)
+    o.start(t)
+    o.stop(t + 0.44)
+    const [s] = noise()
+    const f = mk.filter('bandpass', 2300, 0.9)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.12 * vel, t + 0.001)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.022)
+    s.connect(f)
+    f.connect(ng)
+    ng.connect(ep.p)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.04)
+    const dg = ep.duck.gain
+    dg.setValueAtTime(1, t)
+    dg.linearRampToValueAtTime(1 - 0.5 * vel, t + 0.012)
+    dg.linearRampToValueAtTime(1, t + 0.34)
+  }
+  // darbuka "tak": a dry, bright slap with a tiny ring; "ka" is its soft ghost note
+  function tak(t, vel) {
+    const [s] = noise()
+    const f = mk.filter('bandpass', 3400, 1.4)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.15 * vel, t + 0.002)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06)
+    s.connect(f)
+    f.connect(g)
+    g.connect(ep.p)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.08)
+    const o = mk.osc('sine', 1500)
+    o.frequency.setValueAtTime(1500, t)
+    o.frequency.exponentialRampToValueAtTime(980, t + 0.05)
+    const og = mk.gain(0)
+    og.gain.setValueAtTime(0.0001, t)
+    og.gain.linearRampToValueAtTime(0.035 * vel, t + 0.002)
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.06)
+    o.connect(og)
+    og.connect(ep.p)
+    o.start(t)
+    o.stop(t + 0.08)
+  }
+  function ka(t, vel) {
+    const [s] = noise()
+    const f = mk.filter('bandpass', 2100, 1.1)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.07 * vel, t + 0.002)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.038)
+    s.connect(f)
+    f.connect(g)
+    g.connect(ep.p)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.06)
+  }
+  // a shaker: a breath of high noise with a soft attack
+  function shaker(t, vel) {
+    const [s] = noise()
+    const f = mk.filter('highpass', 6800, 0.5)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.08 * vel, t + 0.009)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07)
+    s.connect(f)
+    f.connect(g)
+    g.connect(ep.d)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.09)
+  }
+  // a riser (noise opening up) into the next phrase, and an impact (boom + cymbal wash) on its first beat
+  function riser(t, dur, vel) {
+    const [s] = noise(true)
+    const bp = mk.filter('bandpass', 500, 1.2)
+    bp.frequency.setValueAtTime(500, t)
+    bp.frequency.exponentialRampToValueAtTime(7200, t + dur)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.12 * vel, t + dur)
+    g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.05)
+    s.connect(bp)
+    bp.connect(g)
+    g.connect(ep.d)
+    s.start(t, rnd(0, 2))
+    s.stop(t + dur + 0.1)
+  }
+  function impact(t, vel) {
+    const o = mk.osc('sine', 92)
+    o.frequency.setValueAtTime(92, t)
+    o.frequency.exponentialRampToValueAtTime(38, t + 0.9)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.4 * vel, t + 0.01)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.3)
+    o.connect(g)
+    g.connect(ep.d)
+    o.start(t)
+    o.stop(t + 1.4)
+    const [s] = noise()
+    const hp = mk.filter('highpass', 4800, 0.6)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.07 * vel, t + 0.004)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 1.5)
+    s.connect(hp)
+    hp.connect(ng)
+    ng.connect(ep.d)
+    s.start(t, rnd(0, 2))
+    s.stop(t + 1.6)
+  }
+  // sub-bass: a sine with a little 2nd harmonic and a darkened saw so a small speaker still hears it
+  function bass(t, f, dur, vel) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.34 * vel, t + 0.012)
+    g.gain.setValueAtTime(0.29 * vel, t + Math.max(0.03, dur - 0.08))
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.1)
+    const lp = mk.filter('lowpass', 460, 0.7)
+    lp.connect(g)
+    for (const [type, mul, gv, dest] of [
+      ['sine', 1, 1, g],
+      ['triangle', 2, 0.32, g],
+      ['sawtooth', 1, 0.2, lp],
+    ]) {
+      const o = mk.osc(type, f * mul)
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(dest)
+      o.start(t)
+      o.stop(t + dur + 0.15)
+    }
+    g.connect(ep.duck)
+  }
+  // an airy pad: detuned saws, a filter that opens and closes with the bar
+  function mpad(t, idxs, dur) {
+    const lp = mk.filter('lowpass', 480, 0.8)
+    lp.frequency.setValueAtTime(480, t)
+    lp.frequency.linearRampToValueAtTime(2000, t + dur * 0.5)
+    lp.frequency.linearRampToValueAtTime(620, t + dur)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.07, t + 0.9)
+    g.gain.setValueAtTime(0.07, t + dur - 1.3)
+    g.gain.linearRampToValueAtTime(0.0001, t + dur)
+    lp.connect(g)
+    g.connect(ep.duck)
+    live.push([g, t + dur + 0.2])
+    for (const i of idxs) {
+      for (const det of [-9, 9]) {
+        const o = mk.osc('sawtooth', note(i))
+        o.detune.value = det
+        const og = mk.gain(0.5)
+        o.connect(og)
+        og.connect(lp)
+        o.start(t)
+        o.stop(t + dur + 0.1)
+      }
+    }
+  }
+  // a qanun / oud-like synth pluck: a bright attack that closes quickly, then an echo
+  function pluck(t, f, vel, dur = 0.8) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    const lp = mk.filter('lowpass', 800 + 4200 * vel, 0.9)
+    lp.frequency.setValueAtTime(800 + 4200 * vel, t)
+    lp.frequency.exponentialRampToValueAtTime(520, t + 0.3)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.42 * vel, t + 0.004)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+    for (const [type, det, mul, gv] of [
+      ['triangle', 0, 1, 0.75],
+      ['sawtooth', 5, 1, 0.3],
+      ['triangle', -3, 2, 0.22],
+    ]) {
+      const o = mk.osc(type, f * mul * 1.008)
+      o.frequency.setValueAtTime(f * mul * 1.008, t)
+      o.frequency.exponentialRampToValueAtTime(f * mul, t + 0.03)
+      o.detune.value = det
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(lp)
+      o.start(t)
+      o.stop(t + dur + 0.1)
+    }
+    lp.connect(g)
+    g.connect(ep.lead)
+    const [s] = noise()
+    const cb = mk.filter('bandpass', 3000, 1.1)
+    const cg = mk.gain(0)
+    cg.gain.setValueAtTime(0.0001, t)
+    cg.gain.linearRampToValueAtTime(0.045 * vel, t + 0.002)
+    cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.025)
+    s.connect(cb)
+    cb.connect(cg)
+    cg.connect(ep.lead)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.05)
+  }
+  // the lead: a reedy, slightly nasal voice (a mizmar played softly) that scoops up into each note
+  function lead(t, f, dur, vel = 0.7, slide = 0) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.16 * vel, t + 0.035)
+    g.gain.setValueAtTime(0.14 * vel, t + Math.max(0.05, dur - 0.06))
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.22)
+    const lp = mk.filter('lowpass', 1900, 0.8)
+    lp.frequency.setValueAtTime(900, t)
+    lp.frequency.linearRampToValueAtTime(2300, t + 0.12)
+    const pk = mk.filter('peaking', 1150, 2.2)
+    pk.gain.value = 6
+    const vib = mk.osc('sine', 5.4)
+    const vg = mk.gain(0)
+    vg.gain.setValueAtTime(0, t)
+    vg.gain.setValueAtTime(0, t + 0.16)
+    vg.gain.linearRampToValueAtTime(15, t + 0.16 + Math.min(0.5, dur * 0.6))
+    vib.connect(vg)
+    vib.start(t)
+    vib.stop(t + dur + 0.4)
+    for (const [type, det, gv] of [
+      ['sawtooth', -7, 0.5],
+      ['sawtooth', 7, 0.5],
+      ['triangle', 0, 0.5],
+    ]) {
+      const o = mk.osc(type, f)
+      const start = f * Math.pow(2, -slide / 1200)
+      o.frequency.setValueAtTime(start, t)
+      if (slide) o.frequency.exponentialRampToValueAtTime(f, t + 0.075)
+      o.detune.value = det
+      vg.connect(o.detune)
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(lp)
+      o.start(t)
+      o.stop(t + dur + 0.4)
+    }
+    lp.connect(pk)
+    pk.connect(g)
+    g.connect(ep.lead)
+  }
+  // a long, breathy note over the calm bars (a ney made of sine waves)
+  function air(t, f, dur, vel = 0.6) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.14 * vel, t + 0.45)
+    g.gain.setValueAtTime(0.14 * vel, t + dur)
+    g.gain.setTargetAtTime(0.0001, t + dur, 0.35)
+    const vib = mk.osc('sine', 5.2)
+    const vg = mk.gain(0)
+    vg.gain.setValueAtTime(0, t + 0.3)
+    vg.gain.linearRampToValueAtTime(12, t + dur * 0.6)
+    vib.connect(vg)
+    vib.start(t)
+    vib.stop(t + dur + 2)
+    const lp = mk.filter('lowpass', 3600, 0.5)
+    for (const [mul, gv] of [
+      [1, 1],
+      [2, 0.14],
+    ]) {
+      const o = mk.osc('sine', f * mul)
+      o.frequency.setValueAtTime(f * mul * 0.985, t)
+      o.frequency.setTargetAtTime(f * mul, t, 0.08)
+      vg.connect(o.detune)
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(lp)
+      o.start(t)
+      o.stop(t + dur + 2)
+    }
+    const [s] = noise(true)
+    const bp = mk.filter('bandpass', f * 2.4, 2.2)
+    const bg = mk.gain(0)
+    bg.gain.setValueAtTime(0.0001, t)
+    bg.gain.linearRampToValueAtTime(0.045 * vel, t + 0.3)
+    bg.gain.setValueAtTime(0.035 * vel, t + dur)
+    bg.gain.setTargetAtTime(0.0001, t + dur, 0.3)
+    s.connect(bp)
+    bp.connect(bg)
+    bg.connect(lp)
+    s.start(t, rnd(0, 2))
+    s.stop(t + dur + 2)
+    lp.connect(g)
+    g.connect(ep.lead)
+  }
+
   // falling-sand grain: a tiny, bright tick
   function grain(t) {
     const [s] = noise()
@@ -754,29 +1055,118 @@ export function createEngine(ctx, moodName = 'malwiya') {
     return t
   }
 
-  // One sixteenth of the stadium groove (a bar = 16 steps).
-  //   stomps  . . . x . . . .   x . . x . . . .        (the heartbeat, then a gallop)
-  //   claps   . . . . x . . . . . . . x . x .          (beats 2 and 4, a ghost late in the bar)
-  //   rim     x . x . x . x . x . x . x . x .          (eighths)
-  //   fills   a tom roll in the last beat of every fourth bar
-  function groove(t, n, step) {
+  // ── the modern stadium piece ──────────────────────────────────────────────
+  // One bar = 16 sixteenths at 104 bpm (2.3 s); the chord changes every bar (I – vi – IV – V in Rast),
+  // and eight bars make a phrase. Everything below is on the grid, so it sounds composed, not random:
+  //
+  //   kick      x . . . . . . . x . . . . . . .       the heartbeat (pumps the pad and the bass)
+  //   darbuka   . . t . . . t . . . . . t . . .       the teks of the maqsum, with soft ghosts between
+  //   claps     . . . . x . . . . . . . x . . .       beats 2 and 4, once the crowd is awake
+  //   shaker    sixteenths, accented off the beat
+  //   bass      root, then a syncopated fifth and octave as the energy rises
+  //   arpeggio  x . . x . . x . x . . x . . x .       the 3+3+2 pluck over the chord, echoing
+  //   lead      bar 3 and bar 7 of the phrase: a reedy melody in the scale of Rast, ending on a chord tone
+  //   air       bars 5–6: one long breathy note — the calm
+  //   riser / impact, a tom roll and (at the peak) brass mark the turn of the phrase
+  const chordIdx = (r) => [r, r + 4, r + 9]
+  // the chord tone of root r nearest to scale step "near" (within the lead's register)
+  function nearestTone(r, near) {
+    let best = r + 14
+    for (const base of [r, r + 2, r + 4]) {
+      for (let k = 1; k <= 3; k++) {
+        const c = base + 7 * k
+        if (c >= 12 && c <= 21 && Math.abs(c - near) < Math.abs(best - near)) best = c
+      }
+    }
+    return best
+  }
+  function melody(t0, r, step, vel) {
+    const motif = pick(M.motifs)
+    const rhythm = pick(M.modern.rhythms)
+    let at = 0
+    let prev = 14 + motif[0]
+    motif.forEach((deg, k) => {
+      const last = k === motif.length - 1
+      const idx = last ? nearestTone(r, prev) : 14 + deg
+      const steps = rhythm[k % rhythm.length] + (last ? 5 : 0)
+      const t = t0 + at * step
+      const f = note(idx)
+      if (!last && steps >= 3 && Math.random() < 0.3) {
+        // a quick mordent: the upper neighbour, then the note
+        lead(t, note(idx + 1), step * 0.7, vel * 0.55)
+        lead(t + step * 0.6, f, steps * step - step * 0.6, vel * (k === 0 ? 1 : 0.85))
+      } else {
+        lead(t, f, steps * step * 0.94, vel * (k === 0 ? 1 : last ? 0.9 : 0.8), pick([0, 0, 100, 150, 200]))
+      }
+      prev = idx
+      at += rhythm[k % rhythm.length]
+    })
+  }
+  function grooveModern(t, n, step) {
     const s = n % 16
     const bar = Math.floor(n / 16)
+    const cyc = bar % 8
     const p = state.level.pulse
     const d = state.level.drive
-    if (s === 0 || s === 8) {
-      if (p > 0.03) stomp(t, 0.55 + 0.45 * p)
-    } else if ((s === 3 || s === 11) && p > 0.03 && d > 0.3) {
-      stomp(t, 0.4 + 0.4 * d)
+    const m = state.level.music
+    const r = M.modern.bars[bar % M.modern.bars.length]
+    const root = note(r - 7)
+    const barLen = 16 * step
+
+    if (s === 0) {
+      mpad(t, chordIdx(r).map((i) => i), barLen + 1.8)
+      // the phrase: a hook on its first bar (or the brass at the peak), a call on the third, one long
+      // breath on the fifth, an answer on the seventh — and the arpeggio alone in between
+      let brass = false
+      if (cyc === 0 && d > 0.74 && Math.random() < 0.6) {
+        fanfare(t, step)
+        brass = true
+      }
+      if (cyc === 0 && bar > 0 && d > 0.35) impact(t, 0.35 + 0.65 * d)
+      if (cyc === 4 && Math.random() < 0.85) air(t + step * 2, note(r + 14), barLen * 1.6, 0.5 + 0.4 * m)
+      if ((cyc === 2 || cyc === 6 || (cyc === 0 && !brass)) && Math.random() < 0.5 + 0.45 * m) melody(t, r, step, 0.55 + 0.45 * m)
     }
-    if (d > 0.4 && (s === 4 || s === 12)) clap(t, 0.5 + 0.5 * d)
-    if (d > 0.82 && s === 14) clap(t, 0.35)
-    if (d > 0.55 && s % 2 === 0) hat(t, (s % 4 === 0 ? 0.55 : 0.85) * (0.4 + 0.6 * d))
-    if (d > 0.7 && bar % 4 === 3 && s >= 12) tom(t, [210, 172, 140, 108][s - 12], 0.7 + 0.3 * d)
-    if (d > 0.55 && s === 0 && bar % 2 === 0 && Math.random() < 0.65) fanfare(t, step)
+
+    // kick (and the first teks of the maqsum) from the very first bar — calm at first, fuller as the crowd arrives
+    if ((s === 0 || s === 8) && p > 0.03) kick(t, 0.5 + 0.5 * p)
+    if (s === 10 && p > 0.4 && d > 0.4 && cyc % 2 === 1) kick(t, 0.45 + 0.3 * p)
+    if ((s === 4 || s === 12) && p > 0.8 && d > 0.7) kick(t, 0.5)
+    if ((s === 2 || s === 6 || s === 12) && p > 0.12) tak(t, 0.45 + 0.55 * p)
+    if ((s === 4 || s === 10 || s === 14) && p > 0.3) ka(t, 0.4 + 0.5 * p)
+    if ((s === 4 || s === 12) && d > 0.4) clap(t, 0.4 + 0.6 * d)
+    if (d > 0.12) shaker(t, (s % 4 === 2 ? 1 : s % 2 === 1 ? 0.42 : 0.68) * (0.3 + 0.7 * d))
+
+    // bass
+    if (s === 0) bass(t, root, 6 * step, 0.95)
+    if (s === 8 && p > 0.25) bass(t, root, 2.6 * step, 0.7)
+    if (s === 11 && d > 0.3) bass(t, note(r - 3), 2.2 * step, 0.6)
+    if (s === 14 && d > 0.55) bass(t, note(r), 1.8 * step, 0.5)
+
+    // the plucked arpeggio, 3+3+2 over the bar; the second shape returns on the fifth bar of the phrase
+    const shape = M.modern.arps[cyc < 4 ? 0 : 1]
+    const hit = [0, 3, 6, 8, 11, 14].indexOf(s)
+    if (hit >= 0) pluck(t, note(r + 7 + shape[hit]), (hit === 0 ? 0.85 : 0.5 + 0.12 * (hit % 3)) * (0.7 + 0.3 * m), 0.9)
+
+    // the turn of the phrase: a tom roll and a riser on the last bar
+    if (cyc === 7 && d > 0.6 && s >= 12) tom(t, [210, 172, 140, 108][s - 12], 0.6 + 0.3 * d)
+    if (cyc === 7 && s === 8 && d > 0.3) riser(t, 8 * step, 0.4 + 0.6 * d)
   }
 
   function scheduleUntil(horizon) {
+    if (!M.modern) scheduleFreeRhythm(horizon)
+    else {
+      const step = 60 / M.sport.bpm / 4
+      while (state.nextStep < horizon) grooveModern(state.nextStep, state.stepN++, step), (state.nextStep += step)
+    }
+    const rate = 3 + 55 * state.level.wind
+    while (state.nextGrain < horizon) {
+      if (state.level.wind > 0.02 && !M.noGrain) grain(state.nextGrain)
+      state.nextGrain += -Math.log(1 - Math.random()) / rate
+    }
+  }
+
+  // the home page and the harbour: free-rhythm phrases over a drone, and a slow drum
+  function scheduleFreeRhythm(horizon) {
     while (state.nextPad < horizon) {
       const dur = 26
       pad(state.nextPad, M.chords[state.padN++ % M.chords.length], dur)
@@ -792,27 +1182,17 @@ export function createEngine(ctx, moodName = 'malwiya') {
       ney(state.nextNey, note(pick(M.ney)), dur, rnd(0.5, 0.75))
       state.nextNey += dur + rnd(9, 15) * (1 + (1 - state.level.music))
     }
-    if (M.sport) {
-      const step = 60 / M.sport.bpm / 4
-      while (state.nextStep < horizon) groove(state.nextStep, state.stepN++, step), (state.nextStep += step)
-    } else {
-      // a slow maqsum-like pattern (one bar = eight steps of 0.46 s); silent unless the scene asks for it
-      const STEP = 0.46
-      const PATTERN = ['D', 't', '-', 't', 'D', '-', 't', '-']
-      while (state.nextBeat < horizon) {
-        const hit = PATTERN[state.beatN++ % 8]
-        const p = state.level.pulse
-        if (p > 0.03 && hit !== '-') {
-          if (hit === 'D') doum(state.nextBeat, 0.55 + 0.45 * p)
-          else tek(state.nextBeat, 0.4 + 0.6 * p)
-        }
-        state.nextBeat += STEP
+    // a slow maqsum-like pattern (one bar = eight steps of 0.46 s); silent unless the scene asks for it
+    const STEP = 0.46
+    const PATTERN = ['D', 't', '-', 't', 'D', '-', 't', '-']
+    while (state.nextBeat < horizon) {
+      const hit = PATTERN[state.beatN++ % 8]
+      const p = state.level.pulse
+      if (p > 0.03 && hit !== '-') {
+        if (hit === 'D') doum(state.nextBeat, 0.55 + 0.45 * p)
+        else tek(state.nextBeat, 0.4 + 0.6 * p)
       }
-    }
-    const rate = 3 + 55 * state.level.wind
-    while (state.nextGrain < horizon) {
-      if (state.level.wind > 0.02 && !M.noGrain) grain(state.nextGrain)
-      state.nextGrain += -Math.log(1 - Math.random()) / rate
+      state.nextBeat += STEP
     }
   }
 
@@ -835,10 +1215,13 @@ export function createEngine(ctx, moodName = 'malwiya') {
     set(rainBus.gain, 0.33 * state.level.rain, 1.4)
     set(lpf.frequency, 900 + 8100 * Math.pow(state.level.clarity, 1.5), 0.6)
   }
+  let soundOn = false
+  const masterLevel = () => (soundOn ? 0.55 * (M.trim ?? 1) : 0)
   function setEnabled(on, immediate = false) {
     const t = ctx.currentTime
-    if (immediate) master.gain.value = on ? 0.55 : 0
-    else master.gain.setTargetAtTime(on ? 0.55 : 0, t, on ? 0.6 : 0.15)
+    soundOn = on
+    if (immediate) master.gain.value = masterLevel()
+    else master.gain.setTargetAtTime(masterLevel(), t, on ? 0.6 : 0.15)
   }
   function resumeClock() {
     const t = ctx.currentTime + 0.1
@@ -860,6 +1243,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     M = next
     moodKey = name
     const t = ctx.currentTime
+    if (soundOn) master.gain.setTargetAtTime(masterLevel(), t, 0.5)
     const old = ep
     for (const g of [old.m, old.p, old.d, old.c]) {
       g.gain.cancelScheduledValues(t)
@@ -878,8 +1262,10 @@ export function createEngine(ctx, moodName = 'malwiya') {
       }, 20000)
     }
     ep = makeEpoch(false)
-    droneLp.disconnect()
-    droneLp.connect(ep.m)
+    droneTrim.disconnect()
+    droneTrim.connect(ep.m)
+    droneTrim.gain.cancelScheduledValues(t)
+    droneTrim.gain.setValueAtTime(M.modern ? 0 : 1, t + 0.2)
     for (const g of [ep.m, ep.p, ep.d, ep.c]) {
       g.gain.setValueAtTime(0, t)
       g.gain.setTargetAtTime(1, t + 0.55, 0.4)
@@ -899,7 +1285,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     state.nextPhrase = t + 2.4
     state.nextNey = Math.max(t + 9, state.nextNey)
     state.nextBeat = t + 0.6
-    state.nextStep = t + 0.6
+    state.nextStep = t + 0.7
     state.stepN = 0
     state.beatN = 0
   }

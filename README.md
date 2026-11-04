@@ -98,12 +98,17 @@ is revealed → the project page begins. Scroll back up and it plays in reverse.
 
 `scene: 'stadium'` in `src/content.js` switches a project to this journey; without it a project uses the
 classic photographic hero. If WebGL or the model is unavailable the page falls back to the classic hero.
-Each place has its own music: the Malwiya plays maqam Bayati; the stadium plays maqam **Rast** as a
-sporting score — a distant crowd murmur and the sand at the start, then stomps on the stands, a clapping
-groove with rim ticks and tom fills, brass-like fanfares on the Rast scale and a roaring, chanting crowd as
-the camera climbs over the bowl, with a referee's whistle and a roar when the full stands appear. The wind
-and falling-sand texture stays underneath all of it, and only the music remains once the screen goes black
-(`MOODS.stadium` and `groove()` in `src/audio.js`; the mapping to scroll is in `StadiumScene.jsx`).
+Each place has its own music: the Malwiya plays maqam Bayati (a drone, oud phrases, a ney, free rhythm).
+The stadium plays a **modern Arabic piece** that shares nothing with it but the engine: maqam **Rast** on C
+at 104 bpm — a soft kick pumping a sub-bass and an airy pad (side-chain), a darbuka playing the *maqsum*
+(teks and soft ghost notes), hand-claps, a shaker, a qanun-like plucked arpeggio in 3+3+2 over the chords
+C – A – F – G, and a reedy lead that scoops into each note and ends its phrases on a chord tone, with one
+long breathy note in the calm bars and a riser / impact / tom roll at the turn of every eight-bar phrase.
+It is calm *and* driving from the first bar (kick, darbuka and shaker are already there at the start), and
+grows as the camera climbs: claps, bass syncopation, fills, then brass fanfares and a roaring, chanting crowd,
+with a referee's whistle when the full stands appear. The wind and falling-sand texture stays underneath, and
+only the music remains once the screen goes black (`MOODS.stadium`, `grooveModern()` and the voices after
+`kick()` in `src/audio.js`; the mapping to scroll is in `StadiumScene.jsx`).
 **The home music never leaks into a project:** every mood has its own gates (`makeEpoch`), and `setMood()`
 closes the old mood's gates while opening the new one, so the stadium plays only its own score and every
 other project plays a quiet harbour piece (`MOODS.port`: maqam Hijaz, a sea breeze underneath). Back on the
