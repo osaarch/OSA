@@ -124,6 +124,16 @@ function StadiumModel({ mats, onGround }) {
         } catch (e) {
           /* first frame will compile instead */
         }
+        if (dead) return
+        // compile what a real frame needs (the shadow passes included) while the loader is still up,
+        // so the first scroll does not freeze on a black screen
+        stadiumLoad.set({ progress: 0.97 })
+        await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 40)))
+        try {
+          gl.render(scene, camera)
+        } catch (e) {
+          /* the first real frame will do it */
+        }
         if (!dead) stadiumLoad.set({ progress: 1, ready: true })
       } catch (err) {
         console.error('Stadium model failed:', err)
