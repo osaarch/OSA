@@ -1,3 +1,4 @@
+import { tNow } from '../i18n'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -310,8 +311,8 @@ function Rig({ grade, refs }) {
       const d = Math.hypot(camera.position.x, camera.position.y - 24, camera.position.z)
       let deg = ((P.theta * 180) / Math.PI) % 360
       if (deg < 0) deg += 360
-      set('hud-dist', `${fmt.format(d)} m`)
-      set('hud-alt', `${fmt.format(camera.position.y)} m`)
+      set('hud-dist', `${fmt.format(d)} ${tNow().unit}`)
+      set('hud-alt', `${fmt.format(camera.position.y)} ${tNow().unit}`)
       set('hud-brg', `${String(Math.round(deg) % 360).padStart(3, '0')}°`)
     }
 

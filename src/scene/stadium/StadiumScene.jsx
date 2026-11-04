@@ -22,6 +22,7 @@ import { samplePath, ORBIT_START } from './path'
 import { CHAPTERS, sj, stadiumLoad, stadiumWorld } from './state'
 import { clamp, smoothstep, stepJourney } from '../../journey'
 import { audio } from '../../audio'
+import { getLang, tNow } from '../../i18n'
 
 const IS_COARSE = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches
 const SHADOW_SIZE = IS_COARSE ? 2048 : 4096
@@ -198,7 +199,7 @@ function Rig({ grade, refs }) {
   const v = useMemo(() => ({ sun: new Vector3(), f: new Vector3(), r: new Vector3() }), [])
   const st = useRef({
     mx: 0, my: 0, px: 0, py: 0, cx: 2, cy: 2, vx: 0, vy: 0, has: false,
-    hudT: 0, audioT: 0, chap: -1,
+    hudT: 0, audioT: 0, cheered: false, chap: -1, lang: '',
     dprAvg: 0.016, dprN: 0, dpr: gl.getPixelRatio(), dprMax: gl.getPixelRatio(),
   }).current
 
@@ -239,16 +240,26 @@ function Rig({ grade, refs }) {
     const u = sj.current
     gradeAt(u, grade)
 
-    // soundtrack: haze and sand early on, the frame-drum rising over the bowl, then only music
+    // soundtrack: a stadium filling up — a far-off murmur and the sand at first, then stomps,
+    // clapping, a roaring crowd and brass over the bowl, a whistle as the stands light up, and
+    // finally only the music; the wind and the falling sand stay under all of it
     st.audioT += dt
     if (st.audioT > 0.12) {
       st.audioT = 0
+      const live = 1 - grade.black
       audio.setScene({
-        wind: 0.34 * grade.dust * (1 - smoothstep(0.55, 0.85, u)),
-        music: 0.55 + 0.45 * smoothstep(0, 0.3, u),
+        wind: (0.15 + 0.3 * grade.dust) * (1 - 0.3 * smoothstep(0.55, 0.9, u)) * live,
+        music: 0.62 + 0.38 * smoothstep(0, 0.3, u),
         clarity: 1,
-        pulse: 0.08 + 0.72 * smoothstep(0.4, 0.85, u) * (1 - grade.black) + 0.28 * grade.black,
+        pulse: 0.1 + 0.7 * smoothstep(0.3, 0.8, u) * live + 0.3 * grade.black,
+        crowd: (0.1 + 0.5 * smoothstep(0.1, 0.62, u) + 0.3 * smoothstep(0.62, 0.86, u)) * (1 - 0.8 * grade.black),
+        drive: smoothstep(0.26, 0.8, u) * (1 - 0.4 * grade.black),
       })
+      // the whistle and the roar, once, as the camera reaches the full stands
+      if (u > 0.78 && !st.cheered) {
+        st.cheered = true
+        audio.cheer()
+      } else if (u < 0.66) st.cheered = false
     }
 
     const settledBlack = u >= 0.9995 && sj.target >= 0.9995 && !moved
@@ -381,14 +392,16 @@ function Rig({ grade, refs }) {
       }
       let deg = ((P.theta * 180) / Math.PI) % 360
       if (deg < 0) deg += 360
-      set('pj-dist', `${fmt.format(Math.hypot(camera.position.x, camera.position.z))} m`)
-      set('pj-alt', `${fmt.format(camera.position.y)} m`)
+      const unit = tNow().unit
+      set('pj-dist', `${fmt.format(Math.hypot(camera.position.x, camera.position.z))} ${unit}`)
+      set('pj-alt', `${fmt.format(camera.position.y)} ${unit}`)
       set('pj-brg', `${String(Math.round(deg) % 360).padStart(3, '0')}°`)
       const ci = Math.max(0, CHAPTERS.findIndex((c) => u >= c.from && u < c.to))
-      if (ci !== st.chap) {
+      if (ci !== st.chap || st.lang !== getLang()) {
         st.chap = ci
+        st.lang = getLang()
         set('pj-chap-n', CHAPTERS[ci].n)
-        set('pj-chap-t', CHAPTERS[ci].title)
+        set('pj-chap-t', tNow().chapters[ci])
       }
     }
 

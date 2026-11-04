@@ -1,9 +1,10 @@
-import { intro } from '../content'
+import { useI18n } from '../i18n'
 import { world } from '../scene/world'
 
 // The teaser shown while the sandstorm clears. Opacity is driven by --intro-text from
 // the render loop; the copy lives in src/content.js (`intro`).
 export default function Intro() {
+  const { intro, ui } = useI18n()
   return (
     <>
       <div className="intro" aria-hidden="true">
@@ -20,7 +21,7 @@ export default function Intro() {
           world.introSkip = true
         }}
       >
-        Skip
+        {ui.skip}
       </button>
     </>
   )

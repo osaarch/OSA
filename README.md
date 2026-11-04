@@ -17,10 +17,14 @@ npm run build:single   # optional: ONE self-contained index.html in dist-single/
 
 ## Put your own content in (no code changes needed)
 
-1. **Text** — open `src/content.js`. Edit `profile` (name, title, biography, philosophy, details,
-   contact) and `projectData` (title, year, location, type, description…). Delete the line
-   `placeholder: true` when you are done.
-2. **Portrait** — save as `src/assets/profile/portrait.jpg`.
+1. **Text** — open `src/content.js`. Every text exists twice, `en` and `ar` (the site opens in English;
+   the visitor switches with the **EN / AR** button, or `?lang=ar`). Edit `profile` (name, headline,
+   biography, philosophy, areas, contact) and the projects (title, location, type, description, concept,
+   form generation, captions…). Interface words (menu, HUD, buttons) are in `src/i18n.js`. Delete the line
+   `placeholder: true` of a project when you are done. The Arabic is a faithful translation made from the
+   English text — have it read once by you before you rely on it.
+2. **Portrait** — save as `src/assets/profile/portrait.jpg` (4:5). On the OSA page it sits on a sandstone
+   panel (white background of the photo turns into the panel colour).
 3. **Project photographs** — one folder per project in `src/assets/projects/<slug>/`:
    * `cover.jpg` is the hero image and the WORKS stage image (or name the file in `coverFile`)
    * `01.jpg`, `02.jpg`, … become the editorial sequence on that project's page
@@ -89,8 +93,12 @@ is revealed → the project page begins. Scroll back up and it plays in reverse.
 
 `scene: 'stadium'` in `src/content.js` switches a project to this journey; without it a project uses the
 classic photographic hero. If WebGL or the model is unavailable the page falls back to the classic hero.
-Each place has its own music: the Malwiya plays maqam Bayati; the stadium plays maqam **Rast** with a soft
-low frame-drum that rises as the camera climbs over the bowl (`MOODS` in `src/audio.js`).
+Each place has its own music: the Malwiya plays maqam Bayati; the stadium plays maqam **Rast** as a
+sporting score — a distant crowd murmur and the sand at the start, then stomps on the stands, a clapping
+groove with rim ticks and tom fills, brass-like fanfares on the Rast scale and a roaring, chanting crowd as
+the camera climbs over the bowl, with a referee's whistle and a roar when the full stands appear. The wind
+and falling-sand texture stays underneath all of it, and only the music remains once the screen goes black
+(`MOODS.stadium` and `groove()` in `src/audio.js`; the mapping to scroll is in `StadiumScene.jsx`).
 
 ## Behaviour worth knowing
 
@@ -102,6 +110,9 @@ low frame-drum that rises as the camera climbs over the bowl (`MOODS` in `src/au
   Malwiya (the cursor wipes the dust). The teaser copy is `intro` in `src/content.js`. Any click, key or scroll
   fast-forwards it.
 * **Mouse:** the monument tilts and shifts with the cursor, and the sand grains are pushed and swirled by it.
+* **Language:** English by default; the **EN / AR** switch sits next to the sound button (also on the "Enter"
+  screen). Arabic switches the text to right-to-left with the Cairo typeface; the OSA / WORKS wordmark stays
+  Latin. The choice is remembered.
 * **Music:** generated live in the browser (no audio files) — a slow maqam-Bayati piece (oud-like plucks, ney-like
   flute, drone, pad) with wind and falling-sand texture. The wind/sand fades away at OSA / WORKS and only the music
   stays. The "Sound on/off" button is always in the top-right corner; the choice is remembered. Tune the mood in

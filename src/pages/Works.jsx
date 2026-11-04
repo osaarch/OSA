@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { projects } from '../content'
+import { useI18n } from '../i18n'
 import { Frame } from '../ui/Frame'
 import { href } from '../router'
 import { ProjectLogo } from './Project'
@@ -7,6 +7,7 @@ import { ProjectLogo } from './Project'
 // WORKS — a full-bleed cinematic stage. Hover (or arrow-key / scroll-wheel) through
 // the index and the stage wipes between projects; click to open the project page.
 export default function Works({ go }) {
+  const { projects, profile, ui } = useI18n()
   const [active, setActive] = useState(0)
   const [prev, setPrev] = useState(null)
   const timer = useRef(0)
@@ -58,7 +59,7 @@ export default function Works({ go }) {
               go(`/works/${p.slug}`)
             }}
             tabIndex={i === active ? 0 : -1}
-            aria-label={`Open ${p.title}`}
+            aria-label={`${ui.openProject}: ${p.title}`}
           >
             <div className="slide-media">
               <Frame src={p.cover} alt={p.title} eager={i === 0} />
@@ -79,9 +80,11 @@ export default function Works({ go }) {
           </span>
         </div>
         <span className="stage-open" aria-hidden="true">
-          Open project →
+          {ui.openProject} <span className="arr">→</span>
         </span>
       </div>
+
+      <p className="works-intro">{profile.worksIntro}</p>
 
       <ol className="works-list" aria-label="Projects">
         {projects.map((p, i) => (

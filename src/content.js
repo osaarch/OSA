@@ -1,9 +1,10 @@
 // ═════════════════════════════════════════════════════════════════════════════
-//  ALL OF THE SITE'S PERSONAL CONTENT LIVES IN THIS FILE.
+//  ALL OF THE SITE'S PERSONAL CONTENT LIVES IN THIS FILE — in English and in Arabic.
 //
-//  The entries below are PLACEHOLDERS. Replace the text with your own, drop your
-//  photographs into the folders described in README.md, and delete the line
-//  `placeholder: true` from `profile`. Nothing else in the code needs to change.
+//  Every text exists twice: under `en` and under `ar`. The AR / EN switch on the site
+//  chooses which one is shown (English is the default). Images, links and the 3D scene
+//  are shared by both languages.
+//  Photographs go in the folders described in README.md; nothing else needs to change.
 // ═════════════════════════════════════════════════════════════════════════════
 
 // ── Image discovery ──────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ function projectImages(slug, captions = {}, { coverFile: wantedCover, keepCoverI
     .map(([p, url]) => ({ file: p.split('/').pop(), url }))
     .filter((f) => !/^logo\./i.test(f.file))
     .sort(byName)
-  // cover.jpg is the hero image; otherwise the one named in content.js; otherwise the first file.
+  // cover.jpg is the hero image; otherwise the one named in `coverFile`; otherwise the first file.
   const coverFile =
     all.find((f) => /^cover\./i.test(f.file)) || all.find((f) => f.file === wantedCover) || all[0] || null
   const logo = Object.entries(logoFiles).find(([p]) => p.includes(`/projects/${slug}/`))
@@ -62,135 +63,239 @@ function projectImages(slug, captions = {}, { coverFile: wantedCover, keepCoverI
 }
 
 // ── INTRO  (the sandstorm teaser shown before the journey) ───────────────────
-export const intro = {
-  arabic: 'الملوية',
-  title: 'AL-MALWIYA',
-  line: 'Beyond the dust, a spiral rises.',
+const introText = {
+  en: { arabic: 'الملوية', title: 'AL-MALWIYA', line: 'Beyond the dust, a spiral rises.' },
+  ar: { arabic: 'الملوية', title: 'AL-MALWIYA', line: 'خلف الغبار، تنهض حلزونة.' },
 }
 
 // ── PROFILE  (the OSA page) ──────────────────────────────────────────────────
-export const profile = {
-  placeholder: true, // ← delete this line once the content below is yours
-
-  name: 'Your Full Name',
-  title: 'Architect',
-  location: 'City, Country',
+const profileShared = {
   portrait: profileImage(), // src/assets/profile/portrait.jpg
   portraitCaption: '',
+  email: 'osama.architects@gmail.com',
+  instagram: 'osa.arch',
+  phone: '+964 774 999 8299',
+}
 
-  // one-line professional identity, shown under the name
-  identity: 'A single sentence that says who you are as an architect.',
-
-  biography: [
-    'Write your biography here. Two or three short paragraphs work best: where you studied, where you practise, what you are known for.',
-    'Each string in this list becomes one paragraph on the page.',
-  ],
-
-  philosophy: {
-    statement: 'Your architectural philosophy in one sentence.',
-    paragraphs: [
-      'Expand on your philosophy here — your approach to material, light, place, memory, structure.',
+const profileText = {
+  en: {
+    name: 'OSAMA',
+    title: 'OSA — Architecture / Design / Visualization',
+    headline: 'Architecture, rooted in place.',
+    // the short introduction beside the portrait
+    identity:
+      'I am Osama, an Iraqi architect from Samarra. My work explores form, light and material, with an interest in spaces that connect people to their surroundings.',
+    biography: [
+      'I am an Iraqi architect from Samarra, a city whose architectural heritage has shaped the way I understand space and place. Growing up alongside landmarks such as Al-Malwiya has deepened my appreciation of architecture’s relationship with cultural identity and everyday life.',
+      'My work spans architectural design, public spaces, residential façades and architectural visualization. Across these different scales, I explore how geometry, materials and natural light shape the experience of a building—from its presence in the landscape to the spaces people move through and share.',
     ],
+    philosophy: {
+      statement: '“I want to create an environment where everyone feels welcome.”',
+      paragraphs: [
+        'I approach design through the relationship between people and place. I am interested in translating local identity into contemporary architecture, allowing the character of a setting to inform its spaces, materials and architectural language.',
+        'I pay attention to how people arrive, move, pause and gather. These everyday experiences guide my ambition to create architecture that feels welcoming and connected to its surroundings.',
+      ],
+    },
+    areas: ['Architectural Design', 'Façade Design', '3D Modeling', 'Architectural Visualization'],
+    worksIntro:
+      'Selected architectural projects exploring form, landscape and public life. Each project presents a different approach to context, spatial experience and material expression.',
+    contactIntro: 'For project inquiries and collaborations, get in touch.',
+    contactLabels: { email: 'Email', instagram: 'Instagram', phone: 'Phone' },
   },
+  ar: {
+    name: 'أسامة',
+    title: 'OSA — عمارة / تصميم / تصوير معماري',
+    headline: 'عمارة متجذّرة في المكان.',
+    identity:
+      'أنا أسامة، مهندس معماري عراقي من سامراء. يستكشف عملي الشكل والضوء والمادة، باهتمام بالفضاءات التي تربط الناس بمحيطهم.',
+    biography: [
+      'أنا مهندس معماري عراقي من سامراء، المدينة التي شكّل إرثها المعماري طريقة فهمي للفضاء والمكان. وقد عمّق نشأتي إلى جوار معالم مثل الملوية تقديري لعلاقة العمارة بالهوية الثقافية والحياة اليومية.',
+      'يشمل عملي التصميم المعماري والفضاءات العامة وواجهات المباني السكنية والتصوير المعماري. وعبر هذه المقاييس المختلفة أستكشف كيف تصوغ الهندسة والمواد والضوء الطبيعي تجربة المبنى، من حضوره في المشهد الطبيعي إلى الفضاءات التي يتحرك فيها الناس ويتشاركونها.',
+    ],
+    philosophy: {
+      statement: '«أريد أن أصنع بيئة يشعر فيها الجميع بأنهم موضع ترحيب.»',
+      paragraphs: [
+        'أقارب التصميم من خلال العلاقة بين الناس والمكان. يهمّني أن أترجم الهوية المحلية إلى عمارة معاصرة، تاركًا طابع الموقع يُلهم فضاءاته ومواده ولغته المعمارية.',
+        'أنتبه إلى كيفية وصول الناس وتنقّلهم وتوقّفهم واجتماعهم. وتقود هذه التجارب اليومية طموحي إلى صنع عمارة تبعث على الترحيب وتتصل بمحيطها.',
+      ],
+    },
+    areas: ['التصميم المعماري', 'تصميم الواجهات', 'النمذجة ثلاثية الأبعاد', 'التصوير المعماري'],
+    worksIntro:
+      'مشاريع معمارية مختارة تستكشف الشكل والمشهد الطبيعي والحياة العامة. يقدّم كل مشروع مقاربة مختلفة للسياق والتجربة المكانية والتعبير المادي.',
+    contactIntro: 'للاستفسار عن المشاريع وفرص التعاون، يسعدني تواصلكم.',
+    contactLabels: { email: 'البريد الإلكتروني', instagram: 'إنستغرام', phone: 'الهاتف' },
+  },
+}
 
-  // facts about you, shown as a quiet two-column list
-  details: [
-    { label: 'Practice', value: 'Studio or office name' },
-    { label: 'Education', value: 'Degree, university, year' },
-    { label: 'Focus', value: 'Heritage · housing · public space' },
-    { label: 'Recognition', value: 'Awards, publications, exhibitions' },
-  ],
-
-  contact: [
-    { label: 'Instagram', value: '@osa.arch', href: 'https://instagram.com/osa.arch' },
-    { label: 'Phone', value: '07749998299', href: 'tel:+9647749998299' },
-    // { label: 'Email', value: 'name@example.com', href: 'mailto:name@example.com' },
-  ],
+function buildProfile(lang) {
+  const t = profileText[lang]
+  const s = profileShared
+  return {
+    ...s,
+    ...t,
+    contact: [
+      { label: t.contactLabels.email, value: s.email, href: `mailto:${s.email}` },
+      { label: t.contactLabels.instagram, value: `@${s.instagram}`, href: `https://instagram.com/${s.instagram}` },
+      { label: t.contactLabels.phone, value: s.phone, href: `tel:${s.phone.replace(/\s/g, '')}`, ltr: true },
+    ],
+  }
 }
 
 // ── PROJECTS  (the WORKS page and one detail page per project) ───────────────
 // `slug` must match the folder name in src/assets/projects/<slug>/
+// `scene: 'stadium'` gives a project its own scroll-driven 3D journey.
 const projectData = [
   {
     // ── PROJECT ONE · Al Rafidain Stadium ────────────────────────────────────
-    // scene: 'stadium' opens the project with its own scroll-driven 3D journey (the model
-    // is public/assets/stadium/stadium.glb, made from the Rhino file). The logo is
-    // src/assets/projects/al-rafidain-stadium/logo.svg.
+    // The journey's model is public/assets/stadium/stadium.glb (made from the Rhino file).
+    // The logo is src/assets/projects/al-rafidain-stadium/logo.svg.
     slug: 'al-rafidain-stadium',
     scene: 'stadium',
-    title: 'Al Rafidain Stadium',
-    titleAr: 'ملعب الرافدين',
-    location: 'Tikrit, Iraq',
-    type: 'Sports Architecture and Landscape',
-    format: 'Design Study',
-    summary:
-      "A stadium and landscape design study shaped by the river's trace and the image of fractured ground rising into architecture.",
-
-    description: [
-      "Al-Rafidain Stadium explores the relationship between river, terrain and architecture. Taking Mesopotamia's riverside settlements as its conceptual starting point, the proposal translates a symbolic river trace into a network of fractures across the ground. These fragments lift and tilt, revealing the stadium and its surrounding architectural volumes.",
-      'The masterplan brings together a main stadium, a secondary stadium and supporting buildings within a composition of angular forms. Faceted edges and tilted roof planes carry the idea of uplifted terrain into the architectural profile, while water and planted spaces connect the buildings to their surrounding landscape.',
-      "The resulting composition presents architecture as an emergence from the ground. The stadium's identity develops through the relationship between the fractured surface, the raised fragments and the spaces revealed between them.",
-    ],
-
-    concept: {
-      title: 'From River to Architecture',
-      text: [
-        'The concept begins with the river as a line of connection across the landscape. Its symbolic trace extends into the site, transforming the ground into a series of irregular fragments.',
-        "As these fragments rise, they become architectural volumes. Their varying heights and inclinations establish the stadium's silhouette and organise the surrounding spaces. The final composition expresses the river, terrain and built form as parts of one continuous landscape.",
-      ],
-    },
-
-    formGeneration: [
-      { title: 'River Edge', text: 'The river and the earthen landscape establish the conceptual starting point.' },
-      { title: 'River Trace', text: 'A symbolic trace extends into the site and initiates the transformation of the ground.' },
-      { title: 'Ground Fracture', text: 'The surface separates into irregular fragments around the emerging stadium.' },
-      { title: 'Fragment Uplift', text: 'Fragments lift and tilt, translating the fractured ground into architectural volumes.' },
-      { title: 'Stadium Emergence', text: 'The stadium is revealed between the raised fragments.' },
-      { title: 'Landscape Continuity', text: 'The stadium and surrounding volumes form an extension of the terrain.' },
-    ],
-
-    material: {
-      title: 'Material Expression',
-      text: "Faceted roof planes, dark glazing and planted ground define the project's visual expression. Glazing in a very dark brown tone, approaching black, creates recessed surfaces beneath the angular roof forms.",
-    },
-
     // the cover (WORKS page) and the images of the project, by the number they start with
     // in src/assets/projects/al-rafidain-stadium/   (01-…, 02-…, 03-…, 04-…)
     coverFile: '04-river-and-architecture.jpg',
-    captions: {
-      '01': { title: 'A Landscape of Fragments', text: 'The main stadium, secondary stadium and supporting volumes form a connected composition across the site.' },
-      '02': { title: 'Emerging from the Ground', text: "Tilted planes translate the concept of uplifted terrain into the stadium's architectural profile." },
-      '03': { title: 'Inside the Bowl', text: 'The seating bowl gathers spectators around the pitch beneath the articulated roof.' },
-      '04': { title: 'River and Architecture', text: 'Water and planted ground connect the stadium with its surrounding landscape.' },
+    en: {
+      title: 'Al Rafidain Stadium',
+      titleAr: 'ملعب الرافدين', // shown as a second line in the English version
+      location: 'Tikrit, Iraq',
+      type: 'Sports Architecture and Landscape',
+      format: 'Design Study',
+      summary:
+        "A stadium and landscape design study shaped by the river's trace and the image of fractured ground rising into architecture.",
+      description: [
+        "Al-Rafidain Stadium explores the relationship between river, terrain and architecture. Taking Mesopotamia's riverside settlements as its conceptual starting point, the proposal translates a symbolic river trace into a network of fractures across the ground. These fragments lift and tilt, revealing the stadium and its surrounding architectural volumes.",
+        'The masterplan brings together a main stadium, a secondary stadium and supporting buildings within a composition of angular forms. Faceted edges and tilted roof planes carry the idea of uplifted terrain into the architectural profile, while water and planted spaces connect the buildings to their surrounding landscape.',
+        "The resulting composition presents architecture as an emergence from the ground. The stadium's identity develops through the relationship between the fractured surface, the raised fragments and the spaces revealed between them.",
+      ],
+      concept: {
+        title: 'From River to Architecture',
+        text: [
+          'The concept begins with the river as a line of connection across the landscape. Its symbolic trace extends into the site, transforming the ground into a series of irregular fragments.',
+          "As these fragments rise, they become architectural volumes. Their varying heights and inclinations establish the stadium's silhouette and organise the surrounding spaces. The final composition expresses the river, terrain and built form as parts of one continuous landscape.",
+        ],
+      },
+      formGeneration: [
+        { title: 'River Edge', text: 'The river and the earthen landscape establish the conceptual starting point.' },
+        { title: 'River Trace', text: 'A symbolic trace extends into the site and initiates the transformation of the ground.' },
+        { title: 'Ground Fracture', text: 'The surface separates into irregular fragments around the emerging stadium.' },
+        { title: 'Fragment Uplift', text: 'Fragments lift and tilt, translating the fractured ground into architectural volumes.' },
+        { title: 'Stadium Emergence', text: 'The stadium is revealed between the raised fragments.' },
+        { title: 'Landscape Continuity', text: 'The stadium and surrounding volumes form an extension of the terrain.' },
+      ],
+      material: {
+        title: 'Material Expression',
+        text: "Faceted roof planes, dark glazing and planted ground define the project's visual expression. Glazing in a very dark brown tone, approaching black, creates recessed surfaces beneath the angular roof forms.",
+      },
+      captions: {
+        '01': { title: 'A Landscape of Fragments', text: 'The main stadium, secondary stadium and supporting volumes form a connected composition across the site.' },
+        '02': { title: 'Emerging from the Ground', text: "Tilted planes translate the concept of uplifted terrain into the stadium's architectural profile." },
+        '03': { title: 'Inside the Bowl', text: 'The seating bowl gathers spectators around the pitch beneath the articulated roof.' },
+        '04': { title: 'River and Architecture', text: 'Water and planted ground connect the stadium with its surrounding landscape.' },
+      },
+    },
+    ar: {
+      title: 'ملعب الرافدين',
+      location: 'تكريت، العراق',
+      type: 'العمارة الرياضية والمشهد الطبيعي',
+      format: 'دراسة تصميمية',
+      summary: 'دراسة تصميمية لملعب ومشهد طبيعي، شكّلها أثر النهر وصورة الأرض المتشقّقة وهي ترتفع لتصير عمارة.',
+      description: [
+        'يستكشف ملعب الرافدين العلاقة بين النهر والأرض والعمارة. وانطلاقًا من مستوطنات ضفاف الأنهار في بلاد الرافدين كنقطة بداية مفاهيمية، يترجم المقترح أثر النهر الرمزي إلى شبكة من الشقوق عبر الأرض. تنهض هذه الشظايا وتميل، لتكشف عن الملعب والكتل المعمارية المحيطة به.',
+        'يجمع المخطط العام بين ملعب رئيسي وملعب ثانوي ومبانٍ مساندة ضمن تكوين من الأشكال الزاويّة. وتنقل الحواف المضلّعة وأسطح السقف المائلة فكرة الأرض المرتفعة إلى الشكل المعماري، بينما يربط الماء والمساحات المزروعة المباني بمحيطها الطبيعي.',
+        'ويقدّم التكوين الناتج العمارة بوصفها انبثاقًا من الأرض. وتتشكّل هوية الملعب من العلاقة بين السطح المتشقّق والشظايا المرتفعة والفراغات التي تنكشف بينها.',
+      ],
+      concept: {
+        title: 'من النهر إلى العمارة',
+        text: [
+          'يبدأ المفهوم من النهر بوصفه خطّ اتصال يعبر المشهد الطبيعي. ويمتد أثره الرمزي إلى الموقع، محوّلًا الأرض إلى سلسلة من الشظايا غير المنتظمة.',
+          'ومع ارتفاع هذه الشظايا تصبح كتلًا معمارية. وتُرسي ارتفاعاتها وميولها المتفاوتة صورة الملعب وتنظّم الفضاءات المحيطة به. ويعبّر التكوين النهائي عن النهر والأرض والشكل المبني بوصفها أجزاءً من مشهد واحد متصل.',
+        ],
+      },
+      formGeneration: [
+        { title: 'ضفة النهر', text: 'يشكّل النهر والأرض الطينية نقطة الانطلاق المفاهيمية.' },
+        { title: 'أثر النهر', text: 'يمتد أثر رمزي إلى الموقع ويبدأ تحويل الأرض.' },
+        { title: 'تشقّق الأرض', text: 'ينفصل السطح إلى شظايا غير منتظمة حول الملعب الناشئ.' },
+        { title: 'ارتفاع الشظايا', text: 'ترتفع الشظايا وتميل، فتترجم الأرض المتشقّقة إلى كتل معمارية.' },
+        { title: 'انبثاق الملعب', text: 'ينكشف الملعب بين الشظايا المرتفعة.' },
+        { title: 'استمرارية المشهد', text: 'يشكّل الملعب والكتل المحيطة به امتدادًا للأرض.' },
+      ],
+      material: {
+        title: 'التعبير المادي',
+        text: 'تحدّد أسطحُ السقف المضلّعة والزجاج الداكن والأرض المزروعة التعبير البصري للمشروع. ويخلق الزجاج بلونه البنّي الداكن جدًّا، المقارب للأسود، أسطحًا غائرة تحت الأشكال الزاويّة للسقف.',
+      },
+      captions: {
+        '01': { title: 'مشهد من الشظايا', text: 'يشكّل الملعب الرئيسي والملعب الثانوي والكتل المساندة تكوينًا متصلًا عبر الموقع.' },
+        '02': { title: 'ينبثق من الأرض', text: 'تترجم المستويات المائلة فكرة الأرض المرتفعة إلى الشكل المعماري للملعب.' },
+        '03': { title: 'داخل المدرّج', text: 'يجمع مدرّج الجلوس المتفرجين حول الملعب تحت السقف المفصّل.' },
+        '04': { title: 'النهر والعمارة', text: 'يربط الماء والأرض المزروعة الملعب بمحيطه الطبيعي.' },
+      },
     },
   },
   {
     slug: 'project-two',
-    title: 'Project Two',
-    year: '2024',
-    location: 'City, Country',
-    type: 'Typology',
-    status: 'Competition',
-    area: '000 m²',
-    role: 'Design team',
-    summary: 'A short line that introduces the project.',
-    description: ['Describe the project here.'],
-    captions: {},
+    placeholder: true, // ← delete this line once the project's real content is in
+    en: {
+      title: 'Project Two',
+      year: '2024',
+      location: 'City, Country',
+      type: 'Typology',
+      status: 'Competition',
+      area: '000 m²',
+      role: 'Design team',
+      summary: 'A short line that introduces the project.',
+      description: ['Describe the project here.'],
+      captions: {},
+    },
+    ar: {
+      title: 'المشروع الثاني',
+      year: '2024',
+      location: 'المدينة، البلد',
+      type: 'النمط',
+      status: 'مسابقة',
+      area: '000 م²',
+      role: 'فريق التصميم',
+      summary: 'سطر قصير يقدّم المشروع.',
+      description: ['صِف المشروع هنا.'],
+      captions: {},
+    },
   },
 ]
 
-export const projects = projectData.map((p, i) => {
-  const is3d = Boolean(p.scene)
-  const imgs = projectImages(p.slug, p.captions, { coverFile: p.coverFile, keepCoverInGallery: is3d })
-  return {
-    ...p,
-    index: i,
-    number: String(i + 1).padStart(2, '0'),
-    cover: imgs.cover,
-    logo: imgs.logo,
-    gallery: imgs.gallery,
-    hasImages: imgs.count > 0,
-  }
-})
+function buildProjects(lang) {
+  return projectData.map((p, i) => {
+    const text = p[lang]
+    const is3d = Boolean(p.scene)
+    const imgs = projectImages(p.slug, text.captions, { coverFile: p.coverFile, keepCoverInGallery: is3d })
+    return {
+      slug: p.slug,
+      scene: p.scene,
+      placeholder: p.placeholder,
+      ...text,
+      index: i,
+      number: String(i + 1).padStart(2, '0'),
+      cover: imgs.cover,
+      logo: imgs.logo,
+      gallery: imgs.gallery,
+      hasImages: imgs.count > 0,
+    }
+  })
+}
 
-export const findProject = (slug) => projects.find((p) => p.slug === slug)
+const CONTENT = {}
+for (const lang of ['en', 'ar']) {
+  const projects = buildProjects(lang)
+  CONTENT[lang] = {
+    lang,
+    intro: introText[lang],
+    profile: buildProfile(lang),
+    projects,
+    findProject: (slug) => projects.find((p) => p.slug === slug),
+  }
+}
+
+// The content for a language ('en' is the fallback).
+export const getContent = (lang) => CONTENT[lang] || CONTENT.en
+
+// Language-independent lookups (the scene a project uses, …) — English record.
+export const projects = CONTENT.en.projects
+export const findProject = CONTENT.en.findProject

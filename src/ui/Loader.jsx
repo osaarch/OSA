@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLoadState, world } from '../scene/world'
 import { audio } from '../audio'
+import { useI18n } from '../i18n'
 
 const root = document.documentElement
 
@@ -9,6 +10,7 @@ const root = document.documentElement
 // the corner can change that at any time). Choosing also starts the sandstorm intro.
 export default function Loader({ active, failed }) {
   const s = useLoadState()
+  const { ui } = useI18n()
   const [started, setStarted] = useState(world.introDone || world.introStarted)
   const needsGate = active && !failed && !world.introDone
   const done = !needsGate || (s.ready && started)
@@ -36,18 +38,18 @@ export default function Loader({ active, failed }) {
       </div>
       {!waiting && (
         <div className="loader-label">
-          {s.error ? 'The 3D model could not be loaded' : `Loading the Malwiya · ${Math.round(s.progress * 100)}%`}
+          {s.error ? ui.loadError : `${ui.loadingMalwiya} · ${Math.round(s.progress * 100)}%`}
         </div>
       )}
       {waiting && (
         <div className="gate">
-          <p className="gate-note">Best experienced with sound</p>
+          <p className="gate-note">{ui.bestWithSound}</p>
           <div className="gate-actions">
             <button type="button" className="gate-btn gate-primary" onClick={() => enter(true)} autoFocus>
-              Enter with sound
+              {ui.enterSound}
             </button>
             <button type="button" className="gate-btn" onClick={() => enter(false)}>
-              Enter without
+              {ui.enterSilent}
             </button>
           </div>
         </div>

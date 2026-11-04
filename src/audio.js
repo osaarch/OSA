@@ -67,6 +67,15 @@ const MOODS = {
     ney: [11, 14, 9, 11, 12, 14],
     startIdx: 2,
     gap: [3.4, 7.5],
+    // the stadium: a driving groove (stomps, a crowd's claps, a rim, tom fills), a crowd that
+    // breathes and chants, and brass-like fanfares on the Rast scale — over the same sand
+    sport: { bpm: 100 },
+    horns: [
+      [7, 11, 9, 7], //  C  G  E½♭ C  (an octave up)
+      [7, 9, 11, 14],
+      [11, 9, 7, 9, 7],
+      [7, 7, 11, 9, 7],
+    ],
   },
 }
 
@@ -127,6 +136,8 @@ export function createEngine(ctx, moodName = 'malwiya') {
   const musicBus = mk.gain(0)
   const windMaster = mk.gain(0)
   const pulseBus = mk.gain(0)
+  const crowdBus = mk.gain(0)
+  const driveBus = mk.gain(0)
   const mix = mk.gain(1)
   const reverb = ctx.createConvolver()
   reverb.buffer = ir
@@ -150,6 +161,10 @@ export function createEngine(ctx, moodName = 'malwiya') {
   windMaster.connect(reverbSend)
   pulseBus.connect(mix)
   pulseBus.connect(reverbSend)
+  crowdBus.connect(mix)
+  crowdBus.connect(reverbSend)
+  driveBus.connect(mix)
+  driveBus.connect(reverbSend)
   mix.connect(lpf)
   lpf.connect(comp)
   comp.connect(master)
@@ -221,6 +236,51 @@ export function createEngine(ctx, moodName = 'malwiya') {
     hg.connect(windMaster)
     hiss.start(0, 1.7)
     l3.start()
+  }
+
+  // ── the crowd: a wide roar that swells and settles, and a murmur that chants in time ─────
+  {
+    const [src] = noise(true)
+    const bp = mk.filter('bandpass', 760, 0.45)
+    const lp2 = mk.filter('lowpass', 2600, 0.6)
+    const g = mk.gain(0.5)
+    for (const [fr, am] of [
+      [0.057, 0.2],
+      [0.151, 0.1],
+    ]) {
+      const l = mk.osc('sine', fr)
+      const lg = mk.gain(am)
+      l.connect(lg)
+      lg.connect(g.gain)
+      l.start()
+    }
+    src.connect(bp)
+    bp.connect(lp2)
+    lp2.connect(g)
+    g.connect(crowdBus)
+    src.start(0, 0.9)
+
+    // the chant: two vowel-like bands, switched on and off at the speed of eighth notes
+    const [chant] = noise(true)
+    const f1 = mk.filter('bandpass', 640, 4)
+    const f2 = mk.filter('bandpass', 1300, 5)
+    const am = mk.gain(0.16)
+    const lfo = mk.osc('sine', 3.333)
+    const lfoG = mk.gain(0.15)
+    const phrasing = mk.osc('sine', 0.21)
+    const phrasingG = mk.gain(0.08)
+    lfo.connect(lfoG)
+    lfoG.connect(am.gain)
+    phrasing.connect(phrasingG)
+    phrasingG.connect(am.gain)
+    chant.connect(f1)
+    chant.connect(f2)
+    f1.connect(am)
+    f2.connect(am)
+    am.connect(crowdBus)
+    chant.start(0, 2.1)
+    lfo.start()
+    phrasing.start()
   }
 
   // ── voices ───────────────────────────────────────────────────────────────
@@ -378,6 +438,172 @@ export function createEngine(ctx, moodName = 'malwiya') {
     s.stop(t + 0.07)
   }
 
+  // ── the stadium's voices ─────────────────────────────────────────────────
+  // a stomp on the stands: a deep thud with a dull knock (on the heartbeat bus)
+  function stomp(t, vel) {
+    const o = mk.osc('sine', 96)
+    o.frequency.setValueAtTime(96, t)
+    o.frequency.exponentialRampToValueAtTime(38, t + 0.22)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.62 * vel, t + 0.006)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.46)
+    o.connect(g)
+    g.connect(pulseBus)
+    o.start(t)
+    o.stop(t + 0.5)
+    const [s] = noise()
+    const f = mk.filter('lowpass', 320, 0.8)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.28 * vel, t + 0.003)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06)
+    s.connect(f)
+    f.connect(ng)
+    ng.connect(pulseBus)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.08)
+  }
+  // thousands of hands: a dozen tiny claps landing within a few hundredths of a second
+  function clap(t, vel) {
+    for (let k = 0; k < 7; k++) {
+      const at = t + rnd(0, 0.03)
+      const [s] = noise()
+      const f = mk.filter('bandpass', rnd(1100, 2900), 0.9)
+      const g = mk.gain(0)
+      g.gain.setValueAtTime(0.0001, at)
+      g.gain.linearRampToValueAtTime(rnd(0.05, 0.1) * vel, at + 0.002)
+      g.gain.exponentialRampToValueAtTime(0.0001, at + rnd(0.07, 0.15))
+      s.connect(f)
+      f.connect(g)
+      g.connect(driveBus)
+      s.start(at, rnd(0, 3))
+      s.stop(at + 0.2)
+    }
+  }
+  // a rim / hi-hat tick
+  function hat(t, vel) {
+    const [s] = noise()
+    const f = mk.filter('highpass', 6200, 0.6)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.07 * vel, t + 0.001)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045)
+    s.connect(f)
+    f.connect(g)
+    g.connect(driveBus)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.06)
+  }
+  // a tom for the fills
+  function tom(t, f0, vel) {
+    const o = mk.osc('sine', f0)
+    o.frequency.setValueAtTime(f0 * 1.25, t)
+    o.frequency.exponentialRampToValueAtTime(f0, t + 0.07)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.3 * vel, t + 0.004)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.26)
+    o.connect(g)
+    g.connect(driveBus)
+    o.start(t)
+    o.stop(t + 0.3)
+    const [s] = noise()
+    const nf = mk.filter('bandpass', 1800, 1.2)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.05 * vel, t + 0.002)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.05)
+    s.connect(nf)
+    nf.connect(ng)
+    ng.connect(driveBus)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.07)
+  }
+  // a brass-like horn: two detuned saws and a square, opened by a quick filter sweep
+  function horn(t, f, dur, vel = 0.7) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    const lp = mk.filter('lowpass', 600, 0.9)
+    lp.frequency.setValueAtTime(520, t)
+    lp.frequency.linearRampToValueAtTime(2700, t + 0.11)
+    lp.frequency.exponentialRampToValueAtTime(1400, t + dur)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.1 * vel, t + 0.05)
+    g.gain.setValueAtTime(0.085 * vel, t + Math.max(0.06, dur - 0.1))
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.22)
+    const vib = mk.osc('sine', 5.1)
+    const vg = mk.gain(0)
+    vg.gain.setValueAtTime(0, t)
+    vg.gain.linearRampToValueAtTime(9, t + dur * 0.7)
+    vib.connect(vg)
+    vib.start(t)
+    vib.stop(t + dur + 0.3)
+    for (const [type, det, gv] of [
+      ['sawtooth', -8, 0.5],
+      ['sawtooth', 8, 0.5],
+      ['square', 0, 0.16],
+    ]) {
+      const o = mk.osc(type, f)
+      o.detune.value = det
+      vg.connect(o.detune)
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(lp)
+      o.start(t)
+      o.stop(t + dur + 0.3)
+    }
+    lp.connect(g)
+    g.connect(driveBus)
+  }
+  // a short call from the horns, in step with the groove
+  function fanfare(t, step) {
+    const m = pick(M.horns)
+    m.forEach((deg, k) => {
+      const last = k === m.length - 1
+      horn(t + k * 4 * step, note(deg), last ? 9 * step : 3.6 * step, last ? 0.85 : 0.7)
+    })
+  }
+  // the referee's whistle, then the stands erupt
+  function whistle(t) {
+    const o = mk.osc('sine', 2950)
+    const trill = mk.osc('sine', 31)
+    const tg = mk.gain(210)
+    trill.connect(tg)
+    tg.connect(o.frequency)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.06, t + 0.02)
+    g.gain.setValueAtTime(0.06, t + 0.34)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.46)
+    o.connect(g)
+    g.connect(driveBus)
+    o.start(t)
+    o.stop(t + 0.5)
+    trill.start(t)
+    trill.stop(t + 0.5)
+  }
+  function cheer() {
+    if (!M.sport) return
+    const t = ctx.currentTime + 0.05
+    whistle(t)
+    const [s] = noise(true)
+    const bp = mk.filter('bandpass', 520, 0.55)
+    bp.frequency.setValueAtTime(520, t + 0.3)
+    bp.frequency.exponentialRampToValueAtTime(1500, t + 2.4)
+    bp.frequency.exponentialRampToValueAtTime(700, t + 6.5)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t + 0.3)
+    g.gain.linearRampToValueAtTime(0.85, t + 2.2)
+    g.gain.setValueAtTime(0.85, t + 3.3)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 7)
+    s.connect(bp)
+    bp.connect(g)
+    g.connect(crowdBus)
+    s.start(t, rnd(0, 2))
+    s.stop(t + 7.2)
+  }
+
   // falling-sand grain: a tiny, bright tick
   function grain(t) {
     const [s] = noise()
@@ -405,7 +631,9 @@ export function createEngine(ctx, moodName = 'malwiya') {
     nextPad: 0.2,
     nextGrain: 0.2,
     padN: 0,
-    level: { wind: 0, music: 0.4, clarity: 1, pulse: 0 },
+    nextStep: 0.4, // the stadium groove: sixteenth notes
+    stepN: 0,
+    level: { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0 },
   }
   function phrase(t0) {
     let t = t0
@@ -436,6 +664,28 @@ export function createEngine(ctx, moodName = 'malwiya') {
     return t
   }
 
+  // One sixteenth of the stadium groove (a bar = 16 steps).
+  //   stomps  . . . x . . . .   x . . x . . . .        (the heartbeat, then a gallop)
+  //   claps   . . . . x . . . . . . . x . x .          (beats 2 and 4, a ghost late in the bar)
+  //   rim     x . x . x . x . x . x . x . x .          (eighths)
+  //   fills   a tom roll in the last beat of every fourth bar
+  function groove(t, n, step) {
+    const s = n % 16
+    const bar = Math.floor(n / 16)
+    const p = state.level.pulse
+    const d = state.level.drive
+    if (s === 0 || s === 8) {
+      if (p > 0.03) stomp(t, 0.55 + 0.45 * p)
+    } else if ((s === 3 || s === 11) && p > 0.03 && d > 0.3) {
+      stomp(t, 0.4 + 0.4 * d)
+    }
+    if (d > 0.4 && (s === 4 || s === 12)) clap(t, 0.5 + 0.5 * d)
+    if (d > 0.82 && s === 14) clap(t, 0.35)
+    if (d > 0.55 && s % 2 === 0) hat(t, (s % 4 === 0 ? 0.55 : 0.85) * (0.4 + 0.6 * d))
+    if (d > 0.7 && bar % 4 === 3 && s >= 12) tom(t, [210, 172, 140, 108][s - 12], 0.7 + 0.3 * d)
+    if (d > 0.55 && s === 0 && bar % 2 === 0 && Math.random() < 0.65) fanfare(t, step)
+  }
+
   function scheduleUntil(horizon) {
     while (state.nextPad < horizon) {
       const dur = 26
@@ -452,17 +702,22 @@ export function createEngine(ctx, moodName = 'malwiya') {
       ney(state.nextNey, note(pick(M.ney)), dur, rnd(0.5, 0.75))
       state.nextNey += dur + rnd(9, 15) * (1 + (1 - state.level.music))
     }
-    // a slow maqsum-like pattern (one bar = eight steps of 0.46 s); silent unless the scene asks for it
-    const STEP = 0.46
-    const PATTERN = ['D', 't', '-', 't', 'D', '-', 't', '-']
-    while (state.nextBeat < horizon) {
-      const hit = PATTERN[state.beatN++ % 8]
-      const p = state.level.pulse
-      if (p > 0.03 && hit !== '-') {
-        if (hit === 'D') doum(state.nextBeat, 0.55 + 0.45 * p)
-        else tek(state.nextBeat, 0.4 + 0.6 * p)
+    if (M.sport) {
+      const step = 60 / M.sport.bpm / 4
+      while (state.nextStep < horizon) groove(state.nextStep, state.stepN++, step), (state.nextStep += step)
+    } else {
+      // a slow maqsum-like pattern (one bar = eight steps of 0.46 s); silent unless the scene asks for it
+      const STEP = 0.46
+      const PATTERN = ['D', 't', '-', 't', 'D', '-', 't', '-']
+      while (state.nextBeat < horizon) {
+        const hit = PATTERN[state.beatN++ % 8]
+        const p = state.level.pulse
+        if (p > 0.03 && hit !== '-') {
+          if (hit === 'D') doum(state.nextBeat, 0.55 + 0.45 * p)
+          else tek(state.nextBeat, 0.4 + 0.6 * p)
+        }
+        state.nextBeat += STEP
       }
-      state.nextBeat += STEP
     }
     const rate = 3 + 55 * state.level.wind
     while (state.nextGrain < horizon) {
@@ -472,16 +727,20 @@ export function createEngine(ctx, moodName = 'malwiya') {
   }
 
   // ── controls ─────────────────────────────────────────────────────────────
-  function setScene({ wind, music, clarity, pulse }, immediate = false) {
+  function setScene({ wind, music, clarity, pulse, crowd, drive }, immediate = false) {
     const t = ctx.currentTime
     if (wind != null) state.level.wind = wind
     if (music != null) state.level.music = music
     if (clarity != null) state.level.clarity = clarity
     if (pulse != null) state.level.pulse = pulse
+    if (crowd != null) state.level.crowd = crowd
+    if (drive != null) state.level.drive = drive
     const set = (param, v, tc) => (immediate ? (param.value = v) : param.setTargetAtTime(v, t, tc))
     set(windMaster.gain, 0.6 * state.level.wind, 0.5)
     set(musicBus.gain, 0.95 * state.level.music, 0.8)
     set(pulseBus.gain, 0.8 * state.level.pulse, 0.6)
+    set(crowdBus.gain, 0.85 * state.level.crowd, 1.2)
+    set(driveBus.gain, 0.9, 0.3)
     set(lpf.frequency, 900 + 8100 * Math.pow(state.level.clarity, 1.5), 0.6)
   }
   function setEnabled(on, immediate = false) {
@@ -496,6 +755,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     state.nextPad = Math.max(state.nextPad, t)
     state.nextGrain = Math.max(state.nextGrain, t)
     state.nextBeat = Math.max(state.nextBeat, t + 0.2)
+    state.nextStep = Math.max(state.nextStep, t + 0.2)
   }
 
   // Switch the whole piece to another mood: old long notes fade out, the drone glides to the
@@ -518,10 +778,12 @@ export function createEngine(ctx, moodName = 'malwiya') {
     state.nextPad = Math.max(t + 0.8, 0)
     state.nextPhrase = Math.max(t + 1.8, 0)
     state.nextNey = Math.max(t + 9, state.nextNey)
+    state.nextStep = t + 0.4
+    state.stepN = 0
   }
   const moodName0 = () => (M === MOODS.stadium ? 'stadium' : 'malwiya')
 
-  return { scheduleUntil, setScene, setEnabled, resumeClock, setMood, mood: moodName0, state, log }
+  return { scheduleUntil, setScene, setEnabled, resumeClock, setMood, cheer, mood: moodName0, state, log }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -531,7 +793,7 @@ let ctx = null
 let engine = null
 let timer = 0
 let snapshot = { on: false, ready: false }
-let pendingScene = { wind: 0, music: 0.4, clarity: 1, pulse: 0 }
+let pendingScene = { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0 }
 let pendingMood = 'malwiya'
 const listeners = new Set()
 const emit = () => listeners.forEach((l) => l())
@@ -607,6 +869,10 @@ export const audio = {
     pendingScene = { ...pendingScene, ...p }
     if (engine) engine.setScene(pendingScene)
   },
+  // The stands erupt (whistle + roar): the stadium journey calls this as the bowl fills.
+  cheer() {
+    if (engine && snapshot.on) engine.cheer()
+  },
   // Which piece is playing: 'malwiya' (Bayati) or 'stadium' (Rast + drum). Safe to call any time.
   setMood(name) {
     pendingMood = name
@@ -645,11 +911,12 @@ export function useAudio() {
 }
 
 // Offline render, used only for verification (?debug).
-export async function renderOffline(seconds = 30, scene = { wind: 0, music: 1, clarity: 1 }, mood = 'malwiya') {
+export async function renderOffline(seconds = 30, scene = { wind: 0, music: 1, clarity: 1 }, mood = 'malwiya', opts = {}) {
   const oc = new OfflineAudioContext(2, 44100 * seconds, 44100)
   const e = createEngine(oc, mood)
   e.setScene(scene, true)
   e.setEnabled(true, true)
+  if (opts.cheer) e.cheer()
   e.scheduleUntil(seconds)
   const buffer = await oc.startRendering()
   return { buffer, log: e.log }

@@ -1,5 +1,5 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { findProject, projects, profile } from '../content'
+import { useI18n } from '../i18n'
 import { Frame, Reveal } from '../ui/Frame'
 import { href } from '../router'
 import { clamp } from '../journey'
@@ -77,6 +77,7 @@ export function ProjectLogo({ project, className = '' }) {
 // ── the 3D journey: a tall, scrollable section with a sticky instrument layer ──
 function Journey({ project, go, jrRef, onFail }) {
   const load = useStadiumLoad()
+  const { ui } = useI18n()
   useEffect(() => {
     if (load.error) onFail()
   }, [load.error, onFail])
@@ -93,7 +94,7 @@ function Journey({ project, go, jrRef, onFail }) {
         </Suspense>
       </Boundary>
 
-      <section className="pj" ref={jrRef} style={{ height: `${SJ_VH}vh` }} aria-label={`${project.title} — 3D journey`}>
+      <section className="pj" ref={jrRef} style={{ height: `${SJ_VH}vh` }} aria-label={`${project.title} — ${ui.journeyAria}`}>
         <div className="pj-sticky">
           <div className="pj-top">
             <span className="pj-title">{project.title}</span>
@@ -108,31 +109,31 @@ function Journey({ project, go, jrRef, onFail }) {
               go('/works')
             }}
           >
-            <span aria-hidden="true">←</span> All works
+            <span aria-hidden="true" className="arr-back">←</span> {ui.allWorks}
           </a>
 
           <div className="pj-chap" aria-hidden="true">
-            <span id="pj-chap-n">01</span>
-            <b id="pj-chap-t">A Landscape of Fragments</b>
+            <span id="pj-chap-n" />
+            <b id="pj-chap-t" />
           </div>
 
           <dl className="pj-read" aria-hidden="true">
             <div>
-              <dt>Distance</dt>
+              <dt>{ui.distance}</dt>
               <dd id="pj-dist">—</dd>
             </div>
             <div>
-              <dt>Altitude</dt>
+              <dt>{ui.altitude}</dt>
               <dd id="pj-alt">—</dd>
             </div>
             <div>
-              <dt>Bearing</dt>
+              <dt>{ui.bearing}</dt>
               <dd id="pj-brg">—</dd>
             </div>
           </dl>
 
           <div className="pj-scroll" aria-hidden="true">
-            <span>Scroll</span>
+            <span>{ui.scroll}</span>
             <i />
           </div>
 
@@ -147,7 +148,9 @@ function Journey({ project, go, jrRef, onFail }) {
             <div className="pj-load-line">
               <i style={{ transform: `scaleX(${Math.max(0.02, load.progress)})` }} />
             </div>
-            <span>Loading the stadium · {Math.round(load.progress * 100)}%</span>
+            <span>
+              {ui.loadingStadium} · {Math.round(load.progress * 100)}%
+            </span>
           </div>
         </div>
       </section>
@@ -156,6 +159,7 @@ function Journey({ project, go, jrRef, onFail }) {
 }
 
 export default function Project({ slug, go }) {
+  const { findProject, projects, ui } = useI18n()
   const project = findProject(slug)
   const ref = useRef(null)
   const jrRef = useRef(null)
@@ -215,7 +219,7 @@ export default function Project({ slug, go }) {
     return (
       <main className="page project">
         <div className="notfound">
-          <p>This project does not exist.</p>
+          <p>{ui.notFound}</p>
           <a
             href={href('/works')}
             className="link-arrow"
@@ -224,7 +228,7 @@ export default function Project({ slug, go }) {
               go('/works')
             }}
           >
-            Back to works <span aria-hidden="true">→</span>
+            {ui.backToWorks} <span aria-hidden="true" className="arr">→</span>
           </a>
         </div>
       </main>
@@ -233,13 +237,13 @@ export default function Project({ slug, go }) {
 
   const next = projects[(project.index + 1) % projects.length]
   const meta = [
-    ['Year', project.year],
-    ['Location', project.location],
-    ['Type', project.type],
-    ['Format', project.format],
-    ['Status', project.status],
-    ['Area', project.area],
-    ['Role', project.role],
+    [ui.meta.year, project.year],
+    [ui.meta.location, project.location],
+    [ui.meta.type, project.type],
+    [ui.meta.format, project.format],
+    [ui.meta.status, project.status],
+    [ui.meta.area, project.area],
+    [ui.meta.role, project.role],
   ].filter(([, v]) => v)
 
   return (
@@ -272,7 +276,7 @@ export default function Project({ slug, go }) {
               go('/works')
             }}
           >
-            <span aria-hidden="true">←</span> All works
+            <span aria-hidden="true" className="arr-back">←</span> {ui.allWorks}
           </a>
         </header>
       )}
@@ -311,7 +315,7 @@ export default function Project({ slug, go }) {
 
         <section className="p-desc">
           <Reveal as="h2" className="label">
-            <i>—</i> Project Overview
+            <i>—</i> {ui.overview}
           </Reveal>
           <div>
             {project.description.map((t, i) => (
@@ -325,7 +329,7 @@ export default function Project({ slug, go }) {
         {project.concept && (
           <section className="p-desc p-concept">
             <Reveal as="h2" className="label">
-              <i>—</i> Architectural Concept
+              <i>—</i> {ui.concept}
             </Reveal>
             <div>
               <Reveal as="h3" className="p-h3">
@@ -341,9 +345,9 @@ export default function Project({ slug, go }) {
         )}
 
         {project.formGeneration && (
-          <section className="p-steps" aria-label="Form Generation">
+          <section className="p-steps" aria-label={ui.formGeneration}>
             <Reveal as="h2" className="label">
-              <i>—</i> Form Generation
+              <i>—</i> {ui.formGeneration}
             </Reveal>
             <ol>
               {project.formGeneration.map((s, i) => (
@@ -391,7 +395,7 @@ export default function Project({ slug, go }) {
 
         <footer className="p-next">
           <Reveal as="p" className="label">
-            <i>→</i> Next project
+            <i>→</i> {ui.nextProject}
           </Reveal>
           <a
             href={href(`/works/${next.slug}`)}
@@ -404,11 +408,7 @@ export default function Project({ slug, go }) {
             <span className="next-n">{next.number}</span>
             <span className="next-t">{next.title}</span>
           </a>
-          {profile.placeholder && !project.hasImages && (
-            <p className="placeholder-note">
-              Placeholder project — add photographs to src/assets/projects/{project.slug}/ and edit src/content.js.
-            </p>
-          )}
+          {project.placeholder && !project.hasImages && <p className="placeholder-note">{ui.placeholderNote}</p>}
         </footer>
       </div>
     </main>

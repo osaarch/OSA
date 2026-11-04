@@ -7,6 +7,8 @@ import Hud from './ui/Hud'
 import Loader from './ui/Loader'
 import Intro from './ui/Intro'
 import SoundToggle from './ui/SoundToggle'
+import LangToggle from './ui/LangToggle'
+import { useI18n } from './i18n'
 import { audio, createEngine, renderOffline } from './audio'
 import { findProject } from './content'
 import Osa from './pages/Osa'
@@ -42,6 +44,7 @@ if (/[?&]debug\b/.test(window.location.search)) window.__osaAudio = { renderOffl
 
 export default function App() {
   const route = useHashRoute()
+  const { ui } = useI18n()
   const [leaving, setLeaving] = useState(false)
   const [entering, setEntering] = useState(true)
   const [sceneWanted, setSceneWanted] = useState(route.name === 'home')
@@ -203,16 +206,19 @@ export default function App() {
             flyBack()
           }}
         >
-          <span aria-hidden="true">↑</span> Fly back to the Malwiya
+          <span aria-hidden="true">↑</span> {ui.flyBackMalwiya}
         </a>
       )}
 
       <div className="spacer" style={{ height: `${SPACER_VH}vh` }} aria-hidden="true" />
 
-      <SoundToggle />
+      <div className="ctl">
+        <SoundToggle />
+        <LangToggle />
+      </div>
 
       <Loader active={route.name === 'home'} failed={failed} />
-      {failed && route.name === 'home' && <p className="webgl-note">3D view unavailable on this device.</p>}
+      {failed && route.name === 'home' && <p className="webgl-note">{ui.noWebgl}</p>}
     </div>
   )
 }
