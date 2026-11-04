@@ -71,7 +71,7 @@ export function gradeAt(u, g) {
   g.dust = (1 - 0.75 * smoothstep(0.35, 0.8, u)) * live
 
   g.redLight = smoothstep(0.5, 0.82, u) * live // the red light spilling from the stadium
-  g.crowd = smoothstep(0.76, 0.9, u) * live
+  g.crowd = smoothstep(0.62, 0.86, u) * live
   return g
 }
 

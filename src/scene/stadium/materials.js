@@ -126,36 +126,79 @@ function clay() {
 }
 
 // ── the seating bowl: deep red, filling with spectators ──────────────────────
+// The people sit in the seat rows (concentric about the pitch), one every ~1.5 m, in the
+// quiet colours of ordinary clothes — bone, sand, faded brick, charcoal, dusty teal, olive —
+// so a full stand reads as a crowd, not as a pattern. Seen from far away (when a person is
+// smaller than a pixel) they melt into an average tone rather than vanishing.
 function bowl() {
   return patch(base('bowl'), {
     body: /* glsl */ `
       float top = smoothstep(0.2, 0.7, nW.y);
-      float rows = 0.5 + 0.5 * sin(length(vWP.xz * vec2(1.0, 1.25)) * 3.4);
+      float rr = length(vWP.xz * vec2(1.0, 1.25));
+      float rows = 0.5 + 0.5 * sin(rr * 3.4);
       vec3 col = mix(vec3(0.22, 0.045, 0.04), vec3(0.34, 0.07, 0.055), rows * 0.6 + 0.2 * fbm1(vWP.xz * 0.4));
-      // spectators: one person per ~1.1 m, switched on gradually as uCrowd rises
-      vec2 cell = vWP.xz / 1.1; vec2 id = floor(cell); vec2 f = fract(cell) - 0.5;
-      vec2 jit = (vec2(h21(id + 7.3), h21(id + 3.1)) - 0.5) * 0.3;
-      float dd = length(f - jit);
-      float person = smoothstep(0.34, 0.2, dd);
-      float present = step(h21(id), uCrowd * 0.9);
-      float aa = 1.0 - smoothstep(0.3, 0.7, max(fwidth(cell.x), fwidth(cell.y)));
-      vec3 cloth = mix(vec3(1.0, 0.8, 0.55), vec3(1.0, 0.3, 0.2), h21(id + 1.7));
+
+      float rowW = 1.85, seatW = 1.55;
+      float rid = floor(rr / rowW); float rf = fract(rr / rowW) - 0.5;
+      float arc = atan(vWP.z * 1.25, vWP.x) * (rid + 0.5) * rowW;
+      float cid = floor(arc / seatW); float cf = fract(arc / seatW) - 0.5;
+      vec2 id = vec2(rid, cid);
+      vec2 pp = vec2(cf * seatW, rf * rowW + (h21(id + 3.1) - 0.5) * 0.18);
+      float dd = length(pp / vec2(0.5, 0.58));
+      float person = 1.0 - smoothstep(0.7, 1.0, dd);
+      float want = uCrowd * 0.94;
+      float present = step(h21(id), want);
+      float foot = fwidth(rr) / rowW;                     // rows per pixel
+      float aa = 1.0 - smoothstep(0.35, 0.85, foot);
+
+      float k = h21(id + 1.7) * 6.0;
+      vec3 cloth = vec3(0.72, 0.66, 0.55);                // bone
+      cloth = mix(cloth, vec3(0.58, 0.48, 0.36), step(1.0, k));  // sand
+      cloth = mix(cloth, vec3(0.50, 0.30, 0.24), step(2.0, k));  // faded brick
+      cloth = mix(cloth, vec3(0.27, 0.25, 0.24), step(3.0, k));  // charcoal
+      cloth = mix(cloth, vec3(0.36, 0.43, 0.42), step(4.0, k));  // dusty teal
+      cloth = mix(cloth, vec3(0.43, 0.41, 0.27), step(5.0, k));  // olive
+      cloth *= 0.82 + 0.3 * (1.0 - dd);
+
       float pm = person * present * aa * top;
-      col = mix(col, cloth * 0.85, pm);
+      col = mix(col, cloth * 0.9, pm);
+      // too small to resolve: the average of a full stand
+      float cover = want * 0.34 * top * (1.0 - aa);
+      col = mix(col, vec3(0.43, 0.36, 0.29), cover * 0.85);
       diffuseColor.rgb = col;
       roughnessFactor = 0.9;
-      glow = uRed * uNight * (0.5 + 0.35 * rows) * 0.9 + cloth * pm * (0.4 + 1.3 * uCrowd);
+      glow = uRed * uNight * (0.5 + 0.35 * rows) * 0.9 * (1.0 - 0.28 * cover)
+           + cloth * pm * (0.08 + 0.5 * uNight)
+           + vec3(0.43, 0.36, 0.29) * cover * 0.28 * uNight;
     `,
   })
 }
 
 // ── the very dark brown glazing under the roof planes ────────────────────────
+// Near-black bronze panes in a fine frame of floors and mullions, with a sheen that picks up
+// the sky at grazing angles, and a warm amber light from inside (stronger by night).
 function glass() {
-  return patch(base('glass', { roughness: 0.22, metalness: 0.45 }), {
+  return patch(base('glass', { roughness: 0.1, metalness: 0.2 }), {
     body: /* glsl */ `
-      diffuseColor.rgb = vec3(0.07, 0.045, 0.032);
-      roughnessFactor = 0.22;
-      glow = uRed * uNight * 0.2;
+      vec3 V = normalize(vViewPosition);
+      float fres = pow(1.0 - clamp(dot(normal, V), 0.0, 1.0), 2.4);
+
+      // a smooth drift of brightness across the facade (no panes, no mullions, no lines)
+      float flat_ = step(0.72, abs(nW.y));
+      vec2 tg = vec2(-nW.z, nW.x); float tl = length(tg);
+      tg = tl > 0.12 ? tg / tl : vec2(1.0, 0.0);
+      float along = mix(dot(vWP.xz, tg), vWP.x, flat_);
+      float up = mix(vWP.y, vWP.z, flat_);
+      float drift = fbm1(vec2(along * 0.035, up * 0.05) + 4.0);
+
+      vec3 sky = mix(uSkyH, uSkyZ, 0.25 + 0.6 * clamp(vWP.y / 70.0, 0.0, 1.0)) * vec3(1.0, 0.86, 0.72);
+      diffuseColor.rgb = vec3(0.06, 0.042, 0.03);
+      roughnessFactor = 0.1;
+
+      // the glass is lit from inside, by day and by night: one warm amber light
+      // (stronger by night), a touch of the sky on top at grazing angles
+      vec3 lamp = vec3(1.0, 0.56, 0.2) * (0.5 + 0.5 * uNight) * (0.62 + 0.62 * drift) * (0.92 + 0.08 * (1.0 - fres));
+      glow = sky * (0.03 + 0.28 * fres) + lamp;
     `,
   })
 }
@@ -166,6 +209,55 @@ function lettering() {
     body: /* glsl */ `
       diffuseColor.rgb = vec3(0.82, 0.72, 0.58);
       glow = vec3(1.0, 0.86, 0.68) * uNight * 1.7;
+    `,
+  })
+}
+
+// ── the pitch: sage turf with soft mown bands and faint chalk, in a margin of dry clay ───
+// (105 × 68 m, long axis along x, centred on the middle of the bowl floor)
+function pitch() {
+  return patch(base('pitch'), {
+    body: /* glsl */ `
+      // the bowl's long axis is turned 15.2° from the x axis: the pitch follows it
+      vec2 q0 = vWP.xz - vec2(-0.45, 0.0);
+      const vec2 AX = vec2(0.9650, -0.2622);
+      vec2 q = vec2(dot(q0, AX), dot(q0, vec2(-AX.y, AX.x)));
+      float n = fbm1(vWP.xz * 0.7); float n2 = fbm1(vWP.xz * 3.5);
+      float band = step(0.5, fract(q.x / 15.0));
+      vec3 turf = mix(vec3(0.285, 0.33, 0.205), vec3(0.335, 0.38, 0.24), band) * (0.9 + 0.18 * n) * (0.95 + 0.1 * n2);
+      vec3 earth = mix(vec3(0.44, 0.35, 0.26), vec3(0.54, 0.44, 0.32), n) * (0.94 + 0.1 * n2);
+
+      vec2 dq = abs(q) - vec2(57.0, 39.0);
+      float sdT = length(max(dq, 0.0)) + min(max(dq.x, dq.y), 0.0);
+      float turfM = 1.0 - smoothstep(-0.8, 0.8, sdT);
+      vec3 col = mix(earth, turf, turfM);
+
+      // chalk lines (FIFA proportions)
+      float w = max(0.3, fwidth(q.x) * 0.85);
+      vec2 d0 = abs(q) - vec2(52.5, 34.0);
+      float L = abs(length(max(d0, 0.0)) + min(max(d0.x, d0.y), 0.0));
+      L = min(L, abs(q.x));                                  // halfway line
+      L = min(L, abs(length(q) - 9.15));                     // centre circle
+      float spot = length(q) - 0.35;
+      for (int i = 0; i < 2; i++) {
+        float sg = i == 0 ? -1.0 : 1.0;
+        vec2 pa = q - vec2(sg * 44.25, 0.0);                 // penalty area 16.5 x 40.3
+        vec2 da = abs(pa) - vec2(8.25, 20.15);
+        L = min(L, abs(length(max(da, 0.0)) + min(max(da.x, da.y), 0.0)));
+        vec2 pg = q - vec2(sg * 49.75, 0.0);                 // goal area 5.5 x 18.3
+        vec2 dg = abs(pg) - vec2(2.75, 9.15);
+        L = min(L, abs(length(max(dg, 0.0)) + min(max(dg.x, dg.y), 0.0)));
+        float arc = abs(length(q - vec2(sg * 41.5, 0.0)) - 9.15);
+        L = min(L, arc + (sg * q.x > 36.0 ? 100.0 : 0.0));   // the "D" outside the area
+        spot = min(spot, length(q - vec2(sg * 41.5, 0.0)) - 0.35);
+      }
+      float line = (1.0 - smoothstep(w * 0.55, w * 1.15, L)) + (1.0 - smoothstep(0.0, w * 0.6, spot));
+      col = mix(col, vec3(0.72, 0.7, 0.62), clamp(line, 0.0, 1.0) * 0.5 * turfM);
+
+      diffuseColor.rgb = col;
+      roughnessFactor = 0.95;
+      // by night the pitch keeps a dim, even light of its own, and a trace of the red
+      glow = col * uNight * (0.2 + 0.26 * turfM) + uRed * uNight * 0.03;
     `,
   })
 }
@@ -242,7 +334,7 @@ function water() {
 }
 
 export function createMaterials() {
-  return { roof: clay(), bowl: bowl(), wall: glass(), text: lettering(), ground: ground(), grass: grass(), paving: paving(), water: water() }
+  return { roof: clay(), bowl: bowl(), wall: glass(), pitch: pitch(), text: lettering(), ground: ground(), grass: grass(), paving: paving(), water: water() }
 }
 
 export const SUN_DIR = new Vector3()

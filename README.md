@@ -86,7 +86,7 @@ is revealed → the project page begins. Scroll back up and it plays in reverse.
 | --- | --- |
 | `public/assets/stadium/stadium.glb` | The stadium, made from `STADUAM.3dm` (roof planes, bowl, glazing, lettering, site, water, planting) |
 | `src/scene/stadium/StadiumScene.jsx` | Loads the model, lights it, owns the render loop (loaded only on this page) |
-| `src/scene/stadium/materials.js` | The clay / rammed-earth look, generated in the shader (no textures) + the red night glow |
+| `src/scene/stadium/materials.js` | The clay / rammed-earth look, generated in the shader (no textures) + the red night glow; the lit amber glazing, the muted pitch (105 × 68 m, aligned with the bowl) and the spectators in the seat rows |
 | `src/scene/stadium/path.js` · `grade.js` | The camera path (pure function of scroll) and the colour script |
 | `src/scene/stadium/Foliage.jsx` | Palms and trees scattered over the model's planted ground |
 | `src/scene/stadium/state.js` | Scroll length of the journey (`SJ_VH`) and the four chapter captions |

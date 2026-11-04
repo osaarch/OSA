@@ -6,9 +6,12 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  Mesh,
   NeutralToneMapping,
   PCFSoftShadowMap,
   ShaderMaterial,
+  Shape,
+  ShapeGeometry,
   Vector3,
 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -30,6 +33,46 @@ const root = typeof document !== 'undefined' ? document.documentElement : null
 const STILL = typeof window !== 'undefined' && /[?&]still\b/.test(window.location.search)
 const fmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const UP = new Vector3(0, 1, 0)
+
+// ── the pitch ────────────────────────────────────────────────────────────────
+// The Rhino model leaves the floor of the bowl open. The pitch is a flat shape cut to the outline of
+// the bowl's lowest ring (read from the model itself), tucked 1.2 m under the first terrace.
+function makePitch(bowlGeo, material) {
+  const pos = bowlGeo.attributes.position
+  const seen = new Set()
+  const pts = []
+  for (let i = 0; i < pos.count; i++) {
+    if (pos.getY(i) >= 0.5) continue
+    const x = pos.getX(i)
+    const z = pos.getZ(i)
+    const k = x.toFixed(1) + ',' + z.toFixed(1)
+    if (seen.has(k)) continue
+    seen.add(k)
+    pts.push([x, z])
+  }
+  if (pts.length < 8) return null
+  const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length
+  const cz = pts.reduce((a, p) => a + p[1], 0) / pts.length
+  pts.sort((a, b) => Math.atan2(a[1] - cz, a[0] - cx) - Math.atan2(b[1] - cz, b[0] - cx))
+  const shape = new Shape()
+  pts.forEach(([x, z], i) => {
+    const dx = x - cx
+    const dz = z - cz
+    const l = Math.hypot(dx, dz) || 1
+    const px = x + (dx / l) * 1.2
+    const pz = z + (dz / l) * 1.2
+    if (i === 0) shape.moveTo(px, -pz)
+    else shape.lineTo(px, -pz)
+  })
+  const geo = new ShapeGeometry(shape)
+  geo.rotateX(-Math.PI / 2)
+  const mesh = new Mesh(geo, material)
+  mesh.name = 'pitch'
+  mesh.position.y = 0.03
+  mesh.receiveShadow = true
+  mesh.frustumCulled = false
+  return mesh
+}
 
 // ── the model ────────────────────────────────────────────────────────────────
 // Built from the project's own Rhino file (STADUAM.3dm): the stadium, its roof planes,
@@ -59,15 +102,19 @@ function StadiumModel({ mats, onGround }) {
         if (dead) return
         const g = gltf.scene
         let grassGeo = null
+        let bowlGeo = null
         g.traverse((o) => {
           if (!o.isMesh) return
           const key = o.name
+          if (key === 'bowl') bowlGeo = o.geometry
           o.material = mats[key] || mats.ground
           o.castShadow = key === 'roof' || key === 'bowl' || key === 'wall' || key === 'text'
           o.receiveShadow = key !== 'water'
           o.frustumCulled = false
           if (key === 'grass') grassGeo = o.geometry
         })
+        const pitchMesh = bowlGeo && makePitch(bowlGeo, mats.pitch)
+        if (pitchMesh) g.add(pitchMesh)
         stadiumLoad.set({ progress: 0.93 })
         setGroup(g)
         onGround(grassGeo)
