@@ -139,9 +139,11 @@ function Journey({ project, go, jrRef, onFail }) {
 
           <div className="pj-logo" aria-hidden="true">
             {project.logo && <img src={project.logo} alt="" draggable="false" />}
-            <span lang="ar" dir="rtl">
-              {project.titleAr}
-            </span>
+            {project.titleAr && (
+              <span lang="ar" dir="rtl">
+                {project.titleAr}
+              </span>
+            )}
           </div>
 
           <div className={`pj-load${load.ready ? ' is-done' : ''}`} role="status" aria-live="polite">

@@ -156,7 +156,6 @@ const projectData = [
     coverFile: '04-river-and-architecture.jpg',
     en: {
       title: 'Al Rafidain Stadium',
-      titleAr: 'ملعب الرافدين', // shown as a second line in the English version
       location: 'Tikrit, Iraq',
       type: 'Sports Architecture and Landscape',
       format: 'Design Study',
@@ -240,7 +239,6 @@ const projectData = [
     coverFile: '01-the-promethean-port.jpg',
     en: {
       title: 'The Promethean Port',
-      titleAr: 'الميناء البروميثي',
       subtitle: 'Tesla Headquarters — Port Said',
       tagline: 'Where Abundance Takes Root',
       location: 'Port Said, Egypt',
