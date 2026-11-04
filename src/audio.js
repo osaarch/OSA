@@ -165,6 +165,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
   const pulseBus = mk.gain(0)
   const crowdBus = mk.gain(0)
   const driveBus = mk.gain(0)
+  const rainBus = mk.gain(0)
   const mix = mk.gain(1)
   const reverb = ctx.createConvolver()
   reverb.buffer = ir
@@ -192,6 +193,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
   crowdBus.connect(reverbSend)
   driveBus.connect(mix)
   driveBus.connect(reverbSend)
+  rainBus.connect(mix)
   mix.connect(lpf)
   lpf.connect(comp)
   comp.connect(master)
@@ -277,6 +279,53 @@ export function createEngine(ctx, moodName = 'malwiya') {
     hg.connect(windMaster)
     hiss.start(0, 1.7)
     l3.start()
+  }
+
+  // ── rain (night mode): a soft hiss, a patter of drops and a slow swell ──────────────────
+  {
+    // a loop of sparse random drops, softened
+    const drops = ctx.createBuffer(1, sr * 3, sr)
+    {
+      const d = drops.getChannelData(0)
+      let lp = 0
+      for (let i = 0; i < d.length; i++) {
+        const hit = Math.random() < 520 / sr ? (0.35 + Math.random() * 0.65) * (Math.random() < 0.5 ? -1 : 1) : 0
+        lp += (hit - lp) * 0.55
+        d[i] = lp
+      }
+    }
+    const [hissSrc] = noise(true)
+    const hp = mk.filter('highpass', 1700, 0.5)
+    const lp = mk.filter('lowpass', 9500, 0.5)
+    const hissG = mk.gain(0.34)
+    const swell = mk.osc('sine', 0.09)
+    const swellG = mk.gain(0.07)
+    swell.connect(swellG)
+    swellG.connect(hissG.gain)
+    hissSrc.connect(hp)
+    hp.connect(lp)
+    lp.connect(hissG)
+    hissG.connect(rainBus)
+    hissSrc.start(0, 0.9)
+    swell.start()
+
+    const patter = ctx.createBufferSource()
+    patter.buffer = drops
+    patter.loop = true
+    const pbp = mk.filter('bandpass', 2400, 0.8)
+    const pg = mk.gain(1.1)
+    patter.connect(pbp)
+    pbp.connect(pg)
+    pg.connect(rainBus)
+    patter.start(0, 0.3)
+
+    const rumble = noise(true)[0]
+    const rlp = mk.filter('lowpass', 420, 0.6)
+    const rg = mk.gain(0.22)
+    rumble.connect(rlp)
+    rlp.connect(rg)
+    rg.connect(rainBus)
+    rumble.start(0, 2.1)
   }
 
   // ── the crowd: a wide roar that swells and settles, and a murmur that chants in time ─────
@@ -674,7 +723,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     padN: 0,
     nextStep: 0.4, // the stadium groove: sixteenth notes
     stepN: 0,
-    level: { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0 },
+    level: { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0, rain: 0 },
   }
   function phrase(t0) {
     let t = t0
@@ -768,7 +817,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
   }
 
   // ── controls ─────────────────────────────────────────────────────────────
-  function setScene({ wind, music, clarity, pulse, crowd, drive }, immediate = false) {
+  function setScene({ wind, music, clarity, pulse, crowd, drive, rain }, immediate = false) {
     const t = ctx.currentTime
     if (wind != null) state.level.wind = wind
     if (music != null) state.level.music = music
@@ -776,12 +825,14 @@ export function createEngine(ctx, moodName = 'malwiya') {
     if (pulse != null) state.level.pulse = pulse
     if (crowd != null) state.level.crowd = crowd
     if (drive != null) state.level.drive = drive
+    if (rain != null) state.level.rain = rain
     const set = (param, v, tc) => (immediate ? (param.value = v) : param.setTargetAtTime(v, t, tc))
     set(windMaster.gain, 0.6 * state.level.wind, 0.5)
     set(musicBus.gain, 0.95 * state.level.music, 0.8)
     set(pulseBus.gain, 0.8 * state.level.pulse, 0.6)
     set(crowdBus.gain, 0.85 * state.level.crowd, 1.2)
     set(driveBus.gain, 0.9, 0.3)
+    set(rainBus.gain, 0.33 * state.level.rain, 1.4)
     set(lpf.frequency, 900 + 8100 * Math.pow(state.level.clarity, 1.5), 0.6)
   }
   function setEnabled(on, immediate = false) {
@@ -864,7 +915,7 @@ let ctx = null
 let engine = null
 let timer = 0
 let snapshot = { on: false, ready: false }
-let pendingScene = { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0 }
+let pendingScene = { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0, rain: 0 }
 let pendingMood = 'malwiya'
 const listeners = new Set()
 const emit = () => listeners.forEach((l) => l())
@@ -939,6 +990,11 @@ export const audio = {
   setScene(p) {
     pendingScene = { ...pendingScene, ...p }
     if (engine) engine.setScene(pendingScene)
+  },
+  // Night mode: the rain layer (0 = dry, 1 = steady rain). Independent of the scene's wind and music.
+  setRain(v) {
+    pendingScene = { ...pendingScene, rain: v }
+    if (engine) engine.setScene({ rain: v })
   },
   // The stands erupt (whistle + roar): the stadium journey calls this as the bowl fills.
   cheer() {

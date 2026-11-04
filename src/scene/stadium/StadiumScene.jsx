@@ -21,6 +21,7 @@ import Grains from '../Grains'
 import Foliage from './Foliage'
 import { createMaterials, SU } from './materials'
 import { createGrade, gradeAt, sunAzimuth } from './grade'
+import { night, stepNight } from '../../night'
 import { samplePath, ORBIT_START } from './path'
 import { CHAPTERS, sj, stadiumLoad, stadiumWorld } from './state'
 import { clamp, smoothstep, stepJourney } from '../../journey'
@@ -293,9 +294,10 @@ function Rig({ grade, refs }) {
     const dt = Math.min(dtRaw, 0.1)
     const t = clock.elapsedTime
 
-    const moved = stepJourney(dt, 7.4, sj)
+    const moved = stepJourney(dt, 7.4, sj) || night.v !== (night.on ? 1 : 0)
+    const nm = stepNight()
     const u = sj.current
-    gradeAt(u, grade)
+    gradeAt(u, grade, nm)
 
     // soundtrack: a stadium filling up — a far-off murmur and the sand at first, then stomps,
     // clapping, a roaring crowd and brass over the bowl, a whistle as the stands light up, and
@@ -429,7 +431,7 @@ function Rig({ grade, refs }) {
       gu.uMouse.value.set(st.cx, st.cy)
       gu.uMouseVel.value.set(st.vx * vclamp, st.vy * vclamp)
       gu.uParallax.value.set(st.px, -st.py)
-      gu.uDark.value.set('#8f7650').lerp(gu.uLight.value, grade.night)
+      gu.uDark.value.set('#8f7650').lerp(gu.uLight.value, Math.max(grade.night, nm))
     }
 
     // DOM overlays (CSS variables, no React)
@@ -438,7 +440,7 @@ function Rig({ grade, refs }) {
       root.style.setProperty('--pj-black', grade.black.toFixed(4))
       root.style.setProperty('--pj-logo', smoothstep(0.972, 1.0, u).toFixed(3))
       root.style.setProperty('--pj-hud', (1 - smoothstep(0.9, 0.968, u)).toFixed(3))
-      root.style.setProperty('--pj-ink', u > 0.46 ? '1' : '0')
+      root.style.setProperty('--pj-ink', u > 0.46 || nm > 0.5 ? '1' : '0')
     }
     st.hudT += dt
     if (st.hudT > 0.06) {

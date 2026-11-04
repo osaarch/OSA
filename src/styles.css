@@ -313,7 +313,8 @@ html.is-intro.is-started .intro-skip {
   gap: 2.6em;
 }
 .sound,
-.lang {
+.lang,
+.night-btn {
   display: flex;
   align-items: center;
   gap: 1.1em;
@@ -331,8 +332,19 @@ html.is-intro.is-started .intro-skip {
   transition: border-color 0.4s, opacity 0.6s, color 0.7s;
 }
 .sound:hover,
-.lang:hover {
+.lang:hover,
+.night-btn:hover {
   border-bottom-color: currentColor;
+}
+.night-btn {
+  gap: 0.9em;
+}
+.night-btn svg {
+  display: block;
+  flex: none;
+}
+.night-btn:not(.is-on) {
+  opacity: 0.78;
 }
 .lang {
   gap: 0.6em;
@@ -356,12 +368,18 @@ html.is-intro.is-started .intro-skip {
   top: calc(var(--pad) + 7.4vw);
 }
 .app:not([data-view='home']) .sound,
-.app:not([data-view='home']) .lang {
+.app:not([data-view='home']) .lang,
+.app:not([data-view='home']) .night-btn {
   color: var(--ink-2);
 }
 .app:not([data-view='home']) .sound:hover,
-.app:not([data-view='home']) .lang:hover {
+.app:not([data-view='home']) .lang:hover,
+.app:not([data-view='home']) .night-btn:hover {
   color: var(--ink);
+}
+/* in the narrow rail on inner pages the moon is just an icon */
+.app:not([data-view='home']) .night-label {
+  display: none;
 }
 html.is-loading .ctl {
   visibility: hidden;
@@ -369,9 +387,13 @@ html.is-loading .ctl {
 html.is-loading .ctl {
   z-index: 110; /* above the loader (100), so the language can be chosen on the "enter" screen too */
 }
-html.is-loading .ctl .lang {
+html.is-loading .ctl .lang,
+html.is-loading .ctl .night-btn {
   visibility: visible;
   color: #8f8472;
+}
+html.is-loading .ctl .night-btn.is-on {
+  color: #f3e7d3;
 }
 html.is-loading .ctl .lang span.is-on {
   color: #f3e7d3;
@@ -1936,4 +1958,14 @@ html[lang='ar'] .cap-n {
 }
 .lang span {
   opacity: 0.55;
+}
+
+/* ── Night mode: rain on the screen ────────────────────────────────────────── */
+.rain {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 34; /* over the pages, under the wordmark and the controls */
+  pointer-events: none;
 }

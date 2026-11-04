@@ -21,6 +21,36 @@ function tri(set, dusk, night, out) {
   return out
 }
 
+// NIGHT MODE — the stadium under a rainy night sky from the first frame: a moon, a black-blue
+// horizon, the bowl glowing red from within and the glazing lit sky-blue. It fades to black at
+// the end like the day grade does.
+const N_HORIZON = c('#16233b')
+const N_ZENITH = c('#03060e')
+const N_MOON = c('#9db6e6')
+const N_HEMI_SKY = c('#26365a')
+const N_HEMI_GR = c('#120d12')
+const tmpN = new Color()
+
+function nightBlend(u, g, nm) {
+  const live = 1 - g.black
+  g.skyHorizon.lerp(tmpN.copy(N_HORIZON).multiplyScalar(live), nm)
+  g.skyZenith.lerp(tmpN.copy(N_ZENITH).multiplyScalar(live), nm)
+  g.fog.copy(g.skyHorizon).multiplyScalar(0.92)
+  g.fogDensity = lerp(g.fogDensity, 0.00105, nm)
+  g.sunColor.lerp(N_MOON, nm)
+  g.sunIntensity = lerp(g.sunIntensity, 0.75 * live, nm)
+  g.sunElevation = lerp(g.sunElevation, 0.62, nm)
+  g.hemiSky.lerp(N_HEMI_SKY, nm)
+  g.hemiGround.lerp(N_HEMI_GR, nm)
+  g.hemiIntensity = lerp(g.hemiIntensity, 0.5 * live, nm)
+  g.fillIntensity = lerp(g.fillIntensity, 0.05 * live, nm)
+  g.glow = lerp(g.glow, 0.5 * live, nm)
+  g.dust = lerp(g.dust, 0.3 * live, nm)
+  g.redLight = lerp(g.redLight, 0.92 * live, nm)
+  g.night = lerp(g.night, 1, nm)
+  g.dusk = lerp(g.dusk, 1, nm)
+}
+
 export function createGrade() {
   return {
     dusk: 0,
@@ -44,7 +74,7 @@ export function createGrade() {
   }
 }
 
-export function gradeAt(u, g) {
+export function gradeAt(u, g, nm = 0) {
   const dusk = smoothstep(0.3, 0.66, u)
   const night = smoothstep(0.58, 0.88, u)
   const black = smoothstep(0.93, 0.995, u)
@@ -72,6 +102,7 @@ export function gradeAt(u, g) {
 
   g.redLight = smoothstep(0.5, 0.82, u) * live // the red light spilling from the stadium
   g.crowd = smoothstep(0.62, 0.86, u) * live
+  if (nm > 0.001) nightBlend(u, g, nm)
   return g
 }
 

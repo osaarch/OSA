@@ -10,6 +10,7 @@ import Dust from './Dust'
 import Veil from './Veil'
 import Grains from './Grains'
 import { createGrade, gradeAt, sunAzimuth } from './grade'
+import { night, stepNight } from '../night'
 import { samplePath, lensShift } from './path'
 import { duskUniforms, INTRO_LEN, loadState, world } from './world'
 import { clamp, journey, readScrollProgress, smootherstep, smoothstep, stepJourney } from '../journey'
@@ -140,13 +141,14 @@ function Rig({ grade, refs }) {
     const storm = world.introDone ? 0 : 1 - smootherstep(1.5, 6.4, it) // 1 → 0
     if (!world.introDone) journey.target = 0 // the journey waits for the dust to clear
 
-    const moved = stepJourney(dt)
+    const moved = stepJourney(dt) || night.v !== (night.on ? 1 : 0)
+    const nm = stepNight()
     const u = journey.current
     const settledBlack = u >= 0.9995 && journey.target >= 0.9995 && !moved
     if (settledBlack && world.forceFrames <= 0) return
 
     // ── 1. colour script ────────────────────────────────────────────────────
-    gradeAt(u, grade)
+    gradeAt(u, grade, nm)
 
     // ── 2. pointer: smoothed parallax + a fast "cursor wind" with velocity ──
     st.px += (st.mx - st.px) * (1 - Math.exp(-dt * 3.0))
@@ -250,7 +252,7 @@ function Rig({ grade, refs }) {
     dm.uOpacity.value = 0.3 * grade.dust * clamp(grade.sunIntensity / 2.5, 0, 1)
 
     // ── 5. storm veil + sand grains (both react to the cursor) ──────────────
-    const inkL = smoothstep(0.645, 0.69, u)
+    const inkL = Math.max(smoothstep(0.645, 0.69, u), nm)
     veilMesh.current.visible = storm > 0.012
     if (veilMesh.current.visible) {
       const vu = veilMat.current.uniforms

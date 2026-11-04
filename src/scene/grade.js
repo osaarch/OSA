@@ -33,6 +33,38 @@ export const SUN_AZ_START = 0.38
 export const SUN_AZ_END = 2.05
 export const sunAzimuth = (u) => lerp(SUN_AZ_START, SUN_AZ_END, u)
 
+// NIGHT MODE — moonlit, rainy darkness instead of the late afternoon. It fades to the same
+// black at the end of the journey, so the menu still arrives on pure black.
+const N_HORIZON = c('#1b2a45')
+const N_ZENITH = c('#040812')
+const N_MOON = c('#9db6e6')
+const N_HEMI_SKY = c('#2a3c60')
+const N_HEMI_GROUND = c('#10151f')
+const N_GROUND = c('#2c3442')
+const tmpN = new Color()
+
+function nightBlend(u, g, nm) {
+  const live = 1 - smoothstep(0.9, 0.995, u)
+  const lerpCol = (a, b) => a.lerp(b, nm)
+  lerpCol(g.skyHorizon, tmpN.copy(N_HORIZON).multiplyScalar(live))
+  lerpCol(g.skyZenith, tmpN.copy(N_ZENITH).multiplyScalar(live))
+  g.fog.copy(g.skyHorizon).multiplyScalar(0.92)
+  g.fogDensity = lerp(g.fogDensity, 0.0011, nm)
+  lerpCol(g.sunColor, N_MOON)
+  g.sunIntensity = lerp(g.sunIntensity, 2.1 * live, nm)
+  g.sunElevation = lerp(g.sunElevation, 0.7, nm)
+  lerpCol(g.hemiSky, N_HEMI_SKY)
+  lerpCol(g.hemiGround, N_HEMI_GROUND)
+  g.hemiIntensity = lerp(g.hemiIntensity, 1.05 * live, nm)
+  g.fillIntensity = lerp(g.fillIntensity, 0.05 * live, nm)
+  lerpCol(g.ground, tmpN.copy(N_GROUND).multiplyScalar(live))
+  g.glow = lerp(g.glow, 0.55 * live, nm)
+  g.duskMix = lerp(g.duskMix, 0, nm)
+  g.dust = lerp(g.dust, 0.35 * live, nm)
+  g.night = lerp(g.night, 1, nm)
+  g.dusk = lerp(g.dusk, 1, nm)
+}
+
 export function createGrade() {
   return {
     dusk: 0,
@@ -56,7 +88,7 @@ export function createGrade() {
   }
 }
 
-export function gradeAt(u, g) {
+export function gradeAt(u, g, nm = 0) {
   const dusk = smoothstep(0.44, 0.84, u)
   const night = smoothstep(0.72, 0.985, u)
   g.dusk = dusk
@@ -85,5 +117,6 @@ export function gradeAt(u, g) {
   g.duskMix = smoothstep(0.4, 0.54, u)
   g.termY = lerp(-16, 72, Math.pow(clamp((u - 0.52) / 0.465), 1.3))
   g.dust = 1 - smoothstep(0.55, 0.9, u)
+  if (nm > 0.001) nightBlend(u, g, nm)
   return g
 }

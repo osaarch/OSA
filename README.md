@@ -128,6 +128,11 @@ The stadium glass is black in the day; at night it lights up sky-blue (`GLASS_LI
   flute, drone, pad) with wind and falling-sand texture. The wind/sand fades away at OSA / WORKS and only the music
   stays. The "Sound on/off" button is always in the top-right corner; the choice is remembered. Tune the mood in
   `src/audio.js` (scale `CENTS`, `CHORDS`, phrase rhythm in `phrase()`).
+* **Night mode:** the small moon next to the sound button (also on the "Enter" screen) turns the Malwiya and
+  the stadium into a moonlit, rainy night — a dark blue sky with a moon, rain on the screen (`src/ui/Rain.jsx`)
+  and rain in the soundtrack (`rain` layer in `src/audio.js`). The choice is remembered. The colours are
+  `nightBlend()` in `src/scene/grade.js` (Malwiya) and `src/scene/stadium/grade.js` (stadium: the bowl glows
+  red, the glazing lights sky-blue); the switch itself is `src/night.js`.
 * Visitors who land directly on a project page never download the 3D engine.
 * If WebGL is unavailable the interface still works (black background, OSA / WORKS, all pages).
 * Resolution adapts automatically on slower GPUs; the renderer idles completely on the black screen.

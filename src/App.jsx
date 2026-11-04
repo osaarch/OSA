@@ -8,6 +8,8 @@ import Loader from './ui/Loader'
 import Intro from './ui/Intro'
 import SoundToggle from './ui/SoundToggle'
 import LangToggle from './ui/LangToggle'
+import NightToggle from './ui/NightToggle'
+import Rain from './ui/Rain'
 import { useI18n } from './i18n'
 import { audio, createEngine, renderOffline } from './audio'
 import { findProject } from './content'
@@ -218,8 +220,11 @@ export default function App() {
 
       <div className="ctl">
         <SoundToggle />
+        <NightToggle />
         <LangToggle />
       </div>
+
+      <Rain />
 
       <Loader active={route.name === 'home'} failed={failed} />
       {failed && route.name === 'home' && <p className="webgl-note">{ui.noWebgl}</p>}
