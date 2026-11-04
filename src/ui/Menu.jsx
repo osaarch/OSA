@@ -26,9 +26,6 @@ export default function Menu({ view, onNavigate }) {
                 onNavigate(it.path)
               }}
             >
-              <span className="num" aria-hidden="true">
-                {it.n}
-              </span>
               <span className="word" aria-hidden="true">
                 {[...it.word].map((ch, i) => (
                   <span className="ch" key={i} style={{ '--i': it.start + i }}>

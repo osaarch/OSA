@@ -241,6 +241,7 @@ export default function Project({ slug, go }) {
     [ui.meta.location, project.location],
     [ui.meta.type, project.type],
     [ui.meta.format, project.format],
+    [ui.meta.credit, project.credit],
     [ui.meta.status, project.status],
     [ui.meta.area, project.area],
     [ui.meta.role, project.role],
@@ -266,6 +267,8 @@ export default function Project({ slug, go }) {
                 {project.titleAr}
               </p>
             )}
+            {project.subtitle && <p className="p-subtitle">{project.subtitle}</p>}
+            {project.tagline && <p className="p-tagline">{project.tagline}</p>}
             <p className="hero-sum">{project.summary}</p>
           </div>
           <a
@@ -294,6 +297,8 @@ export default function Project({ slug, go }) {
                 {project.titleAr}
               </p>
             )}
+            {project.subtitle && <p className="p-subtitle">{project.subtitle}</p>}
+            {project.tagline && <p className="p-tagline">{project.tagline}</p>}
             <p className="hero-sum">{project.summary}</p>
           </header>
         )}
@@ -313,20 +318,22 @@ export default function Project({ slug, go }) {
           ))}
         </section>
 
-        <section className="p-desc">
-          <Reveal as="h2" className="label">
-            <i>—</i> {ui.overview}
-          </Reveal>
-          <div>
-            {project.description.map((t, i) => (
-              <Reveal as="p" className="body lg" key={i} delay={0.05 * i}>
-                {t}
-              </Reveal>
-            ))}
-          </div>
-        </section>
+        {project.description?.length > 0 && (
+          <section className="p-desc">
+            <Reveal as="h2" className="label">
+              <i>—</i> {ui.overview}
+            </Reveal>
+            <div>
+              {project.description.map((t, i) => (
+                <Reveal as="p" className="body lg" key={i} delay={0.05 * i}>
+                  {t}
+                </Reveal>
+              ))}
+            </div>
+          </section>
+        )}
 
-        {project.concept && (
+        {project.concept?.text?.length > 0 && (
           <section className="p-desc p-concept">
             <Reveal as="h2" className="label">
               <i>—</i> {ui.concept}
@@ -371,6 +378,56 @@ export default function Project({ slug, go }) {
                 {project.material.text}
               </Reveal>
             </div>
+          </section>
+        )}
+
+        {project.stages && (
+          <section className="p-steps" aria-label={project.stages.title}>
+            <Reveal as="h2" className="label">
+              <i>—</i> {project.stages.title}
+            </Reveal>
+            <ol>
+              {project.stages.items.map((s, i) => (
+                <Reveal as="li" key={s.title} delay={0.06 * (i % 3)}>
+                  <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
+                  <b className="st-t">{s.title}</b>
+                  {s.text && <p>{s.text}</p>}
+                </Reveal>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {project.sections
+          ?.filter((sec) => sec.text?.length > 0)
+          .map((sec) => (
+            <section className="p-desc p-material" key={sec.title}>
+              <Reveal as="h2" className="label">
+                <i>—</i> {sec.title}
+              </Reveal>
+              <div>
+                {sec.text.map((t, i) => (
+                  <Reveal as="p" className="body lg" key={i} delay={0.05 * i}>
+                    {t}
+                  </Reveal>
+                ))}
+              </div>
+            </section>
+          ))}
+
+        {project.programme?.length > 0 && (
+          <section className="p-desc p-programme">
+            <Reveal as="h2" className="label">
+              <i>—</i> {ui.programme}
+            </Reveal>
+            <ul className="prog-list">
+              {project.programme.map((t, i) => (
+                <Reveal as="li" key={t} delay={0.04 * i}>
+                  <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
+                  {t}
+                </Reveal>
+              ))}
+            </ul>
           </section>
         )}
 

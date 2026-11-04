@@ -114,8 +114,12 @@ export default function App() {
       audio.setScene({ wind: 0, music: 1, clarity: 1 })
     }
     // each place has its own music: the Malwiya's maqam, or the stadium's (Rast + frame drum)
+    // — and inside a project the home page's music is gone: the stadium has its own, the other
+    // projects get the quiet harbour piece with a sea breeze
     const proj = route.name === 'project' ? findProject(route.slug) : null
-    audio.setMood(proj && proj.scene === 'stadium' ? 'stadium' : 'malwiya')
+    const mood = proj ? (proj.scene === 'stadium' ? 'stadium' : 'port') : 'malwiya'
+    audio.setMood(mood)
+    if (mood === 'port') audio.setScene({ wind: 0.22, music: 1, clarity: 1, pulse: 0, crowd: 0, drive: 0 })
   }, [route.name, route.path])
 
   // ── scroll → journey progress ─────────────────────────────────────────────

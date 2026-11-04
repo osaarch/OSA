@@ -174,16 +174,17 @@ function bowl() {
   })
 }
 
-// ── the very dark brown glazing under the roof planes ────────────────────────
-// Near-black bronze panes in a fine frame of floors and mullions, with a sheen that picks up
-// the sky at grazing angles, and a warm amber light from inside (stronger by night).
+// ── the glazing: black by day, lit from inside by night ──────────────────────
+// Black glass with only a faint sheen of sky at grazing angles; once the red night comes it lights
+// up from within in one even colour (no panes, no mullions, no lines — just a soft drift of
+// brightness across the facade).
+const GLASS_LIT = 'vec3(0.40, 0.76, 1.0)' // sky-blue (tested against red: it reads as light, red melts into the walls)
 function glass() {
-  return patch(base('glass', { roughness: 0.1, metalness: 0.2 }), {
+  return patch(base('glass', { roughness: 0.08, metalness: 0.3 }), {
     body: /* glsl */ `
       vec3 V = normalize(vViewPosition);
-      float fres = pow(1.0 - clamp(dot(normal, V), 0.0, 1.0), 2.4);
+      float fres = pow(1.0 - clamp(dot(normal, V), 0.0, 1.0), 2.6);
 
-      // a smooth drift of brightness across the facade (no panes, no mullions, no lines)
       float flat_ = step(0.72, abs(nW.y));
       vec2 tg = vec2(-nW.z, nW.x); float tl = length(tg);
       tg = tl > 0.12 ? tg / tl : vec2(1.0, 0.0);
@@ -191,14 +192,13 @@ function glass() {
       float up = mix(vWP.y, vWP.z, flat_);
       float drift = fbm1(vec2(along * 0.035, up * 0.05) + 4.0);
 
-      vec3 sky = mix(uSkyH, uSkyZ, 0.25 + 0.6 * clamp(vWP.y / 70.0, 0.0, 1.0)) * vec3(1.0, 0.86, 0.72);
-      diffuseColor.rgb = vec3(0.06, 0.042, 0.03);
-      roughnessFactor = 0.1;
+      diffuseColor.rgb = vec3(0.010, 0.010, 0.012);
+      roughnessFactor = 0.08;
 
-      // the glass is lit from inside, by day and by night: one warm amber light
-      // (stronger by night), a touch of the sky on top at grazing angles
-      vec3 lamp = vec3(1.0, 0.56, 0.2) * (0.5 + 0.5 * uNight) * (0.62 + 0.62 * drift) * (0.92 + 0.08 * (1.0 - fres));
-      glow = sky * (0.03 + 0.28 * fres) + lamp;
+      vec3 sky = mix(uSkyH, uSkyZ, 0.25 + 0.6 * clamp(vWP.y / 70.0, 0.0, 1.0));
+      float lit = smoothstep(0.2, 0.95, uNight);
+      glow = sky * (0.012 + 0.2 * fres) * (1.0 - 0.6 * lit)
+           + ${GLASS_LIT} * lit * (0.62 + 0.62 * drift) * (0.9 + 0.1 * (1.0 - fres));
     `,
   })
 }

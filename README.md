@@ -20,9 +20,8 @@ npm run build:single   # optional: ONE self-contained index.html in dist-single/
 1. **Text** — open `src/content.js`. Every text exists twice, `en` and `ar` (the site opens in English;
    the visitor switches with the **EN / AR** button, or `?lang=ar`). Edit `profile` (name, headline,
    biography, philosophy, areas, contact) and the projects (title, location, type, description, concept,
-   form generation, captions…). Interface words (menu, HUD, buttons) are in `src/i18n.js`. Delete the line
-   `placeholder: true` of a project when you are done. The Arabic is a faithful translation made from the
-   English text — have it read once by you before you rely on it.
+   form generation, captions…). Interface words (menu, HUD, buttons) are in `src/i18n.js`. The Arabic is a
+   faithful translation made from the English text — have it read once by you before you rely on it.
 2. **Portrait** — save as `src/assets/profile/portrait.jpg` (4:5). On the OSA page it sits on a sandstone
    panel (white background of the photo turns into the panel colour).
 3. **Project photographs** — one folder per project in `src/assets/projects/<slug>/`:
@@ -34,7 +33,13 @@ npm run build:single   # optional: ONE self-contained index.html in dist-single/
 4. **Captions** are looked up by the number a file starts with: `captions: { '03': { title, text } }`
    applies to `03-anything.jpg`. Slots without an image yet (Al Rafidain Stadium: `01` and `03`) are simply
    not shown — drop `01-….jpg` / `03-….jpg` into the folder and they appear with their captions.
-5. To add a project, add an entry to `projectData` and create its folder.
+5. To add a project, add an entry to `projectData` and create its folder. A project page can carry:
+   `subtitle`, `tagline`, `credit`, `description` (overview paragraphs), `concept { title, text[] }`,
+   `stages { title, items[{ title, text }] }`, `sections [{ title, text[] }]` (e.g. *Shared Public Ground*,
+   *Envelope and Materials*) and `programme []` — each block appears as soon as it has content.
+   **Project 2 — The Promethean Port** lives in `src/assets/projects/promethean-port/` (`logo.png` is the
+   original logo, unchanged). Its long paragraphs go into `description`, `concept.text`, the `stages` items'
+   `text` and `sections` in `src/content.js`.
 
 Until real photographs exist, honest empty frames are shown. Nothing is faked.
 
@@ -99,6 +104,12 @@ groove with rim ticks and tom fills, brass-like fanfares on the Rast scale and a
 the camera climbs over the bowl, with a referee's whistle and a roar when the full stands appear. The wind
 and falling-sand texture stays underneath all of it, and only the music remains once the screen goes black
 (`MOODS.stadium` and `groove()` in `src/audio.js`; the mapping to scroll is in `StadiumScene.jsx`).
+**The home music never leaks into a project:** every mood has its own gates (`makeEpoch`), and `setMood()`
+closes the old mood's gates while opening the new one, so the stadium plays only its own score and every
+other project plays a quiet harbour piece (`MOODS.port`: maqam Hijaz, a sea breeze underneath). Back on the
+home page / OSA / WORKS the Malwiya mood returns.
+The stadium glass is black in the day; at night it lights up sky-blue (`GLASS_LIT` in
+`src/scene/stadium/materials.js` — red was tried and melts into the red walls).
 
 ## Behaviour worth knowing
 

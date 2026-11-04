@@ -14,7 +14,7 @@ import { useSyncExternalStore } from 'react'
 //            disappears when you arrive at OSA / WORKS, leaving only the music.
 // ═════════════════════════════════════════════════════════════════════════════
 
-// Two moods share one engine. "malwiya" is the Bayati piece above; "stadium" is a warmer,
+// Three moods share one engine. "malwiya" is the Bayati piece above; "stadium" is a warmer,
 // slower piece in maqam RAST on C (its neutral third — E half-flat — is the Arabic colour)
 // with a distant, low frame-drum pulse that rises as the camera climbs over the bowl.
 const MOODS = {
@@ -76,6 +76,33 @@ const MOODS = {
       [11, 9, 7, 9, 7],
       [7, 7, 11, 9, 7],
     ],
+  },
+  // the harbour: a quiet piece for the projects without a 3D journey — maqam HIJAZ on G, sparse and
+  // slow, with a sea breeze where the sand would be (no grains, no drum)
+  port: {
+    tonic: 196, // G3
+    // maqam Hijaz on G:  G  A♭  B  C  D  E♭  F
+    cents: [0, 100, 400, 500, 700, 800, 1000],
+    chords: [
+      [0, 4, 7],
+      [0, 3, 5],
+      [-3, 2, 4],
+      [0, 4, 8],
+    ],
+    motifs: [
+      [2, 1, 0, 1, 2],
+      [4, 3, 2, 1, 0],
+      [0, 1, 2, 3, 4],
+      [2, 1, 0, 1, 2, 4, 2],
+      [4, 2, 1, 0],
+      [0, 0, 1, 2, 1, 0],
+    ],
+    roots: [0, 0, 0, 2, 4, 4],
+    resolves: [0, 0, 0, 4, 2, 7],
+    ney: [7, 11, 9, 11, 14],
+    startIdx: 2,
+    gap: [4.5, 9.5],
+    noGrain: true,
   },
 }
 
@@ -170,13 +197,27 @@ export function createEngine(ctx, moodName = 'malwiya') {
   comp.connect(master)
   master.connect(ctx.destination)
 
+  // ── mood epochs ───────────────────────────────────────────────────────────
+  // Every voice of a piece (music, drums, groove, the cheer) goes through the gates of the epoch
+  // it was composed in. When the piece changes (the home page → a project) the old gates are shut
+  // at once, so even the notes already scheduled ahead are never heard inside the new place.
+  const makeEpoch = (open) => {
+    const e = { m: mk.gain(open ? 1 : 0), p: mk.gain(open ? 1 : 0), d: mk.gain(open ? 1 : 0), c: mk.gain(open ? 1 : 0) }
+    e.m.connect(musicBus)
+    e.p.connect(pulseBus)
+    e.d.connect(driveBus)
+    e.c.connect(crowdBus)
+    return e
+  }
+  let ep = makeEpoch(true)
+
   // ── drone: tonic + fifth, slowly breathing ────────────────────────────────
   const droneVoices = []
+  const droneLp = mk.filter('lowpass', 480, 0.6)
   {
     const dronePre = mk.gain(0.058)
-    const droneLp = mk.filter('lowpass', 480, 0.6)
     dronePre.connect(droneLp)
-    droneLp.connect(musicBus)
+    droneLp.connect(ep.m)
     const breathe = mk.osc('sine', 0.045)
     const breatheG = mk.gain(0.025)
     breathe.connect(breatheG)
@@ -311,7 +352,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
       o.stop(t + dur + 0.1)
     }
     lp.connect(g)
-    g.connect(musicBus)
+    g.connect(ep.m)
     // pick noise
     const [s] = noise()
     const cb = mk.filter('bandpass', 2300, 1.2)
@@ -321,7 +362,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.03)
     s.connect(cb)
     cb.connect(cg)
-    cg.connect(musicBus)
+    cg.connect(ep.m)
     s.start(t, rnd(0, 3))
     s.stop(t + 0.05)
   }
@@ -368,7 +409,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     vib.start(t)
     vib.stop(t + dur + 2.5)
     lp.connect(g)
-    g.connect(musicBus)
+    g.connect(ep.m)
     live.push([g, t + dur + 2.5])
   }
 
@@ -380,7 +421,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.setValueAtTime(0.026, t + dur - 8)
     g.gain.linearRampToValueAtTime(0.0001, t + dur)
     lp.connect(g)
-    g.connect(musicBus)
+    g.connect(ep.m)
     live.push([g, t + dur + 0.2])
     for (const i of idxs) {
       for (const [type, det] of [
@@ -409,7 +450,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.linearRampToValueAtTime(0.5 * vel, t + 0.008)
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55)
     o.connect(g)
-    g.connect(pulseBus)
+    g.connect(ep.p)
     o.start(t)
     o.stop(t + 0.6)
     const [s] = noise()
@@ -420,7 +461,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.07)
     s.connect(f)
     f.connect(ng)
-    ng.connect(pulseBus)
+    ng.connect(ep.p)
     s.start(t, rnd(0, 3))
     s.stop(t + 0.09)
   }
@@ -433,7 +474,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05)
     s.connect(f)
     f.connect(g)
-    g.connect(pulseBus)
+    g.connect(ep.p)
     s.start(t, rnd(0, 3))
     s.stop(t + 0.07)
   }
@@ -449,7 +490,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.linearRampToValueAtTime(0.62 * vel, t + 0.006)
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.46)
     o.connect(g)
-    g.connect(pulseBus)
+    g.connect(ep.p)
     o.start(t)
     o.stop(t + 0.5)
     const [s] = noise()
@@ -460,7 +501,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06)
     s.connect(f)
     f.connect(ng)
-    ng.connect(pulseBus)
+    ng.connect(ep.p)
     s.start(t, rnd(0, 3))
     s.stop(t + 0.08)
   }
@@ -476,7 +517,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
       g.gain.exponentialRampToValueAtTime(0.0001, at + rnd(0.07, 0.15))
       s.connect(f)
       f.connect(g)
-      g.connect(driveBus)
+      g.connect(ep.d)
       s.start(at, rnd(0, 3))
       s.stop(at + 0.2)
     }
@@ -491,7 +532,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045)
     s.connect(f)
     f.connect(g)
-    g.connect(driveBus)
+    g.connect(ep.d)
     s.start(t, rnd(0, 3))
     s.stop(t + 0.06)
   }
@@ -505,7 +546,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.linearRampToValueAtTime(0.3 * vel, t + 0.004)
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.26)
     o.connect(g)
-    g.connect(driveBus)
+    g.connect(ep.d)
     o.start(t)
     o.stop(t + 0.3)
     const [s] = noise()
@@ -516,7 +557,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.05)
     s.connect(nf)
     nf.connect(ng)
-    ng.connect(driveBus)
+    ng.connect(ep.d)
     s.start(t, rnd(0, 3))
     s.stop(t + 0.07)
   }
@@ -554,7 +595,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
       o.stop(t + dur + 0.3)
     }
     lp.connect(g)
-    g.connect(driveBus)
+    g.connect(ep.d)
   }
   // a short call from the horns, in step with the groove
   function fanfare(t, step) {
@@ -577,7 +618,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.setValueAtTime(0.06, t + 0.34)
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.46)
     o.connect(g)
-    g.connect(driveBus)
+    g.connect(ep.d)
     o.start(t)
     o.stop(t + 0.5)
     trill.start(t)
@@ -599,7 +640,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.gain.exponentialRampToValueAtTime(0.0001, t + 7)
     s.connect(bp)
     bp.connect(g)
-    g.connect(crowdBus)
+    g.connect(ep.c)
     s.start(t, rnd(0, 2))
     s.stop(t + 7.2)
   }
@@ -721,7 +762,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     }
     const rate = 3 + 55 * state.level.wind
     while (state.nextGrain < horizon) {
-      if (state.level.wind > 0.02) grain(state.nextGrain)
+      if (state.level.wind > 0.02 && !M.noGrain) grain(state.nextGrain)
       state.nextGrain += -Math.log(1 - Math.random()) / rate
     }
   }
@@ -758,30 +799,60 @@ export function createEngine(ctx, moodName = 'malwiya') {
     state.nextStep = Math.max(state.nextStep, t + 0.2)
   }
 
-  // Switch the whole piece to another mood: old long notes fade out, the drone glides to the
-  // new tonic, and the next phrase is composed in the new maqam.
+  // Switch the whole piece to another mood: the old epoch's gates close at once (notes already
+  // scheduled ahead included), the reverb tail is ducked until it has died, the drone retunes while
+  // nothing can be heard, and the new epoch fades in with a phrase composed in the new maqam.
+  let moodKey = MOODS[moodName] ? moodName : 'malwiya'
   function setMood(name) {
     const next = MOODS[name]
     if (!next || next === M) return
     M = next
+    moodKey = name
     const t = ctx.currentTime
-    for (const [g, end] of live) {
-      if (end > t) {
-        g.gain.cancelScheduledValues(t)
-        g.gain.setTargetAtTime(0.0001, t, 0.4)
-      }
+    const old = ep
+    for (const g of [old.m, old.p, old.d, old.c]) {
+      g.gain.cancelScheduledValues(t)
+      g.gain.setTargetAtTime(0, t, 0.09)
     }
+    // the old gates are dead weight once their notes are over
+    if (typeof setTimeout === 'function' && !(ctx instanceof OfflineAudioContext)) {
+      setTimeout(() => {
+        for (const g of [old.m, old.p, old.d, old.c]) {
+          try {
+            g.disconnect()
+          } catch (e) {
+            /* already gone */
+          }
+        }
+      }, 20000)
+    }
+    ep = makeEpoch(false)
+    droneLp.disconnect()
+    droneLp.connect(ep.m)
+    for (const g of [ep.m, ep.p, ep.d, ep.c]) {
+      g.gain.setValueAtTime(0, t)
+      g.gain.setTargetAtTime(1, t + 0.55, 0.4)
+    }
+    reverbWet.gain.cancelScheduledValues(t)
+    reverbWet.gain.setTargetAtTime(0, t, 0.1)
+    reverbWet.gain.setTargetAtTime(0.85, t + 2.6, 0.9)
     live.length = 0
-    for (const [o, fn] of droneVoices) o.frequency.setTargetAtTime(fn(), t, 2.2)
+    for (const [o, fn] of droneVoices) o.frequency.setValueAtTime(fn(), t + 0.4)
+    // levels belong to the place that set them
+    state.level.pulse = 0
+    state.level.crowd = 0
+    state.level.drive = 0
     state.idx = M.startIdx
     state.padN = 0
-    state.nextPad = Math.max(t + 0.8, 0)
-    state.nextPhrase = Math.max(t + 1.8, 0)
+    state.nextPad = t + 0.9
+    state.nextPhrase = t + 2.4
     state.nextNey = Math.max(t + 9, state.nextNey)
-    state.nextStep = t + 0.4
+    state.nextBeat = t + 0.6
+    state.nextStep = t + 0.6
     state.stepN = 0
+    state.beatN = 0
   }
-  const moodName0 = () => (M === MOODS.stadium ? 'stadium' : 'malwiya')
+  const moodName0 = () => moodKey
 
   return { scheduleUntil, setScene, setEnabled, resumeClock, setMood, cheer, mood: moodName0, state, log }
 }
