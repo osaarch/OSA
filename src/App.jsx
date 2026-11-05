@@ -12,6 +12,7 @@ import NightToggle from './ui/NightToggle'
 import Rain from './ui/Rain'
 import { useI18n } from './i18n'
 import { audio, createEngine, renderOffline } from './audio'
+import { setRainZone } from './night'
 import { findProject } from './content'
 import Osa from './pages/Osa'
 import Works from './pages/Works'
@@ -90,6 +91,7 @@ export default function App() {
     const was = prevView.current
     prevView.current = route.name
     world.paused = route.name !== 'home'
+    setRainZone(0) // every page starts dry; the journey that is on screen brings the rain back
 
     if (route.name === 'home') {
       setSceneWanted(true)
@@ -119,7 +121,9 @@ export default function App() {
     // — and inside a project the home page's music is gone: the stadium has its own, the other
     // projects get the quiet harbour piece with a sea breeze
     const proj = route.name === 'project' ? findProject(route.slug) : null
-    const mood = proj ? (proj.scene === 'stadium' ? 'stadium' : 'port') : 'malwiya'
+    // the stadium's score: the modern-desert version (?music=club plays the first, club-style one)
+    const stadiumMood = typeof location !== 'undefined' && /[?&]music=club\b/.test(location.search) ? 'stadium' : 'desert'
+    const mood = proj ? (proj.scene === 'stadium' ? stadiumMood : 'port') : 'malwiya'
     audio.setMood(mood)
     if (mood === 'port') audio.setScene({ wind: 0.22, music: 1, clarity: 1, pulse: 0, crowd: 0, drive: 0 })
   }, [route.name, route.path])

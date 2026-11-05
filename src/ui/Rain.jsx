@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { night, stepNight, useNight } from '../night'
+import { night, onRainZone, rainZone, stepNight, useNight } from '../night'
 
 // Rain on the screen (night mode): three depths of slanted streaks that fall faster and
-// brighter the nearer they are. A plain 2D canvas over everything but the interface, so it
-// also falls on the black pages. It only runs while night mode is on (or fading out).
+// brighter the nearer they are. A plain 2D canvas over the scene. It only falls during the cinematic
+// journeys (the Malwiya, the stadium) — `rainZone` is 0 on every other page and once the screen goes
+// black — and it only runs while there is rain to draw.
 const LAYERS = [
   { n: 0.45, len: 0.022, speed: 0.9, w: 0.7, a: 0.16 },
   { n: 0.35, len: 0.04, speed: 1.35, w: 1, a: 0.26 },
@@ -43,12 +44,12 @@ export default function Rain() {
 
     const frame = (now) => {
       raf = 0
-      const v = stepNight()
+      const v = stepNight() * rainZone.v
       const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016)
       last = now
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, W, H)
-      if (v < 0.004 && !night.on) return // dry again: stop
+      if (v < 0.004 && (!night.on || rainZone.target === 0)) return // dry again: stop
       ctx.lineCap = 'round'
       for (let li = 0; li < LAYERS.length; li++) {
         const L = LAYERS[li]
@@ -80,8 +81,13 @@ export default function Rain() {
 
     build()
     window.addEventListener('resize', build)
-    if (isNight || night.v > 0.004) start()
+    const off = onRainZone(() => {
+      if (night.on && rainZone.target > 0) start()
+    })
+    if (isNight && rainZone.target > 0) start()
+    else if (night.v * rainZone.v > 0.004) start()
     return () => {
+      off()
       window.removeEventListener('resize', build)
       cancelAnimationFrame(raf)
     }

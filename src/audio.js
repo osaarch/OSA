@@ -96,6 +96,62 @@ const MOODS = {
     ],
     trim: 0.75, // the groove is denser than the home piece: keep the two at a similar loudness
   },
+  // the stadium, second version — "modern desert": maqam HIJAZ on F in a rolling 6/8, a hand-clap and
+  // frame-drum groove, a sub-bass pedal, a plucked cross-rhythm (four notes against the two beats) that
+  // echoes like a call across dunes, a bowed rababa-like lead and wide dusty pads. See grooveDesert().
+  desert: {
+    tonic: 174.61, // F3
+    // maqam Hijaz on F:  F  G♭  A  B♭  C  D♭  E♭   (the augmented second G♭–A is the desert's voice)
+    cents: [0, 100, 400, 500, 700, 800, 1000],
+    chords: [
+      [0, 4, 9],
+      [1, 5, 10],
+      [0, 4, 9],
+      [6, 10, 15],
+    ],
+    motifs: [
+      [2, 1, 0, 1, 2],
+      [4, 3, 2, 1, 0],
+      [0, 1, 2, 1, 0],
+      [2, 3, 4, 3, 2, 1, 0],
+      [4, 2, 1, 0],
+      [0, 1, 2, 4, 2, 1, 0],
+    ],
+    roots: [0, 0, 0, 1],
+    resolves: [0, 0, 0, 2],
+    ney: [7, 9, 11, 9],
+    startIdx: 2,
+    gap: [3, 6],
+    sport: { bpm: 99 }, // a sixteenth = 0.1515 s; one 6/8 bar = 12 of them = 1.82 s
+    modern: {
+      kind: 'desert',
+      steps: 12,
+      echoBeats: 0.5,
+      // chord roots of the four-bar loop (Hijaz degrees):  F  –  G♭  –  F  –  E♭   (I – ♭II – I – ♭VII)
+      bars: [0, 1, 0, 6],
+      // the plucked ostinato: 4 notes per bar (every 3 sixteenths = a hemiola over the 6/8 beats);
+      // steps above the chord root, in the octave above the tonic — the 0-1-2 turn is the Hijaz sound
+      arps: [
+        [0, 1, 2, 1],
+        [2, 1, 0, 1],
+        [4, 2, 1, 2],
+        [0, 2, 4, 2],
+      ],
+      rhythms: [
+        [3, 3, 3, 3],
+        [6, 3, 3],
+        [4, 4, 4],
+        [3, 3, 6],
+        [2, 2, 2, 6],
+      ],
+    },
+    horns: [
+      [7, 8, 9, 8, 7],
+      [7, 9, 11, 9],
+      [11, 9, 8, 7],
+    ],
+    trim: 0.7,
+  },
   // the harbour: a quiet piece for the projects without a 3D journey — maqam HIJAZ on G, sparse and
   // slow, with a sea breeze where the sand would be (no grains, no drum)
   port: {
@@ -237,7 +293,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     e.lead.connect(e.m)
     if (M.modern) {
       const dl = ctx.createDelay(2)
-      dl.delayTime.value = (60 / M.sport.bpm) * 0.75
+      dl.delayTime.value = (60 / M.sport.bpm) * (M.modern.echoBeats ?? 0.75)
       const tone = mk.filter('lowpass', 2300, 0.5)
       const fb = mk.gain(0.38)
       const wet = mk.gain(0.36)
@@ -907,43 +963,59 @@ export function createEngine(ctx, moodName = 'malwiya') {
     s.start(t, rnd(0, 3))
     s.stop(t + 0.05)
   }
-  // the lead: a reedy, slightly nasal voice (a mizmar played softly) that scoops up into each note
-  function lead(t, f, dur, vel = 0.7, slide = 0) {
+  // the lead: a reedy, slightly nasal voice (a mizmar played softly) that scoops up into each note;
+  // `bowed` makes it a rababa instead: a slow bow, a deep vibrato, a long glide and a little bow noise
+  function lead(t, f, dur, vel = 0.7, slide = 0, bowed = false) {
     log.push([t, f, vel])
+    const atk = bowed ? 0.17 : 0.035
     const g = mk.gain(0)
     g.gain.setValueAtTime(0.0001, t)
-    g.gain.linearRampToValueAtTime(0.16 * vel, t + 0.035)
-    g.gain.setValueAtTime(0.14 * vel, t + Math.max(0.05, dur - 0.06))
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.22)
-    const lp = mk.filter('lowpass', 1900, 0.8)
-    lp.frequency.setValueAtTime(900, t)
-    lp.frequency.linearRampToValueAtTime(2300, t + 0.12)
-    const pk = mk.filter('peaking', 1150, 2.2)
-    pk.gain.value = 6
-    const vib = mk.osc('sine', 5.4)
+    g.gain.linearRampToValueAtTime((bowed ? 0.15 : 0.16) * vel, t + atk)
+    g.gain.setValueAtTime((bowed ? 0.13 : 0.14) * vel, t + Math.max(atk + 0.02, dur - 0.06))
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + (bowed ? 0.4 : 0.22))
+    const lp = mk.filter('lowpass', bowed ? 1500 : 1900, 0.8)
+    lp.frequency.setValueAtTime(bowed ? 700 : 900, t)
+    lp.frequency.linearRampToValueAtTime(bowed ? 2000 : 2300, t + (bowed ? 0.4 : 0.12))
+    const pk = mk.filter('peaking', bowed ? 900 : 1150, 2.2)
+    pk.gain.value = bowed ? 4 : 6
+    const vib = mk.osc('sine', bowed ? 4.9 : 5.4)
     const vg = mk.gain(0)
     vg.gain.setValueAtTime(0, t)
-    vg.gain.setValueAtTime(0, t + 0.16)
-    vg.gain.linearRampToValueAtTime(15, t + 0.16 + Math.min(0.5, dur * 0.6))
+    vg.gain.setValueAtTime(0, t + (bowed ? 0.22 : 0.16))
+    vg.gain.linearRampToValueAtTime(bowed ? 26 : 15, t + (bowed ? 0.22 : 0.16) + Math.min(0.6, dur * 0.6))
     vib.connect(vg)
     vib.start(t)
-    vib.stop(t + dur + 0.4)
+    vib.stop(t + dur + 0.6)
     for (const [type, det, gv] of [
-      ['sawtooth', -7, 0.5],
-      ['sawtooth', 7, 0.5],
+      ['sawtooth', bowed ? -5 : -7, 0.5],
+      ['sawtooth', bowed ? 5 : 7, 0.5],
       ['triangle', 0, 0.5],
     ]) {
       const o = mk.osc(type, f)
       const start = f * Math.pow(2, -slide / 1200)
       o.frequency.setValueAtTime(start, t)
-      if (slide) o.frequency.exponentialRampToValueAtTime(f, t + 0.075)
+      if (slide) o.frequency.exponentialRampToValueAtTime(f, t + (bowed ? 0.16 : 0.075))
       o.detune.value = det
       vg.connect(o.detune)
       const og = mk.gain(gv)
       o.connect(og)
       og.connect(lp)
       o.start(t)
-      o.stop(t + dur + 0.4)
+      o.stop(t + dur + 0.6)
+    }
+    if (bowed) {
+      const [s] = noise(true)
+      const bp = mk.filter('bandpass', f * 2.2, 3)
+      const bg = mk.gain(0)
+      bg.gain.setValueAtTime(0.0001, t)
+      bg.gain.linearRampToValueAtTime(0.03 * vel, t + 0.12)
+      bg.gain.setValueAtTime(0.022 * vel, t + dur)
+      bg.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.3)
+      s.connect(bp)
+      bp.connect(bg)
+      bg.connect(lp)
+      s.start(t, rnd(0, 2))
+      s.stop(t + dur + 0.5)
     }
     lp.connect(pk)
     pk.connect(g)
@@ -1024,7 +1096,8 @@ export function createEngine(ctx, moodName = 'malwiya') {
     padN: 0,
     nextStep: 0.4, // the stadium groove: sixteenth notes
     stepN: 0,
-    level: { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0, rain: 0 },
+    level: { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0, rain: 0, end: 0 },
+    finalHit: false,
   }
   function phrase(t0) {
     let t = t0
@@ -1081,8 +1154,17 @@ export function createEngine(ctx, moodName = 'malwiya') {
     return best
   }
   function melody(t0, r, step, vel) {
-    const motif = pick(M.motifs)
+    const bowed = M.modern.kind === 'desert'
     const rhythm = pick(M.modern.rhythms)
+    // the motif, cut where it would run past a bar and a half (the last note is then a chord tone)
+    const full = pick(M.motifs)
+    const motif = []
+    let span = 0
+    for (let k = 0; k < full.length; k++) {
+      motif.push(full[k])
+      span += rhythm[k % rhythm.length]
+      if (span >= (bowed ? 18 : 16)) break
+    }
     let at = 0
     let prev = 14 + motif[0]
     motif.forEach((deg, k) => {
@@ -1093,10 +1175,10 @@ export function createEngine(ctx, moodName = 'malwiya') {
       const f = note(idx)
       if (!last && steps >= 3 && Math.random() < 0.3) {
         // a quick mordent: the upper neighbour, then the note
-        lead(t, note(idx + 1), step * 0.7, vel * 0.55)
-        lead(t + step * 0.6, f, steps * step - step * 0.6, vel * (k === 0 ? 1 : 0.85))
+        lead(t, note(idx + 1), step * 0.7, vel * 0.55, 0, bowed)
+        lead(t + step * 0.6, f, steps * step - step * 0.6, vel * (k === 0 ? 1 : 0.85), 0, bowed)
       } else {
-        lead(t, f, steps * step * 0.94, vel * (k === 0 ? 1 : last ? 0.9 : 0.8), pick([0, 0, 100, 150, 200]))
+        lead(t, f, steps * step * 0.94, vel * (k === 0 ? 1 : last ? 0.9 : 0.8), pick(bowed ? [0, 100, 200, 300] : [0, 0, 100, 150, 200]), bowed)
       }
       prev = idx
       at += rhythm[k % rhythm.length]
@@ -1152,11 +1234,90 @@ export function createEngine(ctx, moodName = 'malwiya') {
     if (cyc === 7 && s === 8 && d > 0.3) riser(t, 8 * step, 0.4 + 0.6 * d)
   }
 
+  // ── the stadium, second version: "modern desert" ────────────────────────────
+  // One bar = 12 sixteenths in a rolling 6/8 (two beats of three eighths, 1.82 s); the chords change every
+  // bar (I – ♭II – I – ♭VII in Hijaz) and eight bars make a phrase. A composed arc, not a loop:
+  //   bars 1–2     the intro: a pad swelling over a sub-bass pedal, one pluck, then the cross-rhythm
+  //   bar 3 on     the groove enters (kick, tak, claps, shaker) and grows with the scroll
+  //   every phrase a hook, a call, a long breath and an answer from the bowed lead; riser / impact / tom roll
+  //   the end      on the black logo screen the drums step back: pad, ostinato and one long note resolve
+  //
+  //   kick     x . . . . . x . . x . .       (the second beat; the syncopated one only when it is full)
+  //   tak      . . . . t . . . t . . .       the dumbek of the 6/8: dum . tak dum tak
+  //   claps    . . . . x . . . . . x .
+  //   ostinato x . . x . . x . . x . .       four plucks against the two beats (3+3+3+3)
+  function grooveDesert(t, n, step) {
+    const s = n % 12
+    const bar = Math.floor(n / 12)
+    const cyc = bar % 8
+    const p = state.level.pulse
+    const d = state.level.drive
+    const m = state.level.music
+    const end = state.level.end
+    const dr = bar < 2 ? 0 : 1 - clamp((end - 0.15) / 0.55, 0, 1) // how much of the drums is there
+    const r = M.modern.bars[bar % M.modern.bars.length]
+    const root = note(r === 6 ? r - 14 : r - 7)
+    const barLen = 12 * step
+
+    if (s === 0) {
+      mpad(t, chordIdx(r), barLen + 2.2)
+      let brass = false
+      if (dr > 0.5 && cyc === 0 && d > 0.74 && Math.random() < 0.6) {
+        fanfare(t, step)
+        brass = true
+      }
+      if (dr > 0.5 && cyc === 0 && bar > 0 && d > 0.35) impact(t, 0.35 + 0.65 * d)
+      if (end > 0.5) {
+        // the ending: one long breath on a chord tone every second bar; a soft impact the first time
+        if (!state.finalHit) {
+          impact(t, 0.45)
+          state.finalHit = true
+        }
+        if (bar % 2 === 0) air(t, note(nearestTone(r, 14)), barLen * 2.3, 0.75)
+      } else {
+        state.finalHit = false
+        if (bar === 1) air(t + step * 3, note(14), barLen * 1.7, 0.45 + 0.3 * m) // the first breath of the intro
+        if (bar >= 2 && cyc === 4 && Math.random() < 0.85) air(t + step * 2, note(r + 14), barLen * 1.7, 0.5 + 0.4 * m)
+        if (bar >= 2 && (cyc === 2 || cyc === 6 || (cyc === 0 && !brass)) && Math.random() < 0.5 + 0.45 * m) melody(t, r, step, 0.55 + 0.45 * m)
+      }
+    }
+
+    // the drums
+    if (dr > 0.05) {
+      if ((s === 0 || s === 6) && p > 0.03) kick(t, (0.5 + 0.5 * p) * dr)
+      if (s === 9 && p > 0.45 && d > 0.5) kick(t, 0.4 * dr)
+      if ((s === 4 || s === 8) && p > 0.12) tak(t, (0.45 + 0.55 * p) * dr)
+      if ((s === 2 || s === 10) && p > 0.3) ka(t, (0.4 + 0.5 * p) * dr)
+      if ((s === 4 || s === 10) && d > 0.4) clap(t, (0.4 + 0.6 * d) * dr)
+      if (d > 0.12 && (s % 2 === 0 || d > 0.45)) shaker(t, (s % 6 === 0 ? 0.5 : s % 2 === 0 ? 0.9 : 0.38) * (0.3 + 0.7 * d) * dr)
+    }
+
+    // the sub-bass pedal: always the root of the bar's chord
+    if (s === 0) bass(t, root, 5 * step, (bar === 0 ? 0.5 : 0.7) * (end > 0.5 ? 0.6 : 1))
+    if (dr > 0.3 && s === 6 && p > 0.25) bass(t, root, 3 * step, 0.5)
+    if (dr > 0.3 && s === 9 && d > 0.35) bass(t, note(r === 6 ? r - 10 : r - 3), 2.2 * step, 0.42)
+
+    // the plucked cross-rhythm: sparse in the first bar, every note after it, only the beats at the end
+    const k = [0, 3, 6, 9].indexOf(s)
+    if (k >= 0) {
+      const play = end > 0.5 ? k % 2 === 0 : bar === 0 ? k % 2 === 0 : true
+      if (play) {
+        const shape = M.modern.arps[Math.floor(cyc / 2) % M.modern.arps.length]
+        pluck(t, note(r + 7 + shape[k]), (k === 0 ? 0.85 : 0.55 + 0.1 * (k % 2)) * (0.7 + 0.3 * m) * (end > 0.5 ? 0.7 : 1), 1)
+      }
+    }
+
+    // the turn of the phrase
+    if (dr > 0.5 && cyc === 7 && d > 0.6 && s >= 8) tom(t, [210, 172, 140, 108][s - 8], 0.6 + 0.3 * d)
+    if (dr > 0.5 && cyc === 7 && s === 6 && d > 0.3) riser(t, 6 * step, 0.4 + 0.6 * d)
+  }
+
   function scheduleUntil(horizon) {
     if (!M.modern) scheduleFreeRhythm(horizon)
     else {
       const step = 60 / M.sport.bpm / 4
-      while (state.nextStep < horizon) grooveModern(state.nextStep, state.stepN++, step), (state.nextStep += step)
+      const groove = M.modern.kind === 'desert' ? grooveDesert : grooveModern
+      while (state.nextStep < horizon) groove(state.nextStep, state.stepN++, step), (state.nextStep += step)
     }
     const rate = 3 + 55 * state.level.wind
     while (state.nextGrain < horizon) {
@@ -1197,7 +1358,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
   }
 
   // ── controls ─────────────────────────────────────────────────────────────
-  function setScene({ wind, music, clarity, pulse, crowd, drive, rain }, immediate = false) {
+  function setScene({ wind, music, clarity, pulse, crowd, drive, rain, end }, immediate = false) {
     const t = ctx.currentTime
     if (wind != null) state.level.wind = wind
     if (music != null) state.level.music = music
@@ -1206,6 +1367,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     if (crowd != null) state.level.crowd = crowd
     if (drive != null) state.level.drive = drive
     if (rain != null) state.level.rain = rain
+    if (end != null) state.level.end = end // 1 on the black logo screen: the music resolves
     const set = (param, v, tc) => (immediate ? (param.value = v) : param.setTargetAtTime(v, t, tc))
     set(windMaster.gain, 0.6 * state.level.wind, 0.5)
     set(musicBus.gain, 0.95 * state.level.music, 0.8)
@@ -1279,6 +1441,8 @@ export function createEngine(ctx, moodName = 'malwiya') {
     state.level.pulse = 0
     state.level.crowd = 0
     state.level.drive = 0
+    state.level.end = 0
+    state.finalHit = false
     state.idx = M.startIdx
     state.padN = 0
     state.nextPad = t + 0.9
@@ -1389,6 +1553,7 @@ export const audio = {
   // Which piece is playing: 'malwiya' (Bayati) or 'stadium' (Rast + drum). Safe to call any time.
   setMood(name) {
     pendingMood = name
+    pendingScene = { ...pendingScene, end: 0 } // a new place never starts on the ending of the last one
     if (engine) engine.setMood(name)
   },
   // A returning visitor who chose "sound" last time: start on their first click or key.

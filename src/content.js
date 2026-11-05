@@ -154,6 +154,9 @@ const projectData = [
     // the cover (WORKS page) and the images of the project, by the number they start with
     // in src/assets/projects/al-rafidain-stadium/   (01-…, 02-…, 03-…, 04-…)
     coverFile: '04-river-and-architecture.jpg',
+    // the form-generation film: public/media/ (kept out of the bundle, so the big single-file build skips it)
+    video: 'media/rafidain-form-generation.mp4',
+    videoPoster: 'media/rafidain-form-generation-poster.jpg',
     en: {
       title: 'Al Rafidain Stadium',
       location: 'Tikrit, Iraq',
@@ -302,6 +305,8 @@ function buildProjects(lang) {
       number: String(i + 1).padStart(2, '0'),
       cover: imgs.cover,
       logo: imgs.logo,
+      video: p.video && !__SINGLE__ ? import.meta.env.BASE_URL + p.video : null,
+      videoPoster: p.videoPoster && !__SINGLE__ ? import.meta.env.BASE_URL + p.videoPoster : null,
       gallery: imgs.gallery,
       hasImages: imgs.count > 0,
     }

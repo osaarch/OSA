@@ -29,7 +29,24 @@ export const onNightWake = (fn) => {
   return () => wakers.delete(fn)
 }
 
-audio.setRain(initial ? 1 : 0)
+// Where it rains. The rain belongs to the cinematic journeys (the Malwiya and the stadium) and nowhere
+// else: the journey's frame loop sets the zone to "1 − black" (so the rain thins out and stops as the
+// screen goes black), and every page change starts dry. `rainZone.v` is the eased value the canvas reads.
+export const rainZone = { target: 0, v: 0 }
+const zoneListeners = new Set()
+export const onRainZone = (fn) => {
+  zoneListeners.add(fn)
+  return () => zoneListeners.delete(fn)
+}
+export function setRainZone(z) {
+  z = z < 0 ? 0 : z > 1 ? 1 : z
+  if (z === rainZone.target) return
+  rainZone.target = z
+  audio.setRain(night.on ? z : 0)
+  zoneListeners.forEach((fn) => fn())
+}
+
+audio.setRain(0)
 if (typeof document !== 'undefined') document.documentElement.classList.toggle('is-night', initial)
 
 export function setNight(on) {
@@ -40,7 +57,7 @@ export function setNight(on) {
   } catch (e) {
     /* storage may be unavailable */
   }
-  audio.setRain(on ? 1 : 0)
+  audio.setRain(on ? rainZone.target : 0)
   document.documentElement.classList.toggle('is-night', on)
   wakers.forEach((fn) => fn())
   listeners.forEach((l) => l())
@@ -57,6 +74,11 @@ export function stepNight() {
   if (night.v !== target) {
     night.v += (target - night.v) * (1 - Math.exp(-dt * 1.7))
     if (Math.abs(target - night.v) < 0.002) night.v = target
+  }
+  const dz = rainZone.target - rainZone.v
+  if (dz) {
+    rainZone.v += dz * (1 - Math.exp(-dt * 2.4))
+    if (Math.abs(rainZone.target - rainZone.v) < 0.002) rainZone.v = rainZone.target
   }
   return night.v
 }

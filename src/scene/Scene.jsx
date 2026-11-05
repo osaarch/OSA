@@ -10,7 +10,7 @@ import Dust from './Dust'
 import Veil from './Veil'
 import Grains from './Grains'
 import { createGrade, gradeAt, sunAzimuth } from './grade'
-import { night, stepNight } from '../night'
+import { night, setRainZone, stepNight } from '../night'
 import { samplePath, lensShift } from './path'
 import { duskUniforms, INTRO_LEN, loadState, world } from './world'
 import { clamp, journey, readScrollProgress, smootherstep, smoothstep, stepJourney } from '../journey'
@@ -283,6 +283,7 @@ function Rig({ grade, refs }) {
     const menu = smoothstep(0.865, 0.985, u)
     const intro = 1 - smoothstep(0.0, 0.055, u)
     const black = smoothstep(0.94, 0.997, u)
+    setRainZone(1 - black) // night rain only falls during the journey, not on the black menu screen
     if (moved || world.forceFrames > 0) {
       root.style.setProperty('--p', u.toFixed(4))
       root.style.setProperty('--menu', menu.toFixed(4))

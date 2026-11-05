@@ -74,6 +74,30 @@ export function ProjectLogo({ project, className = '' }) {
   )
 }
 
+// A project film (e.g. the stadium's form generation): silent, looping, it plays while it is on screen
+// and the visitor can use the controls to pause it or turn the sound on.
+function ProjectVideo({ src, poster, label }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) el.play().catch(() => {})
+        else el.pause()
+      },
+      { threshold: 0.35 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [src])
+  return (
+    <Reveal as="div" className="p-video">
+      <video ref={ref} src={src} poster={poster} muted loop playsInline controls preload="metadata" aria-label={label} />
+    </Reveal>
+  )
+}
+
 // ── the 3D journey: a tall, scrollable section with a sticky instrument layer ──
 function Journey({ project, go, jrRef, onFail }) {
   const load = useStadiumLoad()
@@ -289,7 +313,7 @@ export default function Project({ slug, go }) {
       <div className="p-body">
         {is3d && (
           <header className="pb-head">
-            <ProjectLogo project={project} className="pb-logo" />
+            {/* the logo already closed the journey: it is not repeated here, the text simply begins */}
             <p className="kicker">
               {project.number} <span>/</span> {project.type}
             </p>
@@ -358,6 +382,7 @@ export default function Project({ slug, go }) {
             <Reveal as="h2" className="label">
               <i>—</i> {ui.formGeneration}
             </Reveal>
+            {project.video && <ProjectVideo src={project.video} poster={project.videoPoster} label={ui.formGeneration} />}
             <ol>
               {project.formGeneration.map((s, i) => (
                 <Reveal as="li" key={s.title} delay={0.06 * (i % 3)}>

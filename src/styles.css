@@ -1091,15 +1091,14 @@ html.is-loading .ctl .lang span.is-on {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
-  transition: color 0.5s, padding-left 0.7s var(--ease);
+  transition: color 0.5s;
 }
 .works-list a .n {
   color: var(--sand);
   opacity: 0.6;
 }
 .works-list a.is-active {
-  color: var(--ink);
-  padding-left: 0.7em;
+  color: var(--ink); /* the chosen project is brighter, never pushed ahead of the others */
 }
 .works-list a.is-active .n {
   opacity: 1;
@@ -1201,11 +1200,9 @@ html.is-loading .ctl .lang span.is-on {
   font-size: 15px;
   letter-spacing: 0.06em;
 }
+/* label above, text below — every text block of the page starts on the same left edge */
 .p-desc {
   margin: 12vh var(--pad) 14vh calc(var(--rail) + var(--pad));
-  display: grid;
-  grid-template-columns: minmax(120px, 2fr) 7fr;
-  gap: 4vw;
 }
 .body.lg {
   max-width: 34em;
@@ -1263,7 +1260,7 @@ html.is-loading .ctl .lang span.is-on {
 }
 .blk-offsetR {
   --ar: 3 / 2;
-  padding: 0 var(--pad) 0 calc(var(--rail) + var(--pad) + 14vw);
+  padding: 0 var(--pad) 0 calc(var(--rail) + var(--pad));
 }
 .blk-offsetL {
   --ar: 4 / 5;
@@ -1692,9 +1689,6 @@ html.pj-ready .app .lang {
   width: clamp(84px, 8vw, 130px);
   height: auto;
 }
-.pb-logo {
-  margin-bottom: clamp(28px, 6vh, 64px);
-}
 .cap-logo {
   width: clamp(54px, 5.4vw, 92px);
   margin-bottom: 0.7em;
@@ -1728,6 +1722,17 @@ html.pj-ready .app .lang {
 }
 .p-steps {
   margin: 0 var(--pad) 14vh calc(var(--rail) + var(--pad));
+}
+.p-video {
+  margin: 0 0 clamp(36px, 7vh, 80px);
+  background: #060606;
+}
+.p-video video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #060606;
 }
 .p-steps ol {
   list-style: none;
@@ -1970,4 +1975,28 @@ html[lang='ar'] .cap-n {
   height: 100vh;
   z-index: 34; /* over the pages, under the wordmark and the controls */
   pointer-events: none;
+}
+
+/* ── justified text ────────────────────────────────────────────────────────────
+   Every paragraph is set as a block: the lines of a paragraph end on the same edge instead of
+   one line running further than the next (the last line of a paragraph just ends). Headings,
+   labels and one-line captions stay as they are. */
+.body,
+.body.lg,
+.hero-sum,
+.osa-identity,
+.works-intro,
+.p-steps li p,
+.cap-rich span {
+  text-align: justify;
+  text-align-last: start;
+  text-justify: inter-word;
+  overflow-wrap: break-word;
+}
+/* narrow columns need hyphenation to stay even; the wide reading paragraphs keep whole words */
+.works-intro,
+.p-steps li p,
+.cap-rich span {
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }

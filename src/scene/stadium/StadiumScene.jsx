@@ -21,7 +21,7 @@ import Grains from '../Grains'
 import Foliage from './Foliage'
 import { createMaterials, SU } from './materials'
 import { createGrade, gradeAt, sunAzimuth } from './grade'
-import { night, stepNight } from '../../night'
+import { night, setRainZone, stepNight } from '../../night'
 import { samplePath, ORBIT_START } from './path'
 import { CHAPTERS, sj, stadiumLoad, stadiumWorld } from './state'
 import { clamp, smoothstep, stepJourney } from '../../journey'
@@ -298,6 +298,7 @@ function Rig({ grade, refs }) {
     const nm = stepNight()
     const u = sj.current
     gradeAt(u, grade, nm)
+    setRainZone(1 - grade.black) // night rain only falls during the journey, never on the black page after it
 
     // soundtrack: a modern groove from the first bar (kick, darbuka, shaker under a pad and a plucked
     // arpeggio), then clapping, a roaring crowd, fills and brass as the stands fill, a whistle as they
@@ -314,6 +315,7 @@ function Rig({ grade, refs }) {
         pulse: 0.5 + 0.45 * smoothstep(0.3, 0.8, u) * live + 0.25 * grade.black,
         crowd: (0.08 + 0.5 * smoothstep(0.1, 0.62, u) + 0.3 * smoothstep(0.62, 0.86, u)) * (1 - 0.8 * grade.black),
         drive: (0.2 + 0.72 * smoothstep(0.26, 0.8, u)) * (1 - 0.45 * grade.black),
+        end: grade.black, // the ending: the music resolves on the logo screen
       })
       // the whistle and the roar, once, as the camera reaches the full stands
       if (u > 0.78 && !st.cheered) {

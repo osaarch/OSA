@@ -99,7 +99,13 @@ is revealed → the project page begins. Scroll back up and it plays in reverse.
 `scene: 'stadium'` in `src/content.js` switches a project to this journey; without it a project uses the
 classic photographic hero. If WebGL or the model is unavailable the page falls back to the classic hero.
 Each place has its own music: the Malwiya plays maqam Bayati (a drone, oud phrases, a ney, free rhythm).
-The stadium plays a **modern Arabic piece** that shares nothing with it but the engine: maqam **Rast** on C
+The stadium plays a **modern desert piece** (`MOODS.desert`, `grooveDesert()`): maqam **Hijaz** on F in a rolling 6/8, a
+frame-drum / hand-clap groove, a sub-bass pedal, a plucked cross-rhythm (4 notes against the 2 beats) echoing like a
+call across dunes, a bowed rababa-like lead and wide pads, with a composed arc: intro → groove that grows with the
+scroll → a hook / call / long breath / answer every 8 bars → on the black logo screen the drums step back and the
+music resolves on a long note. The first version — a club-style Rast groove at 104 bpm — is still there: open the
+site with `?music=club`. Its description follows.
+The club version is a **modern Arabic piece** that shares nothing with it but the engine: maqam **Rast** on C
 at 104 bpm — a soft kick pumping a sub-bass and an airy pad (side-chain), a darbuka playing the *maqsum*
 (teks and soft ghost notes), hand-claps, a shaker, a qanun-like plucked arpeggio in 3+3+2 over the chords
 C – A – F – G, and a reedy lead that scoops into each note and ends its phrases on a chord tone, with one
@@ -115,6 +121,12 @@ other project plays a quiet harbour piece (`MOODS.port`: maqam Hijaz, a sea bree
 home page / OSA / WORKS the Malwiya mood returns.
 The stadium glass is black in the day; at night it lights up sky-blue (`GLASS_LIT` in
 `src/scene/stadium/materials.js` — red was tried and melts into the red walls).
+
+**Project film:** a project can have one film in its "Form generation" section — drop the file in `public/media/`
+and name it in `content.js` (`video:` / `videoPoster:`). The stadium's is `public/media/rafidain-form-generation.mp4`
+(plays silently, looping, while it is on screen; the controls are there). The single-file build leaves films out.
+**Text:** paragraphs are justified (both edges even; hyphenation only in narrow columns) and every block of the
+project page starts on the same left edge (right edge in Arabic) — see the last rule of `src/styles.css`.
 
 ## Behaviour worth knowing
 
@@ -138,6 +150,9 @@ The stadium glass is black in the day; at night it lights up sky-blue (`GLASS_LI
   and rain in the soundtrack (`rain` layer in `src/audio.js`). The choice is remembered. The colours are
   `nightBlend()` in `src/scene/grade.js` (Malwiya) and `src/scene/stadium/grade.js` (stadium: the bowl glows
   red, the glazing lights sky-blue); the switch itself is `src/night.js`.
+  **The rain only belongs to the entry journeys:** it falls (and sounds) while the Malwiya / stadium journey is on
+  screen, fades out when the screen goes black, and never appears on OSA, WORKS or the project pages
+  (`setRainZone()` in `src/night.js`, called by both journeys' frame loops and reset on every page change).
 * Visitors who land directly on a project page never download the 3D engine.
 * If WebGL is unavailable the interface still works (black background, OSA / WORKS, all pages).
 * Resolution adapts automatically on slower GPUs; the renderer idles completely on the black screen.
