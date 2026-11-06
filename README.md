@@ -98,7 +98,15 @@ is revealed → the project page begins. Scroll back up and it plays in reverse.
 
 `scene: 'stadium'` in `src/content.js` switches a project to this journey; without it a project uses the
 classic photographic hero. If WebGL or the model is unavailable the page falls back to the classic hero.
-Each place has its own music: the Malwiya plays maqam Bayati (a drone, oud phrases, a ney, free rhythm).
+Each place has its own music. The Malwiya plays an **epic, ancient-sounding score** (`MOODS.odyssey`, `grooveOdyssey()`):
+an original piece in the spirit of a mythic sea-voyage film — no orchestra, no copy of any existing score — in maqam
+**Bayati** on D over a deep D–A drone: a plucked lyre, a double-reed aulos, bronze bells, wood blocks and a big frame drum
+beating like oars (one stroke per beat, 72 bpm). It follows the scroll: a deep bronze and one lyre call while the dust
+clears; the oar-stroke pulse and the lyre's 3+3+4+3+3 cell wake as the visitor starts to scroll; bronze, wood, a rolling
+frame drum and a swelling pad and drone around the dusk; then the percussion withdraws and the score resolves on the black
+screen (a last bronze, one long breath on D, the lyre alone). The mapping from scroll to `pulse` / `drive` / `end` is in
+`Scene.jsx`. The first home piece (free-rhythm Bayati: oud phrases, a ney, a drone) is still there: open the site with
+`?music=classic`.
 The stadium plays a **modern desert piece** (`MOODS.desert`, `grooveDesert()`): maqam **Hijaz** on F in a rolling 6/8, a
 frame-drum / hand-clap groove, a sub-bass pedal, a plucked cross-rhythm (4 notes against the 2 beats) echoing like a
 call across dunes, a bowed rababa-like lead and wide pads, with a composed arc: intro → groove that grows with the
@@ -118,7 +126,7 @@ only the music remains once the screen goes black (`MOODS.stadium`, `grooveModer
 **The home music never leaks into a project:** every mood has its own gates (`makeEpoch`), and `setMood()`
 closes the old mood's gates while opening the new one, so the stadium plays only its own score and every
 other project plays a quiet harbour piece (`MOODS.port`: maqam Hijaz, a sea breeze underneath). Back on the
-home page / OSA / WORKS the Malwiya mood returns.
+home page / OSA / WORKS the Malwiya score returns.
 The stadium glass is black in the day; at night it lights up sky-blue (`GLASS_LIT` in
 `src/scene/stadium/materials.js` — red was tried and melts into the red walls).
 
@@ -141,8 +149,9 @@ project page starts on the same left edge (right edge in Arabic) — see the las
 * **Language:** English by default; the **EN / AR** switch sits next to the sound button (also on the "Enter"
   screen). Arabic switches the text to right-to-left with the Cairo typeface; the OSA / WORKS wordmark stays
   Latin. The choice is remembered.
-* **Music:** generated live in the browser (no audio files) — a slow maqam-Bayati piece (oud-like plucks, ney-like
-  flute, drone, pad) with wind and falling-sand texture. The wind/sand fades away at OSA / WORKS and only the music
+* **Music:** generated live in the browser (no audio files) — on the home journey an original, ancient-epic maqam-Bayati
+  score (lyre, aulos, bronze, frame drum, drone; `?music=classic` for the earlier oud-and-ney piece) with wind and
+  falling-sand texture. The wind/sand fades away at OSA / WORKS and only the music
   stays. The "Sound on/off" button is always in the top-right corner; the choice is remembered. Tune the mood in
   `src/audio.js` (scale `CENTS`, `CHORDS`, phrase rhythm in `phrase()`).
 * **Night mode:** the small moon next to the sound button (also on the "Enter" screen) turns the Malwiya and

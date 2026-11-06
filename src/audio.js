@@ -152,6 +152,51 @@ const MOODS = {
     ],
     trim: 0.7,
   },
+  // the home journey, third version — an ORIGINAL score in the spirit of an ancient epic (not a copy of any
+  // film's music): maqam BAYATI on D over a deep D–A drone, with no orchestra at all — a plucked lyre, a
+  // double-reed aulos, bronze, wood and a big frame drum beating like oars. It is built around the scroll:
+  // a lone lyre call in the dust, the oar-stroke pulse waking as the journey starts, bronze and wood at the
+  // dusk, and a long resolution on the black screen. See grooveOdyssey().
+  odyssey: {
+    tonic: 146.83, // D3
+    cents: [0, 150, 300, 500, 700, 800, 1000], // D  E½♭  F  G  A  B♭  C
+    chords: [[0, 4, 7]],
+    motifs: [[4, 3, 2, 1, 0]],
+    roots: [0],
+    resolves: [0],
+    ney: [11],
+    startIdx: 4,
+    gap: [3, 6],
+    drone: 1.5, // a deep D–A drone under everything (the other modern pieces have none)
+    sport: { bpm: 72 }, // one oar stroke per beat: a sixteenth = 0.208 s, a bar of 16 = 3.33 s
+    modern: {
+      kind: 'odyssey',
+      echoBeats: 1, // a long, dark echo, like a hall of stone
+      // chord roots of the 8-bar phrase (open fifths, never triads):  D D F D · D G F D
+      bars: [0, 0, 2, 0, 0, 3, 2, 0],
+      // the lyre's calls: [step from the start, scale index] (7 = D4, 4 = A3, 11 = A4, 14 = D5; 8 is the neutral E½♭)
+      calls: [
+        [[0, 4], [4, 7], [8, 10], [12, 11], [20, 9], [24, 8], [28, 7]], //   A  D  G  A ·  F  E½♭ D   — the invocation
+        [[0, 7], [4, 11], [8, 14], [14, 13], [18, 11], [22, 10], [28, 7]], // D  A  D' C' A  G  D
+        [[0, 9], [3, 11], [6, 10], [10, 9], [14, 8], [20, 7]], //             F  A  G  F  E½♭ D
+        [[0, 11], [5, 10], [10, 11], [14, 9], [20, 8], [24, 7]], //           A  G  A  F  E½♭ D
+      ],
+      // the aulos lines: [step from the start, scale index, length in steps]
+      lines: [
+        [[0, 7, 6], [6, 9, 6], [12, 10, 4], [16, 11, 10], [26, 10, 4], [30, 7, 14]], //            D F G A· G D
+        [[0, 11, 8], [8, 12, 4], [12, 11, 4], [16, 10, 6], [22, 9, 4], [26, 8, 6], [32, 7, 14]], // A B♭ A G F E½♭ D
+        [[0, 14, 6], [6, 13, 6], [12, 11, 8], [20, 10, 4], [24, 11, 4], [28, 7, 14]], //            D' C' A G A D
+      ],
+      // the oar-stroke ostinato: hits on 3+3+4+3+3 sixteenths; scale steps above the chord root
+      cell: [
+        [4, 7, 11, 7, 9],
+        [4, 7, 9, 11, 9],
+        [4, 7, 8, 7, 4], // on the bars that come home to D: the neutral second (E½♭) is the colour of Bayati
+      ],
+      cellOf: [0, 0, 0, 2, 1, 1, 1, 2],
+    },
+    trim: 0.9,
+  },
   // the harbour: a quiet piece for the projects without a 3D journey — maqam HIJAZ on G, sparse and
   // slow, with a sea breeze where the sand would be (no grains, no drum)
   port: {
@@ -311,7 +356,8 @@ export function createEngine(ctx, moodName = 'malwiya') {
   // ── drone: tonic + fifth, slowly breathing ────────────────────────────────
   const droneVoices = []
   const droneLp = mk.filter('lowpass', 480, 0.6)
-  const droneTrim = mk.gain(M.modern ? 0 : 1) // the modern piece has its own bass: no drone
+  const droneLevel = () => (M.modern ? M.drone ?? 0 : 1) // the modern pieces have their own bass (the Odyssey keeps the drone)
+  const droneTrim = mk.gain(droneLevel())
   droneLp.connect(droneTrim)
   {
     const dronePre = mk.gain(0.058)
@@ -1067,6 +1113,242 @@ export function createEngine(ctx, moodName = 'malwiya') {
     g.connect(ep.lead)
   }
 
+  // ── the Odyssey piece's voices (no synth leads, no kick: strings, reeds, skin, bronze, wood) ─────────
+  // a big frame drum: a deep skin thump that sinks in pitch, the ring of the membrane and the slap of a hand
+  function frame(t, vel, slap = 1) {
+    const o = mk.osc('sine', 106)
+    o.frequency.setValueAtTime(106, t)
+    o.frequency.exponentialRampToValueAtTime(52, t + 0.3)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.5 * vel, t + 0.007)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.85)
+    o.connect(g)
+    g.connect(ep.p)
+    o.start(t)
+    o.stop(t + 0.9)
+    const ring = mk.osc('triangle', 176)
+    ring.frequency.setValueAtTime(190, t)
+    ring.frequency.exponentialRampToValueAtTime(148, t + 0.22)
+    const rg = mk.gain(0)
+    rg.gain.setValueAtTime(0.0001, t)
+    rg.gain.linearRampToValueAtTime(0.1 * vel, t + 0.005)
+    rg.gain.exponentialRampToValueAtTime(0.0001, t + 0.34)
+    ring.connect(rg)
+    rg.connect(ep.p)
+    ring.start(t)
+    ring.stop(t + 0.4)
+    const [s] = noise()
+    const f = mk.filter('bandpass', 760, 0.8)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.17 * vel * slap, t + 0.003)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.075)
+    s.connect(f)
+    f.connect(ng)
+    ng.connect(ep.p)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.1)
+  }
+  // a wooden clack (two sizes of block) and a tick of struck bronze, for the off-beats
+  function wood(t, vel, hi = false) {
+    const f0 = hi ? 1240 : 830
+    const o = mk.osc('sine', f0 * 1.16)
+    o.frequency.setValueAtTime(f0 * 1.16, t)
+    o.frequency.exponentialRampToValueAtTime(f0, t + 0.014)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.15 * vel, t + 0.002)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.075)
+    o.connect(g)
+    g.connect(ep.d)
+    o.start(t)
+    o.stop(t + 0.1)
+    const [s] = noise()
+    const bp = mk.filter('bandpass', 2500, 1.4)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.07 * vel, t + 0.001)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.022)
+    s.connect(bp)
+    bp.connect(ng)
+    ng.connect(ep.d)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.04)
+  }
+  function shield(t, vel) {
+    for (const [mul, gv, dec] of [
+      [1, 0.5, 0.2],
+      [1.47, 0.36, 0.14],
+      [2.09, 0.24, 0.1],
+      [2.86, 0.14, 0.07],
+    ]) {
+      const o = mk.osc('sine', 1560 * mul)
+      const g = mk.gain(0)
+      g.gain.setValueAtTime(0.0001, t)
+      g.gain.linearRampToValueAtTime(0.06 * vel * gv, t + 0.002)
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dec)
+      o.connect(g)
+      g.connect(ep.d)
+      o.start(t)
+      o.stop(t + dec + 0.05)
+    }
+  }
+  // a bronze bell / gong tuned to the drone: the fundamental, its fifth and octave, and a shimmer above that fades first
+  function bronze(t, f, vel, dur = 5) {
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.2 * vel, t + 0.012)
+    g.connect(ep.m)
+    for (const [mul, gv, life] of [
+      [1, 1, 1],
+      [1.498, 0.55, 0.8],
+      [2, 0.42, 0.62],
+      [2.997, 0.22, 0.4],
+      [4.13, 0.1, 0.22],
+      [5.43, 0.06, 0.14],
+    ]) {
+      const o = mk.osc('sine', f * mul * 1.006)
+      o.frequency.setValueAtTime(f * mul * 1.006, t)
+      o.frequency.exponentialRampToValueAtTime(f * mul, t + 0.09)
+      const og = mk.gain(0)
+      og.gain.setValueAtTime(0.0001, t)
+      og.gain.linearRampToValueAtTime(gv, t + 0.006)
+      og.gain.exponentialRampToValueAtTime(0.0001, t + dur * life)
+      o.connect(og)
+      og.connect(g)
+      o.start(t)
+      o.stop(t + dur * life + 0.1)
+    }
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+    const [s] = noise()
+    const bp = mk.filter('bandpass', 1500, 0.8)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.06 * vel, t + 0.003)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.16)
+    s.connect(bp)
+    bp.connect(ng)
+    ng.connect(ep.m)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.2)
+  }
+  // a lyre: a plucked string, its overtones dying one after another (the high ones first)
+  function lyre(t, f, vel = 0.7, dur = 2.6) {
+    log.push([t, f, vel])
+    const det = rnd(-3, 3)
+    for (const [k, gv, life] of [
+      [1, 1, 1],
+      [2, 0.5, 0.7],
+      [3, 0.28, 0.45],
+      [4, 0.15, 0.3],
+      [5, 0.08, 0.2],
+    ]) {
+      const o = mk.osc('sine', f * k * (1 + 0.0004 * k * k))
+      o.detune.value = det
+      const g = mk.gain(0)
+      g.gain.setValueAtTime(0.0001, t)
+      g.gain.linearRampToValueAtTime(0.13 * vel * gv, t + 0.003)
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur * life)
+      o.connect(g)
+      g.connect(ep.lead)
+      o.start(t)
+      o.stop(t + dur * life + 0.1)
+    }
+    const [s] = noise()
+    const bp = mk.filter('bandpass', 2700, 1)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.045 * vel, t + 0.002)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.03)
+    s.connect(bp)
+    bp.connect(ng)
+    ng.connect(ep.lead)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.05)
+  }
+  // an aulos: a double reed — two detuned reeds beating against each other, a nasal formant, a slow vibrato
+  function aulos(t, f, dur, vel = 0.7, slide = 0) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.15 * vel, t + 0.11)
+    g.gain.setValueAtTime(0.13 * vel, t + Math.max(0.14, dur - 0.1))
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.35)
+    const lp = mk.filter('lowpass', 1750, 0.8)
+    lp.frequency.setValueAtTime(800, t)
+    lp.frequency.linearRampToValueAtTime(2000, t + 0.35)
+    const pk = mk.filter('peaking', 1250, 2)
+    pk.gain.value = 7
+    const vib = mk.osc('sine', 4.6)
+    const vg = mk.gain(0)
+    vg.gain.setValueAtTime(0, t)
+    vg.gain.setValueAtTime(0, t + 0.3)
+    vg.gain.linearRampToValueAtTime(15, t + 0.3 + Math.min(0.8, dur * 0.5))
+    vib.connect(vg)
+    vib.start(t)
+    vib.stop(t + dur + 0.5)
+    for (const [type, det, gv] of [
+      ['sawtooth', -11, 0.5],
+      ['sawtooth', 11, 0.5],
+      ['square', 0, 0.12],
+    ]) {
+      const o = mk.osc(type, f)
+      o.frequency.setValueAtTime(f * Math.pow(2, -slide / 1200), t)
+      if (slide) o.frequency.exponentialRampToValueAtTime(f, t + 0.1)
+      o.detune.value = det
+      vg.connect(o.detune)
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(lp)
+      o.start(t)
+      o.stop(t + dur + 0.5)
+    }
+    const [s] = noise(true)
+    const bp = mk.filter('bandpass', f * 2.4, 2.5)
+    const bg = mk.gain(0)
+    bg.gain.setValueAtTime(0.0001, t)
+    bg.gain.linearRampToValueAtTime(0.03 * vel, t + 0.1)
+    bg.gain.setValueAtTime(0.02 * vel, t + dur)
+    bg.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.3)
+    s.connect(bp)
+    bp.connect(bg)
+    bg.connect(lp)
+    s.start(t, rnd(0, 2))
+    s.stop(t + dur + 0.5)
+    lp.connect(pk)
+    pk.connect(g)
+    g.connect(ep.lead)
+  }
+  // a slow swell of open fifths (triangle + sine: like voices humming, never a synth pad)
+  function opad(t, idxs, dur, vel = 1) {
+    const lp = mk.filter('lowpass', 760, 0.6)
+    lp.frequency.setValueAtTime(700, t)
+    lp.frequency.linearRampToValueAtTime(1350, t + dur * 0.5)
+    lp.frequency.linearRampToValueAtTime(760, t + dur)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.055 * vel, t + dur * 0.45)
+    g.gain.linearRampToValueAtTime(0.0001, t + dur)
+    lp.connect(g)
+    g.connect(ep.m)
+    live.push([g, t + dur + 0.2])
+    for (const i of idxs) {
+      for (const [type, det] of [
+        ['triangle', -6],
+        ['sine', 5],
+      ]) {
+        const o = mk.osc(type, note(i))
+        o.detune.value = det
+        const og = mk.gain(0.5)
+        o.connect(og)
+        og.connect(lp)
+        o.start(t)
+        o.stop(t + dur + 0.1)
+      }
+    }
+  }
+
   // falling-sand grain: a tiny, bright tick
   function grain(t) {
     const [s] = noise()
@@ -1098,6 +1380,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     stepN: 0,
     level: { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0, rain: 0, end: 0 },
     finalHit: false,
+    lastCall: -1,
   }
   function phrase(t0) {
     let t = t0
@@ -1312,11 +1595,114 @@ export function createEngine(ctx, moodName = 'malwiya') {
     if (dr > 0.5 && cyc === 7 && s === 6 && d > 0.3) riser(t, 6 * step, 0.4 + 0.6 * d)
   }
 
+
+  // ── the home journey, third version: "Odyssey" ──────────────────────────────
+  // One bar = 16 sixteenths at 72 bpm (3.33 s, one oar stroke per beat); eight bars make a phrase on open fifths
+  // over a deep D–A drone. The score follows the scroll, so it reads like a film cue rather than a loop:
+  //   bars 1–2     the invocation, while the dust clears: a deep bronze, the drone, one lyre call (A D G A · F E½♭ D)
+  //   bar 3 on     an aulos line answers; a long breath on the sixth bar; calls of the lyre while it is still quiet
+  //   pulse > .22  a frame drum beats like oars (beats 1 and 3) and the lyre's 3+3+4+3+3 cell enters
+  //   drive > .3   wood and bronze ticks on the off-beats, a gong on each new phrase
+  //   drive > .55  ghost strokes, a roll and a rising swell at the turn of the phrase, low steps under the F and G bars
+  //   the end      on the black screen the oars rest: a last bronze, a long breath on D, the lyre alone
+  //
+  //   frame drum  x . . . . . . . x . . . . . . .        wood / bronze   . . . x . . x . . . x . . x . .
+  //   lyre cell   x . . x . . x . . . x . . x . .        (3 + 3 + 4 + 3 + 3)
+  function lyreCall(t0, call, step, vel) {
+    call.forEach(([off, idx], k) => {
+      const last = k === call.length - 1
+      lyre(t0 + off * step, note(idx), vel * (last ? 0.9 : 0.75 + 0.25 * (k % 2)), last ? 4.5 : 2.6)
+    })
+  }
+  function aulosLine(t0, line, step, vel) {
+    line.forEach(([off, idx, len], k) => {
+      const last = k === line.length - 1
+      aulos(t0 + off * step, note(idx), len * step * 0.95, vel * (last ? 0.85 : 0.95), k === 0 ? 0 : pick([0, 0, 100]))
+    })
+  }
+  function grooveOdyssey(t, n, step) {
+    const X = M.modern
+    const s = n % 16
+    const bar = Math.floor(n / 16)
+    const cyc = bar % 8
+    const p = state.level.pulse
+    const d = state.level.drive
+    const m = state.level.music
+    const end = state.level.end
+    const dr = bar < 2 ? 0 : 1 - clamp((end - 0.15) / 0.55, 0, 1) // how much of the percussion is there
+    const r = end > 0.5 ? 0 : X.bars[cyc]
+    const barLen = 16 * step
+
+    if (s === 0) {
+      opad(t, [r, r + 4, r + 7], barLen * 1.8, end > 0.5 ? 0.8 : 0.75 + 0.9 * d) // the pad grows with the drive
+      if (bar === 0) bronze(t + 0.05, note(0), 0.6, 8) // the first strike
+      if (end > 0.5) {
+        // the resolution: one last bronze, then a long breath on D every second bar
+        if (!state.finalHit) {
+          bronze(t, note(0), 0.85, 9)
+          state.finalHit = true
+        }
+        if (bar % 2 === 0) air(t + step, note(7), barLen * 2.3, 0.7)
+      } else {
+        state.finalHit = false
+        if (dr > 0.5 && cyc === 0 && bar > 0 && d > 0.3) bronze(t, note(0), 0.45 + 0.5 * d, 6.5)
+        if (dr > 0.5 && cyc === 4 && d > 0.6) bronze(t, note(3), 0.4 + 0.35 * d, 5)
+        if (bar >= 2 && (cyc === 2 || cyc === 6) && (bar === 2 || Math.random() < 0.55 + 0.4 * m)) {
+          aulosLine(t, pick(X.lines), step, 0.6 + 0.4 * m)
+        }
+        if (cyc === 5 && Math.random() < 0.8) air(t + 3 * step, note(r + 11), barLen * 1.5, 0.45 + 0.4 * m)
+        if (r !== 0 && d > 0.4 && dr > 0.3) bass(t, note(r - 7), 9 * step, 0.5) // low steps under the F and G bars
+      }
+    }
+    // the lyre calls to the empty desert while the pulse is still asleep
+    if (end <= 0.5) {
+      if (bar === 0 && s === 4) {
+        state.lastCall = 0
+        lyreCall(t, X.calls[0], step, 0.75)
+      } else if (bar >= 8 && cyc === 0 && s === 6 && p < 0.5) {
+        let k
+        do k = (Math.random() * X.calls.length) | 0
+        while (k === state.lastCall && X.calls.length > 1)
+        state.lastCall = k
+        lyreCall(t, X.calls[k], step, 0.55 + 0.3 * m)
+      }
+    } else if (bar % 2 === 0 && (s === 0 || s === 8)) {
+      lyre(t, note(s === 0 ? 7 : 11), s === 0 ? 0.55 : 0.4, 4) // the lyre alone: D, then A
+    }
+
+    // the oars
+    if (dr > 0.05) {
+      if ((s === 0 || s === 8) && p > 0.22) frame(t, (0.42 + 0.58 * p) * (0.85 + 0.4 * d) * dr * (s === 0 ? 1 : 0.8), s === 0 ? 1 : 0.7)
+      if (s === 6 && p > 0.5 && d > 0.3) frame(t, 0.38 * dr, 0.6)
+      if (s === 11 && d > 0.55) frame(t, 0.46 * dr, 0.7)
+      if (s === 14 && d > 0.75) frame(t, 0.4 * dr, 0.7)
+      if ((s === 3 || s === 10) && d > 0.3) wood(t, (0.4 + 0.6 * d) * dr, s === 10)
+      if ((s === 6 || s === 13) && d > 0.5) shield(t, (0.4 + 0.6 * d) * dr)
+      if (d > 0.78 && (s === 2 || s === 15)) wood(t, 0.4 * dr, true)
+    }
+
+    // the lyre's cell: five plucks on the open fifths of the bar's chord
+    if (bar >= 2 && p > 0.22) {
+      const k = [0, 3, 6, 10, 13].indexOf(s)
+      if (k >= 0) {
+        const cell = X.cell[X.cellOf[cyc]]
+        const v = (k === 0 ? 0.85 : 0.5 + 0.12 * (k % 2)) * (0.45 + 0.5 * p) * (0.7 + 0.3 * m)
+        if (end > 0.5) {
+          if (k === 0 && bar % 2 === 1) lyre(t, note(r + cell[k]), v * 0.6, 3)
+        } else lyre(t, note(r + cell[k]), v, 1.8)
+      }
+    }
+
+    // the turn of the phrase: a swell, then a roll of the frame drum into the next gong
+    if (dr > 0.5 && cyc === 7 && d > 0.4 && s === 4) riser(t, 8 * step, 0.3 + 0.35 * d)
+    if (dr > 0.5 && cyc === 7 && d > 0.55 && s >= 10 && s !== 11) frame(t, (0.3 + 0.07 * (s - 10)) * (0.6 + 0.4 * d) * dr, 1)
+  }
+
   function scheduleUntil(horizon) {
     if (!M.modern) scheduleFreeRhythm(horizon)
     else {
       const step = 60 / M.sport.bpm / 4
-      const groove = M.modern.kind === 'desert' ? grooveDesert : grooveModern
+      const groove = { desert: grooveDesert, odyssey: grooveOdyssey }[M.modern.kind] || grooveModern
       while (state.nextStep < horizon) groove(state.nextStep, state.stepN++, step), (state.nextStep += step)
     }
     const rate = 3 + 55 * state.level.wind
@@ -1376,6 +1762,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     set(driveBus.gain, 0.9, 0.3)
     set(rainBus.gain, 0.33 * state.level.rain, 1.4)
     set(lpf.frequency, 900 + 8100 * Math.pow(state.level.clarity, 1.5), 0.6)
+    if (M.drone) set(droneTrim.gain, M.drone * (0.85 + 0.55 * state.level.drive * (1 - state.level.end)), 1.5) // the drone swells with the journey
   }
   let soundOn = false
   const masterLevel = () => (soundOn ? 0.55 * (M.trim ?? 1) : 0)
@@ -1427,7 +1814,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     droneTrim.disconnect()
     droneTrim.connect(ep.m)
     droneTrim.gain.cancelScheduledValues(t)
-    droneTrim.gain.setValueAtTime(M.modern ? 0 : 1, t + 0.2)
+    droneTrim.gain.setValueAtTime(droneLevel(), t + 0.2)
     for (const g of [ep.m, ep.p, ep.d, ep.c]) {
       g.gain.setValueAtTime(0, t)
       g.gain.setTargetAtTime(1, t + 0.55, 0.4)
@@ -1443,6 +1830,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
     state.level.drive = 0
     state.level.end = 0
     state.finalHit = false
+    state.lastCall = -1
     state.idx = M.startIdx
     state.padN = 0
     state.nextPad = t + 0.9
@@ -1587,6 +1975,9 @@ export function useAudio() {
     () => snapshot,
   )
 }
+
+// The home journey plays the "Odyssey" score; ?music=classic brings back the first (free-rhythm Bayati) one.
+export const homeMood = () => (typeof location !== 'undefined' && /[?&]music=classic\b/.test(location.search) ? 'malwiya' : 'odyssey')
 
 // Offline render, used only for verification (?debug).
 export async function renderOffline(seconds = 30, scene = { wind: 0, music: 1, clarity: 1 }, mood = 'malwiya', opts = {}) {

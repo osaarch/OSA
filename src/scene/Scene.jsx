@@ -14,7 +14,7 @@ import { night, setRainZone, stepNight } from '../night'
 import { samplePath, lensShift } from './path'
 import { duskUniforms, INTRO_LEN, loadState, world } from './world'
 import { clamp, journey, readScrollProgress, smootherstep, smoothstep, stepJourney } from '../journey'
-import { audio } from '../audio'
+import { audio, homeMood } from '../audio'
 
 // Khronos "Neutral" tone mapping subtracts the darkest colour channel from dark pixels,
 // which turns every dim beige into saturated mustard. Soften that toe so dark tones keep
@@ -325,11 +325,22 @@ function Rig({ grade, refs }) {
     if (st.audioT > 0.12) {
       st.audioT = 0
       const breeze = 0.3 * grade.dust
-      audio.setScene({
+      const scene = {
         wind: breeze + storm * (1 - breeze),
         music: 0.4 + 0.6 * (1 - storm),
         clarity: 1 - 0.85 * storm,
-      })
+      }
+      if (homeMood() === 'odyssey') {
+        // the score follows the journey: silence in the dust, the oars waking as the visitor starts to
+        // scroll, the peak around the dusk (u ≈ 0.55–0.7), then the percussion withdraws into the black
+        const go = world.introDone ? 1 : 0
+        const climb = smoothstep(0.03, 0.5, u)
+        const fall = 1 - 0.55 * smoothstep(0.72, 0.93, u)
+        scene.pulse = go * climb * (1 - 0.3 * smoothstep(0.72, 0.93, u))
+        scene.drive = go * smoothstep(0.22, 0.62, u) * fall
+        scene.end = black
+      }
+      audio.setScene(scene)
     }
 
     // ── 8. adaptive resolution: protect the frame rate on weaker GPUs ───────

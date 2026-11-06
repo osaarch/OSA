@@ -11,7 +11,7 @@ import LangToggle from './ui/LangToggle'
 import NightToggle from './ui/NightToggle'
 import Rain from './ui/Rain'
 import { useI18n } from './i18n'
-import { audio, createEngine, renderOffline } from './audio'
+import { audio, createEngine, homeMood, renderOffline } from './audio'
 import { setRainZone } from './night'
 import { findProject } from './content'
 import Osa from './pages/Osa'
@@ -123,7 +123,7 @@ export default function App() {
     const proj = route.name === 'project' ? findProject(route.slug) : null
     // the stadium's score: the modern-desert version (?music=club plays the first, club-style one)
     const stadiumMood = typeof location !== 'undefined' && /[?&]music=club\b/.test(location.search) ? 'stadium' : 'desert'
-    const mood = proj ? (proj.scene === 'stadium' ? stadiumMood : 'port') : 'malwiya'
+    const mood = proj ? (proj.scene === 'stadium' ? stadiumMood : 'port') : homeMood()
     audio.setMood(mood)
     if (mood === 'port') audio.setScene({ wind: 0.22, music: 1, clarity: 1, pulse: 0, crowd: 0, drive: 0 })
   }, [route.name, route.path])
