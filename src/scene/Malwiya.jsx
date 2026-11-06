@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useThree } from '@react-three/fiber'
-import { Group, LoadingManager, MeshStandardMaterial, SRGBColorSpace } from 'three'
+import { Color, Group, LoadingManager, MeshStandardMaterial, SRGBColorSpace } from 'three'
 import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js'
-import { duskUniforms, loadState } from './world'
+import { loadState } from './world'
+import { applyDusk, loadEarth } from './earth'
+import { buildEnclosure } from './Enclosure'
 
 const MODEL_URL = `${import.meta.env.BASE_URL}assets/malwiya/model.dae`
 
@@ -31,20 +33,27 @@ async function loadCollada() {
   })
 }
 
-// The .dae carries SketchUp's Phong materials. We keep every colour, every texture
-// and every material assignment exactly as authored, and only swap the shading
-// model for a physically based one so sunlight, shadow and dusk behave properly.
-function upgradeMaterial(src, anisotropy, cache) {
+// The .dae carries SketchUp's Phong materials. Geometry, UVs and every material
+// assignment stay exactly as authored; the shading model becomes a physically based
+// one so sunlight, shadow and dusk behave properly, and the two stone textures of the
+// model (a yellow rubble wall, a khaki plaster) are replaced by the earth brick and
+// earth plaster of earth.js — the real material of the Malwiya is baked mud brick.
+const EARTH = { Stone_Coursed_Rough: 'brick', Stone_Brushed_Khaki: 'plaster' }
+
+function upgradeMaterial(src, anisotropy, cache, earth) {
   if (cache.has(src)) return cache.get(src)
   if (src.map) {
     src.map.anisotropy = anisotropy
     src.map.colorSpace = SRGBColorSpace
   }
+  const e = earth[EARTH[src.name]]
   const opaque = !src.transparent || src.opacity >= 0.999
   const mat = new MeshStandardMaterial({
     name: src.name,
-    color: src.color.clone(),
-    map: src.map || null,
+    color: e ? new Color('#ffffff') : src.color.clone(),
+    map: e ? e.map : src.map || null,
+    bumpMap: e ? e.bumpMap : null,
+    bumpScale: e ? e.bumpScale : 1,
     roughness: 0.93,
     metalness: 0,
     transparent: !opaque,
@@ -52,29 +61,7 @@ function upgradeMaterial(src, anisotropy, cache) {
     side: src.side,
   })
 
-  mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uDuskMix = duskUniforms.uDuskMix
-    shader.uniforms.uTermY = duskUniforms.uTermY
-    shader.uniforms.uTermSoft = duskUniforms.uTermSoft
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying float vWY;')
-      .replace(
-        '#include <begin_vertex>',
-        '#include <begin_vertex>\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;',
-      )
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        '#include <common>\nvarying float vWY;\nuniform float uDuskMix;\nuniform float uTermY;\nuniform float uTermSoft;',
-      )
-      .replace(
-        '#include <opaque_fragment>',
-        `float duskLit = smoothstep(uTermY - uTermSoft * 0.35, uTermY + uTermSoft, vWY);
-         outgoingLight *= mix(1.0, max(duskLit, 0.015), uDuskMix);
-         #include <opaque_fragment>`,
-      )
-  }
-  mat.customProgramCacheKey = () => 'malwiya-dusk'
+  applyDusk(mat)
   cache.set(src, mat)
   return mat
 }
@@ -106,11 +93,11 @@ export default function Malwiya() {
 
   useEffect(() => {
     let cancelled = false
-    loadCollada()
-      .then((result) => {
+    const aniso = Math.min(16, gl.capabilities.getMaxAnisotropy())
+    Promise.all([loadCollada(), loadEarth(aniso)])
+      .then(([result, earth]) => {
         if (cancelled) return
         const root = result.scene
-        const aniso = Math.min(16, gl.capabilities.getMaxAnisotropy())
         const cache = new Map()
         // SketchUp exports its edge outlines as separate line objects. They are a
         // modelling aid, not architecture — the faces carry all of the geometry —
@@ -123,8 +110,8 @@ export default function Malwiya() {
         root.traverse((o) => {
           if (!o.isMesh) return
           o.material = Array.isArray(o.material)
-            ? o.material.map((m) => upgradeMaterial(m, aniso, cache))
-            : upgradeMaterial(o.material, aniso, cache)
+            ? o.material.map((m) => upgradeMaterial(m, aniso, cache, earth))
+            : upgradeMaterial(o.material, aniso, cache, earth)
           o.castShadow = true
           o.receiveShadow = true
         })
@@ -149,10 +136,12 @@ export default function Malwiya() {
           m.updateMatrix()
           monument.add(m)
         }
+        monument.add(buildEnclosure(earth.brick)) // the wall of the Great Mosque around it
         monument.updateMatrixWorld(true)
         monument.traverse((o) => {
           o.matrixAutoUpdate = false // the monument never moves
         })
+        if (/[?&]debug\b/.test(window.location.search)) window.__malwiya = monument
         setScene(monument)
       })
       .catch((err) => {
