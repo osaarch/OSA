@@ -7,7 +7,7 @@ import plasterBumpUrl from '../assets/malwiya/plaster_bump.jpg'
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  THE MATERIAL OF THE MALWIYA
-//  The tower and the great mosque's wall are baked mud brick (Abbasid Samarra, 9th c.),
+//  The tower is baked mud brick (Abbasid Samarra, 9th c.),
 //  so the stone textures the SketchUp model came with (a yellow rubble wall and a khaki
 //  plaster) are replaced by two seamless earth textures made for this site:
 //    brick   — fired-clay brick in a running bond, brick-to-brick tone changes, sand-filled
@@ -40,7 +40,7 @@ export function loadEarth(anisotropy = 8) {
 }
 
 // The "last light" line that climbs the tower at dusk (see grade.js): everything below the
-// terminator height goes dark. Shared by the tower and the enclosure wall, so both share one shader.
+// terminator height goes dark.
 export function applyDusk(mat) {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uDuskMix = duskUniforms.uDuskMix

@@ -65,7 +65,6 @@ bundled. To guarantee Century Gothic everywhere, license a web-font version and 
 | --- | --- |
 | `src/scene/Malwiya.jsx` | Loads `model.dae`; keeps every original face and UV, swaps the two stone textures for earth brick / plaster |
 | `src/scene/earth.js` | The material: seamless baked-mud-brick and earth-plaster textures (+ bump maps) in `src/assets/malwiya/`, and the shared dusk shader |
-| `src/scene/Enclosure.js` | The wall of the Great Mosque of Samarra around the tower, at its real size (see below) |
 | `src/scene/path.js` | The camera path: approach + 360° orbit, a pure function of scroll |
 | `src/scene/grade.js` | The colour script: beige → ember → black (sky, fog, sun, shadows) |
 | `src/journey.js` | Scroll progress + critically-damped spring (smooth, fully reversible) |
@@ -86,10 +85,6 @@ field of view `FOV`) and the length of the scroll in `SPACER_VH` (`src/journey.j
   the ramp and the plinth tops. They were generated procedurally (tileable 1024 px colour + 512 px bump); the model's own
   UVs (≈ 3 m per tile) are unchanged. To tune the colour or the wear, edit the palette in the generator
   (`tools/gen_earth.py` — kept in the repo) and run it again.
-* **The wall (`Enclosure.js`):** the tower stands inside the outer enclosure (ziyada) of al-Mutawakkil's Great Mosque,
-  a baked-brick wall 376 × 444 m, ≈ 10 m high and 2.65 m thick, with 44 semicircular towers (4 at the corners + 10 per side)
-  and twelve gateways (the middle one of the north wall is on the tower's axis). It is built at that real size, 75 m north
-  of the tower, with a few bays that have lost their tops, in the same brick; it takes the same dusk shading as the tower.
 
 ## Project 1 — Al Rafidain Stadium (its own 3D journey)
 

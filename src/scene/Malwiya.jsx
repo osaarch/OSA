@@ -4,7 +4,6 @@ import { Color, Group, LoadingManager, MeshStandardMaterial, SRGBColorSpace } fr
 import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js'
 import { loadState } from './world'
 import { applyDusk, loadEarth } from './earth'
-import { buildEnclosure } from './Enclosure'
 
 const MODEL_URL = `${import.meta.env.BASE_URL}assets/malwiya/model.dae`
 
@@ -136,7 +135,6 @@ export default function Malwiya() {
           m.updateMatrix()
           monument.add(m)
         }
-        monument.add(buildEnclosure(earth.brick)) // the wall of the Great Mosque around it
         monument.updateMatrixWorld(true)
         monument.traverse((o) => {
           o.matrixAutoUpdate = false // the monument never moves
