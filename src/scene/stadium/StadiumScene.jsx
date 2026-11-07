@@ -133,7 +133,11 @@ function StadiumModel({ mats, onGround }) {
         // compile what a real frame needs (the shadow passes included) while the loader is still up,
         // so the first scroll does not freeze on a black screen
         stadiumLoad.set({ progress: 0.97 })
-        await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 40)))
+        // (a tab in the background never fires animation frames: do not wait for one for more than a moment)
+        await new Promise((r) => {
+          requestAnimationFrame(() => setTimeout(r, 40))
+          setTimeout(r, 700)
+        })
         try {
           gl.render(scene, camera)
         } catch (e) {
