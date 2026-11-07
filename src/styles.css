@@ -2,20 +2,25 @@
    OSA — visual identity:  Sandstone Beige  →  Pure Black  →  OSA / WORKS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Century Gothic is a licensed Monotype font: it is used when installed on the
-   visitor's machine (Windows, and macOS with Microsoft Office). To guarantee it on
-   every device, add your licensed web-font files — see README.md. Jost, a close
-   geometric match, is bundled as the fallback. */
+/* Century Gothic (the Paneuropean family supplied by the architect), bundled as web fonts so
+   every device shows the same letters. Light 300, Regular 400, Bold 700. */
 @font-face {
   font-family: 'Century Gothic Local';
-  src: local('Century Gothic'), local('CenturyGothic'), local('Century Gothic Regular');
+  src: url('./fonts/century-gothic-light.woff2') format('woff2'), local('Century Gothic Light');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Century Gothic Local';
+  src: url('./fonts/century-gothic-regular.woff2') format('woff2'), local('Century Gothic'), local('CenturyGothic');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Century Gothic Local';
-  src: local('Century Gothic Bold'), local('CenturyGothic-Bold');
+  src: url('./fonts/century-gothic-bold.woff2') format('woff2'), local('Century Gothic Bold'), local('CenturyGothic-Bold');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -23,10 +28,10 @@
 
 :root {
   --bg: #000;
-  --ink: #f2ede3;
-  --ink-2: rgba(242, 237, 227, 0.64);
-  --ink-3: rgba(242, 237, 227, 0.36);
-  --line: rgba(242, 237, 227, 0.14);
+  --ink: #ffffff;
+  --ink-2: rgba(255, 255, 255, 0.78);
+  --ink-3: rgba(255, 255, 255, 0.5);
+  --line: rgba(255, 255, 255, 0.18);
   --sand: #d8c3a0;
 
   --pad: clamp(20px, 3.4vw, 56px);
@@ -287,9 +292,10 @@ html.is-loading .stage {
   line-height: 1.15;
 }
 .intro-en {
-  font-size: clamp(12px, 1.5vw, 22px);
-  letter-spacing: 0.7em;
-  padding-left: 0.7em;
+  font-size: clamp(26px, 5.4vw, 86px);
+  font-weight: 300;
+  letter-spacing: 0.42em;
+  padding-left: 0.42em;
 }
 .intro-line {
   margin-top: 1.2em;
@@ -315,6 +321,14 @@ html.is-loading .stage {
   text-transform: uppercase;
   color: #3e3223;
   cursor: pointer;
+}
+/* the teaser's dark brown ink is for the sand-coloured day; in the night and dark themes it is white */
+html:is(.is-night, .is-dark) .intro {
+  color: #ffffff;
+}
+html:is(.is-night, .is-dark) .intro-skip {
+  color: #ffffff;
+  border-bottom-color: rgba(255, 255, 255, 0.35);
 }
 html.is-intro.is-started .intro-skip {
   display: block;
@@ -348,7 +362,7 @@ html.is-intro.is-started .intro-skip {
   text-transform: uppercase;
   cursor: pointer;
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #f3e7d3);
+  color: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff);
   transition: border-color 0.4s, opacity 0.6s, color 0.7s;
 }
 .sound:hover,
@@ -413,10 +427,10 @@ html.is-loading .ctl .night-btn {
   color: #8f8472;
 }
 html.is-loading .ctl .night-btn.is-on {
-  color: #f3e7d3;
+  color: #ffffff;
 }
 html.is-loading .ctl .lang span.is-on {
-  color: #f3e7d3;
+  color: #ffffff;
 }
 .sound-bars {
   display: flex;
@@ -467,7 +481,7 @@ html.is-loading .ctl .lang span.is-on {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #f3e7d3);
+  color: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff);
 }
 .hud > * {
   position: absolute;
@@ -810,10 +824,10 @@ html.is-loading .ctl .lang span.is-on {
   width: 100%;
   aspect-ratio: var(--ar, 16 / 9);
   background:
-    linear-gradient(to top right, transparent calc(50% - 0.5px), rgba(242, 237, 227, 0.1), transparent calc(50% + 0.5px)),
-    linear-gradient(to bottom right, transparent calc(50% - 0.5px), rgba(242, 237, 227, 0.1), transparent calc(50% + 0.5px)),
+    linear-gradient(to top right, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.1), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom right, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.1), transparent calc(50% + 0.5px)),
     #070707;
-  border: 1px solid rgba(242, 237, 227, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.09);
 }
 .ph-label {
   position: absolute;
@@ -1228,7 +1242,7 @@ html.is-loading .ctl .lang span.is-on {
   max-width: 34em;
   font-size: clamp(17px, 1.55vw, 26px);
   line-height: 1.7;
-  color: rgba(242, 237, 227, 0.86);
+  color: rgba(255, 255, 255, 0.86);
 }
 .p-seq {
   display: grid;
@@ -1491,7 +1505,7 @@ html.pj-ready .stage-project {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #f3e7d3);
+  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #ffffff);
   transition: color 0.7s ease; /* --pj-ink flips 0 → 1 as the light turns red: dark ink by day, cream by night */
 }
 .pj-sticky::before {
@@ -1532,7 +1546,7 @@ html.pj-ready .menu a,
 html.pj-ready .app .sound,
 html.pj-ready .app .lang {
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #f3e7d3);
+  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #ffffff);
 }
 html.pj-ready .menu a {
   transition: color 0.7s ease, opacity 0.7s ease, transform 0.9s var(--ease);
@@ -1621,7 +1635,7 @@ html.pj-ready .app .lang {
   pointer-events: none;
   opacity: var(--pj-logo, 0);
   transform: scale(calc(0.94 + 0.06 * var(--pj-logo, 0)));
-  color: #f3e7d3;
+  color: #ffffff;
 }
 .pj-logo img {
   display: block;
@@ -1656,7 +1670,7 @@ html.pj-ready .app .lang {
 .pj-load-line {
   width: min(240px, 50vw);
   height: 1px;
-  background: rgba(242, 237, 227, 0.18);
+  background: rgba(255, 255, 255, 0.18);
 }
 .pj-load-line i {
   display: block;

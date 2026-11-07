@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Color, NeutralToneMapping, PCFSoftShadowMap, ShaderChunk, Vector3 } from 'three'
 import Malwiya from './Malwiya'
-import Ground from './Ground'
+import Ground, { groundUniforms } from './Ground'
 import Sky from './Sky'
 import Dust from './Dust'
 import Veil from './Veil'
@@ -29,6 +29,7 @@ const SHADOW_SIZE = IS_COARSE ? 2048 : 4096
 const root = typeof document !== 'undefined' ? document.documentElement : null
 
 const GRAIN_DARK_LIGHT = new Color('#bcc4d2') // the sand turns to cold ash in the dark theme
+const GRAIN_NIGHT_LIGHT = new Color('#d29c66') // in the night theme the specks are earth-amber
 const fmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const UP = new Vector3(0, 1, 0)
 
@@ -211,7 +212,9 @@ function Rig({ grade, refs }) {
     // ── 4. world ────────────────────────────────────────────────────────────
     const el = grade.sunElevation
     const ce = Math.cos(el)
-    const az = sunAzimuth(u)
+    // by day the sun travels across the sky; in the night theme the one warm light stays at a fixed angle
+    // to the camera, so the monument is always lit from the side, whichever way the camera has gone round
+    const az = sunAzimuth(u) * (1 - nm) + (P.theta + 0.95) * nm
     v.sun.set(ce * Math.sin(az), Math.sin(el), ce * Math.cos(az))
     const sun = sunRef.current
     sun.position.copy(v.sun).multiplyScalar(430)
@@ -243,6 +246,7 @@ function Rig({ grade, refs }) {
     sm.uGlow.value = grade.glow
 
     groundMat.current.color.copy(grade.ground)
+    groundUniforms.uSpec.value = 1 - nm
 
     duskUniforms.uDuskMix.value = grade.duskMix
     duskUniforms.uTermY.value = grade.termY
@@ -267,7 +271,7 @@ function Rig({ grade, refs }) {
       vu.uMouseVel.value.set(st.vx * 0.5 * vclamp, st.vy * 0.5 * vclamp)
       vu.uColor.value.copy(grade.fog).multiplyScalar(1.04)
     }
-    const grainAmp = (0.8 + 0.6 * storm) * grade.dust * (1 - 0.55 * dk)
+    const grainAmp = (0.8 + 0.6 * storm) * grade.dust * (1 - 0.55 * dk - 0.65 * nm)
     grainMesh.current.visible = grainAmp > 0.01
     if (grainMesh.current.visible) {
       const gu = grainMat.current.uniforms
@@ -279,7 +283,7 @@ function Rig({ grade, refs }) {
       gu.uMouse.value.set(st.cx, st.cy)
       gu.uMouseVel.value.set(st.vx * vclamp, st.vy * vclamp)
       gu.uParallax.value.set(st.px, -st.py)
-      gu.uLight.value.set('#f3e4c2').lerp(GRAIN_DARK_LIGHT, dk)
+      gu.uLight.value.set('#f3e4c2').lerp(GRAIN_DARK_LIGHT, dk).lerp(GRAIN_NIGHT_LIGHT, nm)
       gu.uDark.value.set('#8f7650').lerp(gu.uLight.value, inkL)
     }
 

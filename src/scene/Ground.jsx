@@ -56,9 +56,13 @@ float sandH(vec2 p){
 }
 `
 
+// 1 = the usual glints of the low sun on the sand; the night theme turns them off so the dunes stay truly black
+export const groundUniforms = { uSpec: { value: 1 } }
+
 export function createGroundMaterial() {
   const mat = new MeshStandardMaterial({ color: '#cdb48a', roughness: 1, metalness: 0 })
   mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uSpec = groundUniforms.uSpec
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
       .replace(
@@ -66,7 +70,7 @@ export function createGroundMaterial() {
         '#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;',
       )
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nvarying vec3 vWPos;\n${NOISE}`)
+      .replace('#include <common>', `#include <common>\nvarying vec3 vWPos;\nuniform float uSpec;\n${NOISE}`)
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
@@ -92,8 +96,9 @@ export function createGroundMaterial() {
            normal = normalize(normal + (viewMatrix * vec4(wn - vec3(0.0, 1.0, 0.0), 0.0)).xyz);
          }`,
       )
+      .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.directSpecular *= uSpec;\nreflectedLight.indirectSpecular *= uSpec;')
   }
-  mat.customProgramCacheKey = () => 'sand-ground'
+  mat.customProgramCacheKey = () => 'sand-ground-2'
   return mat
 }
 

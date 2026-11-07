@@ -21,32 +21,32 @@ function tri(set, dusk, night, out) {
   return out
 }
 
-// NIGHT MODE — the stadium under a rainy night sky from the first frame: a moon, a black-blue
-// horizon, the bowl glowing red from within and the glazing lit sky-blue. It fades to black at
-// the end like the day grade does.
-const N_HORIZON = c('#16233b')
-const N_ZENITH = c('#03060e')
-const N_MOON = c('#9db6e6')
-const N_HEMI_SKY = c('#26365a')
-const N_HEMI_GR = c('#120d12')
+// NIGHT MODE — two colours only: black, and a warm earth-toned light (lit adobe, not gold). The sky, the
+// ground, the river, the roofs and the palms are black; only the glazing of the stadium is lit, in that one
+// colour, with a thin amber edge on the black forms around it. It fades to black at the end like the others.
+const N_HORIZON = c('#050302')
+const N_ZENITH = c('#000000')
+const N_LIGHT = c('#d29c66')
+const N_HEMI_SKY = c('#1a0f08')
+const N_HEMI_GR = c('#050302')
 const tmpN = new Color()
 
 function nightBlend(u, g, nm) {
   const live = 1 - g.black
   g.skyHorizon.lerp(tmpN.copy(N_HORIZON).multiplyScalar(live), nm)
   g.skyZenith.lerp(tmpN.copy(N_ZENITH).multiplyScalar(live), nm)
-  g.fog.copy(g.skyHorizon).multiplyScalar(0.92)
-  g.fogDensity = lerp(g.fogDensity, 0.00105, nm)
-  g.sunColor.lerp(N_MOON, nm)
-  g.sunIntensity = lerp(g.sunIntensity, 0.75 * live, nm)
-  g.sunElevation = lerp(g.sunElevation, 0.62, nm)
+  g.fog.copy(g.skyHorizon).multiplyScalar(0.8)
+  g.fogDensity = lerp(g.fogDensity, 0.0008, nm)
+  g.sunColor.lerp(N_LIGHT, nm)
+  g.sunIntensity = lerp(g.sunIntensity, 0, nm) // no moon, no sun: the glass is the only light
+  g.sunElevation = lerp(g.sunElevation, 0.3, nm)
   g.hemiSky.lerp(N_HEMI_SKY, nm)
   g.hemiGround.lerp(N_HEMI_GR, nm)
-  g.hemiIntensity = lerp(g.hemiIntensity, 0.5 * live, nm)
-  g.fillIntensity = lerp(g.fillIntensity, 0.05 * live, nm)
-  g.glow = lerp(g.glow, 0.5 * live, nm)
-  g.dust = lerp(g.dust, 0.3 * live, nm)
-  g.redLight = lerp(g.redLight, 0.92 * live, nm)
+  g.hemiIntensity = lerp(g.hemiIntensity, 0.12 * live, nm)
+  g.fillIntensity = lerp(g.fillIntensity, 0, nm)
+  g.glow = lerp(g.glow, 0, nm)
+  g.dust = lerp(g.dust, 0.35 * live, nm)
+  g.redLight = lerp(g.redLight, 1.0 * live, nm) // drives how much the glazing is lit
   g.night = lerp(g.night, 1, nm)
   g.dusk = lerp(g.dusk, 1, nm)
 }

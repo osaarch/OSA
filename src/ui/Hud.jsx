@@ -11,26 +11,9 @@ export default function Hud({ onReplay }) {
     <div className="hud" aria-hidden={false}>
       <div className="hud-top">
         <span className="hud-title">{ui.hudTitle}</span>
-        <span className="hud-sub">{ui.hudSub}</span>
       </div>
 
-      <dl className="hud-read" aria-hidden="true">
-        <div>
-          <dt>{ui.distance}</dt>
-          <dd id="hud-dist">—</dd>
-        </div>
-        <div>
-          <dt>{ui.altitude}</dt>
-          <dd id="hud-alt">—</dd>
-        </div>
-        <div>
-          <dt>{ui.bearing}</dt>
-          <dd id="hud-brg">—</dd>
-        </div>
-      </dl>
-
       <div className="hud-scroll" aria-hidden="true">
-        <span>{ui.scroll}</span>
         <i />
       </div>
 

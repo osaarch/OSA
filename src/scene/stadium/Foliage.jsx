@@ -303,10 +303,11 @@ function makeMaterial() {
     shader.uniforms.uTime = SU.uTime
     shader.uniforms.uBlack = SU.uBlack
     shader.uniforms.uDark = SU.uDark
+    shader.uniforms.uAmber = SU.uAmber
     // the dark theme turns the palms black like everything else
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uDark;')
-      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= 1.0 - 0.93 * uDark;')
+      .replace('#include <common>', '#include <common>\nuniform float uDark; uniform float uAmber;')
+      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= (1.0 - 0.93 * uDark) * (1.0 - 0.97 * uAmber);')
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float uTime;')
       .replace(

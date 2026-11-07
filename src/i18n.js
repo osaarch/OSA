@@ -76,7 +76,7 @@ const STR = {
     bestWithSound: 'Best experienced with sound',
     enterSound: 'Enter with sound',
     enterSilent: 'Enter without',
-    loadingMalwiya: 'Loading the Malwiya',
+    loadingMalwiya: '',
     loadError: 'The 3D model could not be loaded',
     skip: 'Skip',
     skipJourney: 'Skip journey',

@@ -16,6 +16,7 @@ export const SU = {
   uCrowd: { value: 0 }, // 0 … 1 the bowl fills with spectators
   uBlack: { value: 0 }, // 1 = everything gone
   uDark: { value: 0 }, // 1 = the dark theme: every surface turns black
+  uAmber: { value: 0 }, // 1 = the night theme: black everywhere, only the glazing lit in an earth-amber
   uRed: { value: new Color('#ff3326') },
   uSkyH: { value: new Color('#f0d2a0') },
   uSkyZ: { value: new Color('#cfae86') },
@@ -23,7 +24,7 @@ export const SU = {
 
 const NOISE = /* glsl */ `
 varying vec3 vWP;
-uniform float uTime; uniform float uNight; uniform float uCrowd; uniform float uBlack; uniform float uDark;
+uniform float uTime; uniform float uNight; uniform float uCrowd; uniform float uBlack; uniform float uDark; uniform float uAmber;
 uniform vec3 uRed; uniform vec3 uSkyH; uniform vec3 uSkyZ;
 
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -67,7 +68,8 @@ vec3 layerTint(vec3 c, float lumAmt, float hueAmt){
 }
 `
 
-function patch(mat, { pars = '', body = '', emissive = '' }) {
+// `keep` (0…1) is how much of a surface's own glow survives the night theme (the glazing keeps all of it).
+function patch(mat, { pars = '', body = '', emissive = '', keep = 0 }) {
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, SU)
     shader.vertexShader = shader.vertexShader
@@ -89,12 +91,18 @@ function patch(mat, { pars = '', body = '', emissive = '' }) {
         // rim of cold light along their edges (and nothing glows red)
         diffuseColor.rgb *= 1.0 - 0.93 * uDark;
         roughnessFactor = mix(roughnessFactor, clamp(roughnessFactor, 0.3, 0.6), uDark);
-        vec3 dRim = vec3(0.42, 0.47, 0.56) * pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 3.0) * 0.16 * uDark;`,
+        vec3 dRim = vec3(0.42, 0.47, 0.56) * pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 3.0) * 0.16 * uDark;
+        // the night theme: black, but for a thin amber edge and a trace of amber on the upward faces,
+        // so the black forms still read against the black sky
+        float aOff = uAmber * (1.0 - ${keep.toFixed(2)});
+        diffuseColor.rgb *= 1.0 - 0.97 * aOff;
+        vec3 aRim = vec3(0.86, 0.53, 0.24) * (pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 4.0) * 0.05 + 0.002 * smoothstep(0.3, 0.9, nW.y)) * aOff;
+        glow *= 1.0 - aOff;`,
       )
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-        totalEmissiveRadiance += glow * (1.0 - uBlack) * (1.0 - uDark) + dRim * (1.0 - uBlack);${emissive}`,
+        totalEmissiveRadiance += glow * (1.0 - uBlack) * (1.0 - uDark) + (dRim + aRim) * (1.0 - uBlack);${emissive}`,
       )
   }
   mat.customProgramCacheKey = () => 'stadium-' + mat.name
@@ -193,6 +201,7 @@ function bowl() {
 // up from within in one even colour (no panes, no mullions, no lines — just a soft drift of
 // brightness across the facade).
 const GLASS_LIT = 'vec3(0.40, 0.76, 1.0)' // sky-blue (tested against red: it reads as light, red melts into the walls)
+const GLASS_AMBER = 'vec3(0.95, 0.5, 0.17)' // the night theme: the glazing lit in an earth-amber, the one colour besides black
 function glass() {
   return patch(base('glass', { roughness: 0.08, metalness: 0.3 }), {
     body: /* glsl */ `
@@ -212,8 +221,9 @@ function glass() {
       vec3 sky = mix(uSkyH, uSkyZ, 0.25 + 0.6 * clamp(vWP.y / 70.0, 0.0, 1.0));
       float lit = smoothstep(0.2, 0.95, uNight);
       glow = sky * (0.012 + 0.2 * fres) * (1.0 - 0.6 * lit)
-           + ${GLASS_LIT} * lit * (0.62 + 0.62 * drift) * (0.9 + 0.1 * (1.0 - fres));
+           + mix(${GLASS_LIT}, ${GLASS_AMBER}, uAmber) * lit * (0.62 + 0.62 * drift) * (0.9 + 0.1 * (1.0 - fres)) * (1.0 - 0.5 * uAmber);
     `,
+    keep: 1,
   })
 }
 
@@ -222,8 +232,9 @@ function lettering() {
   return patch(base('text'), {
     body: /* glsl */ `
       diffuseColor.rgb = vec3(0.82, 0.72, 0.58);
-      glow = vec3(1.0, 0.86, 0.68) * uNight * 1.7;
+      glow = mix(vec3(1.0, 0.86, 0.68), vec3(0.95, 0.58, 0.25), uAmber) * uNight * 1.7;
     `,
+    keep: 0.9,
   })
 }
 
@@ -347,6 +358,7 @@ function water() {
       float streak = 0.55 + 0.9 * (r1.x * 0.6 + r2.x * 0.4);
       glow = refl * (0.06 + 0.85 * fres) + uRed * uNight * near * 0.85 * streak;
     `,
+    keep: 0.35, // by night the river keeps a little of the glazing's reflection
   })
 }
 

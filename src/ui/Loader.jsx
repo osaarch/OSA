@@ -38,14 +38,13 @@ export default function Loader({ active, failed }) {
       </div>
       {!waiting && (
         <div className="loader-label">
-          {s.error ? ui.loadError : `${ui.loadingMalwiya} · ${Math.round(s.progress * 100)}%`}
+          {s.error ? ui.loadError : `${Math.round(s.progress * 100)}%`}
         </div>
       )}
       {waiting && (
         <div className="gate">
-          <p className="gate-note">{ui.bestWithSound}</p>
           <div className="gate-actions">
-            <button type="button" className="gate-btn gate-primary" onClick={() => enter(true)} autoFocus>
+            <button type="button" className="gate-btn gate-primary" onClick={() => enter(true)}>
               {ui.enterSound}
             </button>
             <button type="button" className="gate-btn" onClick={() => enter(false)}>

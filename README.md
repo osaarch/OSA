@@ -45,19 +45,10 @@ Until real photographs exist, honest empty frames are shown. Nothing is faked.
 
 ## Typography — Century Gothic
 
-OSA / WORKS are set in **Century Gothic**. It is a licensed Monotype font, so it cannot be shipped
-inside this project. The site uses it automatically wherever it is installed (Windows; macOS with
-Microsoft Office). On other devices it falls back to **Jost**, a close geometric match, which is
-bundled. To guarantee Century Gothic everywhere, license a web-font version and add it to
-`src/styles.css`:
-
-```css
-@font-face {
-  font-family: 'Century Gothic Local';
-  src: url('/fonts/CenturyGothic.woff2') format('woff2');
-  font-weight: 400;
-}
-```
+The whole site is set in **Century Gothic** (the Paneuropean family supplied by the architect),
+bundled as web fonts in `src/fonts/` — Light 300, Regular 400, Bold 700, Latin subset — and declared at
+the top of `src/styles.css`. Arabic text uses **Cairo**. To add a weight or change a file, drop the
+`.woff2` into `src/fonts/` and edit the matching `@font-face`.
 
 ## How the journey works
 
