@@ -73,7 +73,7 @@ function makePitch(bowlGeo, material) {
   geo.rotateX(-Math.PI / 2)
   const mesh = new Mesh(geo, material)
   mesh.name = 'pitch'
-  mesh.position.y = 0.03
+  mesh.position.y = 0.72 // on top of the model's own floor slab (0.6 m), which would otherwise hide it
   mesh.receiveShadow = true
   mesh.frustumCulled = false
   return mesh
@@ -445,6 +445,7 @@ function Rig({ grade, refs }) {
     SU.uNight.value = grade.redLight
     SU.uCrowd.value = grade.crowd
     SU.uBlack.value = grade.black
+    SU.uReach.value = 1 + 0.9 * smoothstep(0.78, 0.94, u) // the red wash on the ground widens as the camera draws back
     SU.uAmber.value = dk
     SU.uRed.value.set('#ff3326').lerp(DARK_AMBER, dk)
     SU.uSkyH.value.copy(grade.skyHorizon)
@@ -479,7 +480,7 @@ function Rig({ grade, refs }) {
     if (moved || stadiumWorld.forceFrames > 0) {
       root.style.setProperty('--pj', u.toFixed(4))
       root.style.setProperty('--pj-black', grade.black.toFixed(4))
-      root.style.setProperty('--pj-logo', smoothstep(0.972, 1.0, u).toFixed(3))
+      root.style.setProperty('--pj-logo', smoothstep(0.984, 1.0, u).toFixed(3))
       root.style.setProperty('--pj-hud', (1 - smoothstep(0.9, 0.968, u)).toFixed(3))
       root.style.setProperty('--pj-ink', u > 0.46 || nm > 0.5 || dk > 0.5 ? '1' : '0')
     }

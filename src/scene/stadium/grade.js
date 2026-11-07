@@ -110,7 +110,7 @@ export function createGrade() {
 export function gradeAt(u, g, nm = 0, dm = 0) {
   const dusk = smoothstep(0.3, 0.66, u)
   const night = smoothstep(0.58, 0.88, u)
-  const black = smoothstep(0.955, 1.0, u)
+  const black = smoothstep(0.955, 0.985, u)
   const live = 1 - black
   g.dusk = dusk
   g.night = night
@@ -139,7 +139,7 @@ export function gradeAt(u, g, nm = 0, dm = 0) {
   g.dark = 0
   if (dm > 0.001) darkBlend(u, g, dm)
   // the camera draws back over the site at the end: the haze thins so the whole of it can be read from above
-  g.fogDensity *= 1 - 0.82 * smoothstep(0.78, 0.94, u)
+  g.fogDensity *= 1 - 0.9 * smoothstep(0.76, 0.93, u)
   return g
 }
 

@@ -13,13 +13,13 @@ import { monotone, lerp } from '../../journey'
 //    0.62 – 0.74   closest pass, level with the tilted roof planes
 //    0.74 – 0.95   the camera lets go of the building: it rises and draws back until the whole
 //                  site — river, plazas, palm groves — lies below it
-//    0.95 – 1.00   the light goes out over the site
+//    0.95 – 0.985  the light goes out over the site, and the logo comes up out of the black
 // ─────────────────────────────────────────────────────────────────────────────
 const U = [0.0, 0.1, 0.22, 0.36, 0.5, 0.62, 0.74, 0.85, 0.94, 1.0]
-const R = [1500, 1200, 850, 570, 400, 300, 220, 330, 1000, 1500]
-const H = [290, 250, 195, 140, 108, 96, 150, 330, 1150, 1750]
+const R = [1500, 1200, 850, 570, 400, 300, 220, 400, 1350, 1850]
+const H = [290, 250, 195, 140, 108, 96, 150, 400, 1700, 2350]
 const TY = [18, 20, 24, 28, 32, 34, 28, 16, 0, 0]
-const FOV = [24, 25, 28, 32, 36, 40, 44, 46, 40, 36]
+const FOV = [24, 25, 28, 32, 36, 40, 44, 46, 38, 34]
 
 const lnR = monotone(
   U,

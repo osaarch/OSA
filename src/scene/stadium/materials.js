@@ -17,6 +17,7 @@ export const SU = {
   uBlack: { value: 0 }, // 1 = everything gone
   uDark: { value: 0 }, // 1 = the dark theme: every surface turns black
   uAmber: { value: 0 }, // 1 = the dark theme: black everywhere, only the glazing lit in an earth-amber
+  uReach: { value: 1 }, // how far the red wash on the ground reaches (1 = 320 m)
   uRed: { value: new Color('#ff3326') },
   uSkyH: { value: new Color('#f0d2a0') },
   uSkyZ: { value: new Color('#cfae86') },
@@ -24,7 +25,7 @@ export const SU = {
 
 const NOISE = /* glsl */ `
 varying vec3 vWP;
-uniform float uTime; uniform float uNight; uniform float uCrowd; uniform float uBlack; uniform float uDark; uniform float uAmber;
+uniform float uTime; uniform float uNight; uniform float uCrowd; uniform float uBlack; uniform float uDark; uniform float uAmber; uniform float uReach;
 uniform vec3 uRed; uniform vec3 uSkyH; uniform vec3 uSkyZ;
 
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -241,7 +242,7 @@ function lettering() {
 // ── the pitch: sage turf with soft mown bands and faint chalk, in a margin of dry clay ───
 // (105 × 68 m, long axis along x, centred on the middle of the bowl floor)
 function pitch() {
-  return patch(base('pitch'), {
+  return patch(base('pitch', { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), {
     body: /* glsl */ `
       // the bowl's long axis is turned 15.2° from the x axis: the pitch follows it
       vec2 q0 = vWP.xz - vec2(-0.45, 0.0);
@@ -249,7 +250,7 @@ function pitch() {
       vec2 q = vec2(dot(q0, AX), dot(q0, vec2(-AX.y, AX.x)));
       float n = fbm1(vWP.xz * 0.7); float n2 = fbm1(vWP.xz * 3.5);
       float band = step(0.5, fract(q.x / 15.0));
-      vec3 turf = mix(vec3(0.285, 0.33, 0.205), vec3(0.335, 0.38, 0.24), band) * (0.9 + 0.18 * n) * (0.95 + 0.1 * n2);
+      vec3 turf = mix(vec3(0.31, 0.38, 0.2), vec3(0.37, 0.44, 0.24), band) * (0.9 + 0.18 * n) * (0.95 + 0.1 * n2);
       vec3 earth = mix(vec3(0.44, 0.35, 0.26), vec3(0.54, 0.44, 0.32), n) * (0.94 + 0.1 * n2);
 
       vec2 dq = abs(q) - vec2(57.0, 39.0);
@@ -277,13 +278,18 @@ function pitch() {
         spot = min(spot, length(q - vec2(sg * 41.5, 0.0)) - 0.35);
       }
       float line = (1.0 - smoothstep(w * 0.55, w * 1.15, L)) + (1.0 - smoothstep(0.0, w * 0.6, spot));
-      col = mix(col, vec3(0.72, 0.7, 0.62), clamp(line, 0.0, 1.0) * 0.5 * turfM);
+      float mark = clamp(line, 0.0, 1.0) * turfM;
+      col = mix(col, vec3(0.78, 0.76, 0.68), mark * 0.68);
 
-      diffuseColor.rgb = col;
+      // the dark theme: black turf, and only the markings and the faint mown bands lit, in the one amber
+      diffuseColor.rgb = mix(col, vec3(0.008, 0.006, 0.004), uAmber);
       roughnessFactor = 0.95;
       // by night the pitch keeps a dim, even light of its own, and a trace of the red
-      glow = col * uNight * (0.2 + 0.26 * turfM) + uRed * uNight * 0.03;
+      vec3 gNight = col * uNight * (0.2 + 0.26 * turfM) + uRed * uNight * 0.03;
+      vec3 gDark = vec3(0.95, 0.5, 0.17) * (0.9 * mark + 0.07 * turfM * (0.55 + 0.45 * band));
+      glow = mix(gNight, gDark, uAmber);
     `,
+    keep: 1,
   })
 }
 
@@ -302,7 +308,7 @@ function ground() {
       col *= layerTint(vcol, 0.5, 0.3);
       diffuseColor.rgb = col;
       roughnessFactor = 1.0;
-      float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
+      float near = exp(-pow(length(vWP.xz) / (320.0 * uReach), 2.0));
       glow = uRed * uNight * near * 0.2 * (0.5 + 0.5 * mid);
     `,
   })
@@ -318,7 +324,7 @@ function grass() {
       col *= layerTint(vcol, 0.7, 0.2);
       diffuseColor.rgb = col;
       roughnessFactor = 1.0;
-      float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
+      float near = exp(-pow(length(vWP.xz) / (320.0 * uReach), 2.0));
       glow = uRed * uNight * near * 0.12;
     `,
   })
@@ -332,7 +338,7 @@ function paving() {
       vec3 col = mix(vec3(0.20, 0.16, 0.13), vec3(0.31, 0.25, 0.19), n);
       diffuseColor.rgb = col * layerTint(vcol, 0.85, 0.3);
       roughnessFactor = 0.95;
-      float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
+      float near = exp(-pow(length(vWP.xz) / (320.0 * uReach), 2.0));
       glow = uRed * uNight * near * 0.1;
     `,
   })
@@ -378,7 +384,7 @@ function plaza() {
       col *= layerTint(vcol, 0.45, 0.2);
       diffuseColor.rgb = col;
       roughnessFactor = 0.96;
-      float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
+      float near = exp(-pow(length(vWP.xz) / (320.0 * uReach), 2.0));
       float side = 1.0 - smoothstep(0.3, 0.72, nW.y);
       glow = uRed * uNight * near * (0.1 + 0.55 * side);
     `,

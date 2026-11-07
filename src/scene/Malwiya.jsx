@@ -106,6 +106,13 @@ export default function Malwiya() {
           if (o.isLine || o.isLineSegments) edges.push(o)
         })
         edges.forEach((e) => e.parent && e.parent.remove(e))
+        // …and three of its 2D "entourage" cut-outs (Mac and two men, walking) are people, not architecture:
+        // the Malwiya stands alone
+        const people = []
+        root.traverse((o) => {
+          if (/^SketchUp_Instance_\d+$/.test(o.name) || /^(Mac|_2D_Man)/.test(o.name)) people.push(o)
+        })
+        people.forEach((p) => p.parent && p.parent.remove(p))
         root.traverse((o) => {
           if (!o.isMesh) return
           o.material = Array.isArray(o.material)

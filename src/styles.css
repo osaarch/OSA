@@ -1906,6 +1906,9 @@ html.pj-ready .app .lang {
   background: #060606;
 }
 .p-video video {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;

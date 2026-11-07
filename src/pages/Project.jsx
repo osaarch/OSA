@@ -74,26 +74,50 @@ export function ProjectLogo({ project, className = '' }) {
   )
 }
 
-// A project film (e.g. the stadium's form generation): silent, looping, it plays while it is on screen
-// and the visitor can use the controls to pause it or turn the sound on.
+// A project film (e.g. the stadium's form generation): silent and always running, in a loop. It has no
+// controls and cannot be paused, scrubbed or opened elsewhere; if the browser stops it (a background tab,
+// power saving) it starts again by itself.
 function ProjectVideo({ src, poster, label }) {
   const ref = useRef(null)
   useEffect(() => {
     const el = ref.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) el.play().catch(() => {})
-        else el.pause()
-      },
-      { threshold: 0.35 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
+    if (!el) return
+    const go = () => {
+      if (el.paused) el.play().catch(() => {})
+    }
+    el.addEventListener('pause', go)
+    el.addEventListener('canplay', go)
+    document.addEventListener('visibilitychange', go)
+    // some phones hold autoplay back until the first touch
+    window.addEventListener('pointerdown', go, { passive: true })
+    window.addEventListener('touchstart', go, { passive: true })
+    go()
+    return () => {
+      el.removeEventListener('pause', go)
+      el.removeEventListener('canplay', go)
+      document.removeEventListener('visibilitychange', go)
+      window.removeEventListener('pointerdown', go)
+      window.removeEventListener('touchstart', go)
+    }
   }, [src])
   return (
     <Reveal as="div" className="p-video">
-      <video ref={ref} src={src} poster={poster} muted loop playsInline controls preload="metadata" aria-label={label} />
+      <video
+        ref={ref}
+        src={src}
+        poster={poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        tabIndex={-1}
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload noplaybackrate noremoteplayback nofullscreen"
+        onContextMenu={(e) => e.preventDefault()}
+        aria-label={label}
+      />
     </Reveal>
   )
 }
