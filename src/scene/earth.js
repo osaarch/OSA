@@ -31,8 +31,11 @@ export function loadEarth(anisotropy = 8) {
       })
     cache = Promise.all([get(brickUrl, true), get(brickBumpUrl, false), get(plasterUrl, true), get(plasterBumpUrl, false)]).then(
       ([bm, bb, pm, pb]) => ({
-        brick: { map: bm, bumpMap: bb, bumpScale: 2.2 },
-        plaster: { map: pm, bumpMap: pb, bumpScale: 1.2 },
+        // Quiet surfaces: the relief is gentle and the brick-to-brick colour differences are pulled
+        // toward the average tone (`soft`), so the earth reads as one calm material, not an emboss.
+        // (linear-space averages of the two textures)
+        brick: { map: bm, bumpMap: bb, bumpScale: 0.7, soft: { mean: [0.296, 0.196, 0.103], k: 0.5 } },
+        plaster: { map: pm, bumpMap: pb, bumpScale: 0.45, soft: { mean: [0.45, 0.28, 0.147], k: 0.55 } },
       }),
     )
   }
@@ -41,7 +44,7 @@ export function loadEarth(anisotropy = 8) {
 
 // The "last light" line that climbs the tower at dusk (see grade.js): everything below the
 // terminator height goes dark.
-export function applyDusk(mat) {
+export function applyDusk(mat, soft) {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uDuskMix = duskUniforms.uDuskMix
     shader.uniforms.uTermY = duskUniforms.uTermY
@@ -61,7 +64,11 @@ export function applyDusk(mat) {
       .replace(
         '#include <color_fragment>',
         // the dark theme: the whole monument turns black (the bump and the glints of the low light stay)
-        '#include <color_fragment>\ndiffuseColor.rgb *= 1.0 - 0.93 * uDark;',
+        '#include <color_fragment>\n' +
+          (soft
+            ? `diffuseColor.rgb = mix(vec3(${soft.mean.map((v) => v.toFixed(3)).join(',')}), diffuseColor.rgb, ${soft.k.toFixed(3)});\n`
+            : '') +
+          'diffuseColor.rgb *= 1.0 - 0.93 * uDark;',
       )
       .replace(
         '#include <roughnessmap_fragment>',
@@ -74,6 +81,6 @@ export function applyDusk(mat) {
          #include <opaque_fragment>`,
       )
   }
-  mat.customProgramCacheKey = () => 'malwiya-dusk-2'
+  mat.customProgramCacheKey = () => 'malwiya-dusk-3' + (soft ? soft.k : '')
   return mat
 }

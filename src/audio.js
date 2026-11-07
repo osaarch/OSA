@@ -2098,25 +2098,101 @@ const store = {
   },
 }
 
+const isTouch = () => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
+// Phones get a longer look-ahead: while the 3D scene is busy a timer can be late by a second or more.
+const lookAhead = () => (isTouch() ? 3.8 : 2.2)
+
+// iPhones send Web Audio to the "ringer" channel, which the side switch mutes — the usual reason
+// a site is silent on a phone while the sound button says "on". Declaring a 'playback' audio
+// session (iOS 16.4+), and keeping a silent <audio> element playing for older iOS, moves the music
+// to the media channel, which is heard like the sound of any video. Called inside the click.
+let keepAlive = null
+let silentSrc = ''
+function silence() {
+  if (silentSrc) return silentSrc
+  const n = 4000 // 0.5 s of 8-bit mono silence at 8 kHz
+  const b = new Uint8Array(44 + n)
+  const w = (o, str) => [...str].forEach((c, i) => (b[o + i] = c.charCodeAt(0)))
+  const u32 = (o, v) => [0, 1, 2, 3].forEach((i) => (b[o + i] = (v >>> (8 * i)) & 255))
+  const u16 = (o, v) => [0, 1].forEach((i) => (b[o + i] = (v >>> (8 * i)) & 255))
+  w(0, 'RIFF')
+  u32(4, 36 + n)
+  w(8, 'WAVEfmt ')
+  u32(16, 16)
+  u16(20, 1)
+  u16(22, 1)
+  u32(24, 8000)
+  u32(28, 8000)
+  u16(32, 1)
+  u16(34, 8)
+  w(36, 'data')
+  u32(40, n)
+  b.fill(128, 44)
+  let bin = ''
+  b.forEach((v) => (bin += String.fromCharCode(v)))
+  silentSrc = 'data:audio/wav;base64,' + btoa(bin)
+  return silentSrc
+}
+function mediaChannel(on) {
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = on ? 'playback' : 'auto'
+  } catch (e) {
+    /* not supported */
+  }
+  try {
+    if (on) {
+      if (!keepAlive) {
+        keepAlive = document.createElement('audio')
+        keepAlive.setAttribute('playsinline', '')
+        keepAlive.setAttribute('aria-hidden', 'true')
+        keepAlive.loop = true
+        keepAlive.preload = 'auto'
+        keepAlive.src = silence()
+      }
+      const p = keepAlive.play()
+      if (p && p.catch) p.catch(() => {})
+    } else if (keepAlive) {
+      keepAlive.pause()
+    }
+  } catch (e) {
+    /* autoplay refused: the Web Audio context still plays on devices without a ringer switch */
+  }
+}
+
 function ensure() {
   if (ctx) return true
   const AC = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)
   if (!AC) return false
-  ctx = new AC()
+  try {
+    ctx = isTouch() ? new AC({ latencyHint: 'playback' }) : new AC()
+  } catch (e) {
+    ctx = new AC()
+  }
+  // the classic unlock: one silent sample played inside the gesture
+  try {
+    const s = ctx.createBufferSource()
+    s.buffer = ctx.createBuffer(1, 1, 22050)
+    s.connect(ctx.destination)
+    s.start(0)
+  } catch (e) {
+    /* ignore */
+  }
   engine = createEngine(ctx, pendingMood)
   engine.setScene(pendingScene, true)
   return true
 }
 function pump() {
-  engine.scheduleUntil(ctx.currentTime + 2.2)
+  engine.scheduleUntil(ctx.currentTime + lookAhead())
 }
 
 export const audio = {
   // Must be called from a user gesture (click / key) — browsers refuse audio before.
   async enable() {
+    mediaChannel(true) // first, synchronously, while the tap still counts as a user gesture
     if (!ensure()) return false
     try {
-      await ctx.resume()
+      // On some phones resume() never settles until a later tap: do not wait for it forever.
+      await Promise.race([ctx.resume(), new Promise((r) => setTimeout(r, 700))])
     } catch (e) {
       return false
     }
@@ -2132,6 +2208,7 @@ export const audio = {
   disable() {
     store.put('off')
     set({ on: false })
+    mediaChannel(false)
     if (!ctx) return
     engine.setEnabled(false)
     clearInterval(timer)
@@ -2180,9 +2257,22 @@ export const audio = {
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (!ctx || !snapshot.on) return
-    if (document.hidden) ctx.suspend().catch(() => {})
-    else ctx.resume().catch(() => {})
+    if (document.hidden) {
+      ctx.suspend().catch(() => {})
+      if (keepAlive) keepAlive.pause()
+    } else {
+      ctx.resume().catch(() => {})
+      if (keepAlive) keepAlive.play().catch(() => {})
+    }
   })
+  // Phones suspend ("interrupted") the audio after a call, a lock screen or a long scroll: the next
+  // touch brings the music back instead of leaving a button that says "on" over silence.
+  const reawaken = () => {
+    if (!ctx || !snapshot.on || document.hidden) return
+    if (ctx.state !== 'running') ctx.resume().catch(() => {})
+    if (keepAlive && keepAlive.paused) keepAlive.play().catch(() => {})
+  }
+  ;['pointerdown', 'touchend', 'keydown'].forEach((t) => window.addEventListener(t, reawaken, { capture: true, passive: true }))
 }
 
 export function useAudio() {

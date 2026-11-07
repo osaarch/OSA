@@ -60,7 +60,7 @@ function upgradeMaterial(src, anisotropy, cache, earth) {
     side: src.side,
   })
 
-  applyDusk(mat)
+  applyDusk(mat, e && e.soft)
   cache.set(src, mat)
   return mat
 }

@@ -158,7 +158,7 @@ html.is-loading .stage {
   pointer-events: none;
 }
 .loader-mark {
-  font-size: 15px;
+  font-size: clamp(26px, 4.4vw, 44px); /* the OSA on the first screen: large and quiet */
   letter-spacing: 0.9em;
   padding-left: 0.9em;
   color: var(--ink);
@@ -215,33 +215,53 @@ html.is-loading .stage {
 }
 .gate-actions {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   flex-wrap: wrap;
   justify-content: center;
 }
 .gate-btn {
+  /* no box: just the words; a thin line draws itself under them when the pointer passes over */
   background: none;
   color: var(--ink-2);
-  border: 1px solid var(--line);
-  padding: 1.15em 2.1em;
+  border: 0;
+  padding: 0.9em 0.4em;
+  position: relative;
   font: inherit;
   font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: color 0.4s, border-color 0.4s, background 0.4s;
+  transition: color 0.4s;
+}
+.gate-btn::after {
+  content: '';
+  position: absolute;
+  left: 0.4em;
+  right: 0.4em;
+  bottom: 0.45em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+  transition: transform 0.45s var(--ease-out);
 }
 .gate-btn:hover,
 .gate-btn:focus-visible {
   color: var(--ink);
-  border-color: var(--sand);
+  outline: none;
+}
+.gate-btn:hover::after,
+.gate-btn:focus-visible::after {
+  transform: scaleX(1);
 }
 .gate-primary {
   color: var(--ink);
-  border-color: rgba(216, 195, 160, 0.55);
 }
-.gate-primary:hover {
-  background: rgba(216, 195, 160, 0.1);
+@media (hover: none) {
+  /* no pointer to pass over the words on a phone: the line shows for the instant of the tap, nothing else */
+  .gate-btn:active::after {
+    transform: scaleX(1);
+  }
 }
 
 /* ── Sandstorm teaser ─────────────────────────────────────────────────────── */
@@ -1302,6 +1322,40 @@ html.is-loading .ctl .lang span.is-on {
   }
   .sound-label {
     display: none;
+  }
+  /* on a phone the sound control is only an icon, so it is larger, has a proper tap area,
+     and shows a clear "off" state (a slash through the bars) */
+  .sound {
+    position: relative;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    justify-content: flex-end;
+  }
+  .sound-bars {
+    height: 18px;
+    gap: 3px;
+  }
+  .sound-bars i {
+    width: 2px;
+  }
+  .sound:not(.is-on) .sound-bars i {
+    transform: scaleY(0.3);
+  }
+  .sound:not(.is-on)::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: 50%;
+    width: 24px;
+    height: 1px;
+    background: currentColor;
+    transform: rotate(-42deg);
+    opacity: 0.85;
+  }
+  .night-btn,
+  .lang {
+    min-height: 40px;
   }
   .ctl,
   .app:not([data-view='home']) .ctl {
