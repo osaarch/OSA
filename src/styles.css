@@ -225,48 +225,27 @@ html.is-loading .stage {
   justify-content: center;
 }
 .gate-btn {
-  /* no box: just the words; a thin line draws itself under them when the pointer passes over */
+  /* no box and no line: just the words, which brighten and glow softly when the pointer passes over */
   background: none;
   color: var(--ink-2);
   border: 0;
   padding: 0.9em 0.4em;
-  position: relative;
   font: inherit;
   font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: color 0.4s;
-}
-.gate-btn::after {
-  content: '';
-  position: absolute;
-  left: 0.4em;
-  right: 0.4em;
-  bottom: 0.45em;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: 50% 50%;
-  transition: transform 0.45s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.4s, text-shadow 0.5s;
 }
 .gate-btn:hover,
 .gate-btn:focus-visible {
   color: var(--ink);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.6);
   outline: none;
-}
-.gate-btn:hover::after,
-.gate-btn:focus-visible::after {
-  transform: scaleX(1);
 }
 .gate-primary {
   color: var(--ink);
-}
-@media (hover: none) {
-  /* no pointer to pass over the words on a phone: the line shows for the instant of the tap, nothing else */
-  .gate-btn:active::after {
-    transform: scaleX(1);
-  }
 }
 
 /* ── Sandstorm teaser ─────────────────────────────────────────────────────── */
@@ -361,7 +340,6 @@ html.is-intro.is-started .intro-skip {
 .sound-wrap {
   display: flex;
   align-items: center;
-  gap: 1.5em;
 }
 .sound,
 .lang,
@@ -372,7 +350,6 @@ html.is-intro.is-started .intro-skip {
   padding: 0.9em 0;
   background: none;
   border: 0;
-  border-bottom: 1px solid transparent;
   font: inherit;
   font-size: 10.5px;
   letter-spacing: 0.3em;
@@ -380,12 +357,19 @@ html.is-intro.is-started .intro-skip {
   cursor: pointer;
   color: #4b3e2b; /* fallback */
   color: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff);
-  transition: border-color 0.4s, opacity 0.6s, color 0.7s;
+  opacity: 0.74;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.4s, color 0.7s;
 }
+/* hovering (or keyboard focus) only brightens them — no line under the words */
 .sound:hover,
 .lang:hover,
-.night-btn:hover {
-  border-bottom-color: currentColor;
+.night-btn:hover,
+.sound:focus-visible,
+.lang:focus-visible,
+.night-btn:focus-visible {
+  opacity: 1;
+  outline: none;
 }
 .night-btn {
   gap: 0.9em;
@@ -393,9 +377,6 @@ html.is-intro.is-started .intro-skip {
 .night-btn svg {
   display: block;
   flex: none;
-}
-.night-btn:not(.is-on) {
-  opacity: 0.78;
 }
 .lang {
   gap: 0.6em;
@@ -412,53 +393,85 @@ html.is-intro.is-started .intro-skip {
   opacity: 0.3;
 }
 
-/* volume: a hairline with a small dot; the colour follows the same light as the sound button */
+/* volume: a small vertical slider in a dark pill that opens under the sound button — when the pointer
+   rests on it, when the sound is switched on, or by keyboard — and is otherwise out of sight */
+.sound-wrap {
+  position: relative;
+}
+.vol-pop {
+  position: absolute;
+  top: 100%;
+  left: -12px;
+  width: 38px;
+  height: 118px;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.3s, transform 0.3s, visibility 0s 0.3s;
+  z-index: 5;
+}
+@media (hover: hover) {
+  .sound-wrap:hover .vol-pop {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+}
+.sound-wrap.is-peek .vol-pop,
+.sound-wrap:active .vol-pop,
+.sound-wrap:has(:focus-visible) .vol-pop {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
 .vol {
-  --c: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff);
   -webkit-appearance: none;
   appearance: none;
-  width: 70px;
-  height: 22px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 84px;
+  height: 24px;
   margin: 0;
   padding: 0;
   background: transparent;
-  color: var(--c);
+  color: #ffffff;
   cursor: pointer;
-  opacity: 0.4;
-  transition: opacity 0.4s, color 0.7s;
-}
-.sound-wrap.is-on .vol,
-.vol:hover,
-.vol:focus-visible {
-  opacity: 1;
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 .vol:focus-visible {
   outline: none;
 }
 .vol::-webkit-slider-runnable-track {
   height: 1px;
-  background: linear-gradient(to right, currentColor var(--v), color-mix(in srgb, currentColor 28%, transparent) var(--v));
+  background: linear-gradient(to right, currentColor var(--v), rgba(255, 255, 255, 0.28) var(--v));
 }
 .vol::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 9px;
-  height: 9px;
-  margin-top: -4px;
+  width: 10px;
+  height: 10px;
+  margin-top: -4.5px;
   border-radius: 50%;
   border: 0;
   background: currentColor;
 }
 .vol::-moz-range-track {
   height: 1px;
-  background: color-mix(in srgb, currentColor 28%, transparent);
+  background: rgba(255, 255, 255, 0.28);
 }
 .vol::-moz-range-progress {
   height: 1px;
   background: currentColor;
 }
 .vol::-moz-range-thumb {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   border: 0;
   border-radius: 50%;
   background: currentColor;
@@ -481,13 +494,6 @@ html.is-intro.is-started .intro-skip {
 .app:not([data-view='home']) .sound:hover,
 .app:not([data-view='home']) .lang:hover,
 .app:not([data-view='home']) .night-btn:hover {
-  color: var(--ink);
-}
-/* the slider takes the page's ink on inner pages */
-.app:not([data-view='home']) .vol {
-  color: var(--ink-2);
-}
-.app:not([data-view='home']) .vol:hover {
   color: var(--ink);
 }
 html.is-loading .ctl {
@@ -1479,16 +1485,10 @@ html.is-loading .ctl .lang span.is-on {
     align-items: flex-end;
     gap: 0;
   }
-  /* sound on its own line (the slider appears while it plays); theme and language side by side below */
-  .sound-wrap {
-    flex-direction: row-reverse;
-    gap: 0.4em;
-  }
-  .sound-wrap:not(.is-on) .vol {
-    display: none;
-  }
-  .vol {
-    width: 64px;
+  /* sound on its own line; theme and language side by side below; the volume pill opens under the icon */
+  .vol-pop {
+    left: auto;
+    right: -4px;
   }
   .night-label {
     display: none;
@@ -1660,7 +1660,6 @@ html:not(.pj-ready) .pj-back {
 /* on a 3D project the wordmark and the sound button follow the light: dark ink by day, cream by night */
 html.pj-ready .menu a,
 html.pj-ready .app .sound,
-html.pj-ready .app .vol,
 html.pj-ready .app .night-btn,
 html.pj-ready .app .lang {
   color: #4b3e2b; /* fallback */

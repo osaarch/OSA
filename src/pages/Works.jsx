@@ -7,7 +7,7 @@ import { ProjectLogo } from './Project'
 // WORKS — a full-bleed cinematic stage. Hover (or arrow-key / scroll-wheel) through
 // the index and the stage wipes between projects; click to open the project page.
 export default function Works({ go }) {
-  const { projects, profile, ui } = useI18n()
+  const { projects, ui } = useI18n()
   const [active, setActive] = useState(0)
   const [prev, setPrev] = useState(null)
   const timer = useRef(0)
@@ -83,8 +83,6 @@ export default function Works({ go }) {
           {ui.openProject} <span className="arr">→</span>
         </span>
       </div>
-
-      <p className="works-intro">{profile.worksIntro}</p>
 
       <p className="site-foot">OSA 2026</p>
 

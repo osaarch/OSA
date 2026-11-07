@@ -5,6 +5,7 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
+  CircleGeometry,
   Color,
   Mesh,
   NeutralToneMapping,
@@ -81,7 +82,7 @@ function makePitch(bowlGeo, material) {
 // ── the model ────────────────────────────────────────────────────────────────
 // Built from the project's own Rhino file (STADUAM.3dm): the stadium, its roof planes,
 // the bowl, the glazing, the lettering and the site (ground, planting, river, paths).
-function StadiumModel({ mats, onGround }) {
+function StadiumModel({ mats, onGround, onTint }) {
   const { gl, camera, scene } = useThree()
   const [group, setGroup] = useState(null)
 
@@ -107,10 +108,12 @@ function StadiumModel({ mats, onGround }) {
         const g = gltf.scene
         let grassGeo = null
         let bowlGeo = null
+        let groundGeo = null
         g.traverse((o) => {
           if (!o.isMesh) return
           const key = o.name
           if (key === 'bowl') bowlGeo = o.geometry
+          if (key === 'ground') groundGeo = o.geometry
           o.material = mats[key] || mats.ground
           // the Rhino layer colours ride along as vertex colours (the shaders read them as a tint)
           o.material.vertexColors = !!o.geometry.attributes.color
@@ -122,6 +125,22 @@ function StadiumModel({ mats, onGround }) {
         const pitchMesh = bowlGeo && makePitch(bowlGeo, mats.pitch)
         if (pitchMesh) g.add(pitchMesh)
         stadiumLoad.set({ progress: 0.93 })
+        // the earth beyond the site carries the site's own layer colour, so the two meet without a seam
+        const ca = groundGeo && groundGeo.attributes.color
+        if (ca && ca.count) {
+          let r = 0
+          let gg = 0
+          let b = 0
+          let n = 0
+          const step = Math.max(1, Math.floor(ca.count / 400))
+          for (let i = 0; i < ca.count; i += step) {
+            r += ca.getX(i)
+            gg += ca.getY(i)
+            b += ca.getZ(i)
+            n++
+          }
+          onTint([r / n, gg / n, b / n])
+        }
         setGroup(g)
         onGround(grassGeo)
         await new Promise((r) => setTimeout(r, 60))
@@ -153,18 +172,24 @@ function StadiumModel({ mats, onGround }) {
     return () => {
       dead = true
     }
-  }, [mats, gl, camera, scene, onGround])
+  }, [mats, gl, camera, scene, onGround, onTint])
 
   return group ? <primitive object={group} /> : null
 }
 
 // ── the ground beyond the model's own site: more of the same earth, lost in the haze ──
-function FarGround({ material }) {
-  return (
-    <mesh rotation-x={-Math.PI / 2} position={[0, -19, 0]} material={material} frustumCulled={false}>
-      <circleGeometry args={[9000, 48]} />
-    </mesh>
-  )
+function FarGround({ material, tint }) {
+  const geo = useMemo(() => {
+    const g = new CircleGeometry(36000, 64)
+    if (tint) {
+      const n = g.attributes.position.count
+      const c = new Float32Array(n * 3)
+      for (let i = 0; i < n; i++) c.set(tint, i * 3)
+      g.setAttribute('color', new BufferAttribute(c, 3))
+    }
+    return g
+  }, [tint])
+  return <mesh rotation-x={-Math.PI / 2} position={[0, -19, 0]} material={material} geometry={geo} frustumCulled={false} />
 }
 
 // ── dust floating around the camera ──────────────────────────────────────────
@@ -379,7 +404,7 @@ function Rig({ grade, refs }) {
     camera.fov = P.fov
     const dist = camera.position.length()
     camera.near = clamp(dist * 0.03, 0.5, 30)
-    camera.far = 9500
+    camera.far = 42000
     camera.updateProjectionMatrix()
 
     // world
@@ -518,6 +543,7 @@ export default function StadiumScene() {
   const grade = useMemo(() => createGrade(), [])
   const mats = useMemo(() => createMaterials(), [])
   const [grassGeo, setGrassGeo] = useState(null)
+  const [farTint, setFarTint] = useState(null)
   const start = useMemo(() => {
     const p = {}
     samplePath(0, p)
@@ -529,7 +555,7 @@ export default function StadiumScene() {
       className="stage stage-project"
       shadows
       dpr={[1, Math.min(2, typeof devicePixelRatio === 'number' ? devicePixelRatio : 1)]}
-      camera={{ fov: 24, near: 10, far: 9500, position: start }}
+      camera={{ fov: 24, near: 10, far: 42000, position: start }}
       gl={{ antialias: true, alpha: false, powerPreference: 'high-performance', stencil: false }}
       onCreated={({ gl, scene }) => {
         gl.setClearColor('#000000')
@@ -544,9 +570,9 @@ export default function StadiumScene() {
       <fogExp2 ref={refs.fogRef} attach="fog" args={['#e9d2a8', 0.0004]} />
       <Sky meshRef={refs.skyMesh} materialRef={refs.skyMat} />
       <Lights sunRef={refs.sunRef} hemiRef={refs.hemiRef} fillRef={refs.fillRef} />
-      <FarGround material={mats.ground} />
+      <FarGround material={mats.ground} tint={farTint} />
       <StadiumDust materialRef={refs.dustMat} />
-      <StadiumModel mats={mats} onGround={setGrassGeo} />
+      <StadiumModel mats={mats} onGround={setGrassGeo} onTint={setFarTint} />
       <Foliage groundGeometry={grassGeo} />
       <Grains meshRef={refs.grainMesh} materialRef={refs.grainMat} />
       <Rig grade={grade} refs={refs} />

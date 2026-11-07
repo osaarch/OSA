@@ -118,8 +118,8 @@ export function gradeAt(u, g, nm = 0, dm = 0) {
 
   tri(SKY_H, dusk, night, g.skyHorizon).multiplyScalar(live)
   tri(SKY_Z, dusk, night, g.skyZenith).multiplyScalar(live)
-  g.fog.copy(g.skyHorizon).multiplyScalar(0.96)
-  g.fogDensity = lerp(0.00042, 0.00072, dusk) + night * 0.0007
+  g.fog.copy(g.skyHorizon).multiplyScalar(0.99)
+  g.fogDensity = lerp(0.00030, 0.00072, dusk) + night * 0.0007
 
   tri(SUN, dusk, night, g.sunColor)
   const sunLeft = Math.pow(1 - night, 1.3)
