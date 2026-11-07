@@ -103,7 +103,7 @@ export default function Osa({ go }) {
               {ui.viewWorks} <span aria-hidden="true" className="arr">→</span>
             </a>
           </Reveal>
-          <p className="site-foot">OSA 2026</p>
+          <p className="site-foot">{ui.rights}</p>
         </div>
       </div>
     </main>

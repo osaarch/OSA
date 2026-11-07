@@ -84,7 +84,6 @@ export default function Works({ go }) {
         </span>
       </div>
 
-      <p className="site-foot">OSA 2026</p>
 
       <ol className="works-list" aria-label="Projects">
         {projects.map((p, i) => (

@@ -120,10 +120,10 @@ function Journey({ project, go, jrRef, onFail }) {
 
       <section className="pj" ref={jrRef} style={{ height: `${SJ_VH}vh` }} aria-label={`${project.title} — ${ui.journeyAria}`}>
         <div className="pj-sticky">
-          <div className="pj-top">
-            <span className="pj-title">{project.title}</span>
-            <span className="pj-sub">{project.location}</span>
-          </div>
+          {/* no title on screen: the building speaks for itself (kept for screen readers) */}
+          <h1 id="project-title" className="pj-sr">
+            {project.title}
+          </h1>
 
           <a
             href={href('/works')}
@@ -494,7 +494,6 @@ export default function Project({ slug, go }) {
           </a>
           {project.placeholder && !project.hasImages && <p className="placeholder-note">{ui.placeholderNote}</p>}
         </footer>
-        <p className="site-foot">OSA 2026</p>
       </div>
     </main>
   )
