@@ -66,6 +66,7 @@ const STR = {
   en: {
     soundOn: 'Sound on',
     soundOff: 'Sound off',
+    volume: 'Volume',
     soundOnAria: 'Sound on — click to turn the music off',
     soundOffAria: 'Sound off — click to turn the music on',
     themeDay: 'Day',
@@ -76,7 +77,7 @@ const STR = {
     bestWithSound: 'Best experienced with sound',
     enterSound: 'Enter with sound',
     enterSilent: 'Enter without',
-    loadingMalwiya: '',
+    loadingMalwiya: 'Loading the Malwiya',
     loadError: 'The 3D model could not be loaded',
     skip: 'Skip',
     skipJourney: 'Skip journey',
@@ -114,6 +115,7 @@ const STR = {
   ar: {
     soundOn: 'الصوت مفعّل',
     soundOff: 'الصوت مغلق',
+    volume: 'مستوى الصوت',
     soundOnAria: 'الصوت مفعّل — اضغط لإيقاف الموسيقى',
     soundOffAria: 'الصوت مغلق — اضغط لتشغيل الموسيقى',
     themeDay: 'نهار',

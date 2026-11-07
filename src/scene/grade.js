@@ -33,16 +33,14 @@ export const SUN_AZ_START = 0.38
 export const SUN_AZ_END = 2.05
 export const sunAzimuth = (u) => lerp(SUN_AZ_START, SUN_AZ_END, u)
 
-// NIGHT MODE — two colours only: black, and a warm earth-toned light (the colour of lit adobe, not of
-// gold). The sky, the dunes and the air are black; one low amber light rakes the monument, so the
-// Malwiya alone is seen — its earth and its spiral lit out of the dark. It fades to the same black at the
-// end of the journey, so the menu still arrives on pure black.
-const N_HORIZON = c('#060302')
-const N_ZENITH = c('#000000')
-const N_LIGHT = c('#d29c66')
-const N_HEMI_SKY = c('#140b06')
-const N_HEMI_GROUND = c('#030201')
-const N_GROUND = c('#000000')
+// NIGHT MODE — moonlit, rainy darkness instead of the late afternoon. It fades to the same
+// black at the end of the journey, so the menu still arrives on pure black.
+const N_HORIZON = c('#1b2a45')
+const N_ZENITH = c('#040812')
+const N_MOON = c('#9db6e6')
+const N_HEMI_SKY = c('#2a3c60')
+const N_HEMI_GROUND = c('#10151f')
+const N_GROUND = c('#2c3442')
 const tmpN = new Color()
 
 function nightBlend(u, g, nm) {
@@ -50,50 +48,55 @@ function nightBlend(u, g, nm) {
   const lerpCol = (a, b) => a.lerp(b, nm)
   lerpCol(g.skyHorizon, tmpN.copy(N_HORIZON).multiplyScalar(live))
   lerpCol(g.skyZenith, tmpN.copy(N_ZENITH).multiplyScalar(live))
-  g.fog.copy(g.skyHorizon).multiplyScalar(0.8)
-  g.fogDensity = lerp(g.fogDensity, 0.0007, nm)
-  lerpCol(g.sunColor, N_LIGHT)
-  g.sunIntensity = lerp(g.sunIntensity, 3.6 * live, nm)
-  g.sunElevation = lerp(g.sunElevation, 0.2, nm)
+  g.fog.copy(g.skyHorizon).multiplyScalar(0.92)
+  g.fogDensity = lerp(g.fogDensity, 0.0011, nm)
+  lerpCol(g.sunColor, N_MOON)
+  g.sunIntensity = lerp(g.sunIntensity, 2.1 * live, nm)
+  g.sunElevation = lerp(g.sunElevation, 0.7, nm)
   lerpCol(g.hemiSky, N_HEMI_SKY)
   lerpCol(g.hemiGround, N_HEMI_GROUND)
-  g.hemiIntensity = lerp(g.hemiIntensity, 0.4 * live, nm)
-  g.fillIntensity = lerp(g.fillIntensity, 0.02 * live, nm)
+  g.hemiIntensity = lerp(g.hemiIntensity, 1.05 * live, nm)
+  g.fillIntensity = lerp(g.fillIntensity, 0.05 * live, nm)
   lerpCol(g.ground, tmpN.copy(N_GROUND).multiplyScalar(live))
-  g.glow = lerp(g.glow, 0, nm) // no moon, no halo in the sky
+  g.glow = lerp(g.glow, 0.55 * live, nm)
   g.duskMix = lerp(g.duskMix, 0, nm)
-  g.dust = lerp(g.dust, 0.5 * live, nm)
+  g.dust = lerp(g.dust, 0.35 * live, nm)
   g.night = lerp(g.night, 1, nm)
   g.dusk = lerp(g.dusk, 1, nm)
 }
 
-// DARK THEME — the mysterious one: the monument, the dunes and the sky go black under a smoky, moonless
-// mist; a low cold light from behind only rims the edges of the tower. No fire, no ember.
-const D_HORIZON = c('#474a53')
-const D_ZENITH = c('#08090b')
-const D_LIGHT = c('#b4bfd2')
-const D_HEMI_SKY = c('#292d35')
-const D_HEMI_GROUND = c('#060607')
-const D_GROUND = c('#0b0b0d')
+// DARK THEME — two colours only: black, and a warm earth-toned light (the colour of lit adobe, not of
+// gold). The sky, the dunes and the air are black; one low amber light rakes the monument, so the
+// Malwiya alone is seen — its earth and its spiral lit out of the dark. It fades to the same black at the
+// end of the journey, so the menu still arrives on pure black.
+const D_HORIZON = c('#060302')
+const D_ZENITH = c('#000000')
+const D_LIGHT = c('#d29c66')
+const D_HEMI_SKY = c('#140b06')
+const D_HEMI_GROUND = c('#030201')
+const D_GROUND = c('#000000')
 const tmpD = new Color()
 
 function darkBlend(u, g, dm) {
   const live = 1 - smoothstep(0.9, 0.995, u)
-  g.skyHorizon.lerp(tmpD.copy(D_HORIZON).multiplyScalar(live), dm)
-  g.skyZenith.lerp(tmpD.copy(D_ZENITH).multiplyScalar(live), dm)
-  g.fog.lerp(tmpD.copy(D_HORIZON).multiplyScalar(0.9 * live), dm)
-  g.fogDensity = lerp(g.fogDensity, 0.00078, dm)
-  g.sunColor.lerp(D_LIGHT, dm)
-  g.sunIntensity = lerp(g.sunIntensity, 2.8 * live, dm)
-  g.sunElevation = lerp(g.sunElevation, 0.17, dm)
-  g.hemiSky.lerp(D_HEMI_SKY, dm)
-  g.hemiGround.lerp(D_HEMI_GROUND, dm)
-  g.hemiIntensity = lerp(g.hemiIntensity, 0.55 * live, dm)
-  g.fillIntensity = lerp(g.fillIntensity, 0.04 * live, dm)
-  g.ground.lerp(tmpD.copy(D_GROUND).multiplyScalar(live), dm)
-  g.glow = lerp(g.glow, 0.55 * live, dm)
+  const lerpCol = (a, b) => a.lerp(b, dm)
+  lerpCol(g.skyHorizon, tmpD.copy(D_HORIZON).multiplyScalar(live))
+  lerpCol(g.skyZenith, tmpD.copy(D_ZENITH).multiplyScalar(live))
+  g.fog.copy(g.skyHorizon).multiplyScalar(0.8)
+  g.fogDensity = lerp(g.fogDensity, 0.0007, dm)
+  lerpCol(g.sunColor, D_LIGHT)
+  g.sunIntensity = lerp(g.sunIntensity, 3.6 * live, dm)
+  g.sunElevation = lerp(g.sunElevation, 0.2, dm)
+  lerpCol(g.hemiSky, D_HEMI_SKY)
+  lerpCol(g.hemiGround, D_HEMI_GROUND)
+  g.hemiIntensity = lerp(g.hemiIntensity, 0.4 * live, dm)
+  g.fillIntensity = lerp(g.fillIntensity, 0.02 * live, dm)
+  lerpCol(g.ground, tmpD.copy(D_GROUND).multiplyScalar(live))
+  g.glow = lerp(g.glow, 0, dm) // no moon, no halo in the sky
   g.duskMix = lerp(g.duskMix, 0, dm)
-  g.dust = lerp(g.dust, 0.35 * live, dm)
+  g.dust = lerp(g.dust, 0.5 * live, dm)
+  g.night = lerp(g.night, 1, dm)
+  g.dusk = lerp(g.dusk, 1, dm)
   g.dark = dm
 }
 

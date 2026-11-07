@@ -6,7 +6,6 @@ export const duskUniforms = {
   uDuskMix: { value: 0 },
   uTermY: { value: -20 },
   uTermSoft: { value: 9 },
-  uDark: { value: 0 }, // 1 = the dark theme (everything black)
 }
 
 // Tiny observable for model-loading progress (drives the loading overlay).

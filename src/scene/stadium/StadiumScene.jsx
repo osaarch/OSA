@@ -35,9 +35,8 @@ const root = typeof document !== 'undefined' ? document.documentElement : null
 const STILL = typeof window !== 'undefined' && /[?&]still\b/.test(window.location.search)
 const fmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const UP = new Vector3(0, 1, 0)
-const GRAIN_DARK_LIGHT = new Color('#bcc4d2') // the sand turns to cold ash in the dark theme
-const NIGHT_AMBER = new Color('#f09a42')
-const GRAIN_NIGHT_LIGHT = new Color('#d29c66') // in the night theme the specks are earth-amber
+const GRAIN_DARK_LIGHT = new Color('#d29c66') // in the dark theme the specks are earth-amber
+const DARK_AMBER = new Color('#f09a42')
 
 // ── the pitch ────────────────────────────────────────────────────────────────
 // The Rhino model leaves the floor of the bowl open. The pitch is a flat shape cut to the outline of
@@ -421,9 +420,8 @@ function Rig({ grade, refs }) {
     SU.uNight.value = grade.redLight
     SU.uCrowd.value = grade.crowd
     SU.uBlack.value = grade.black
-    SU.uDark.value = dk
-    SU.uAmber.value = nm
-    SU.uRed.value.set('#ff3326').lerp(NIGHT_AMBER, nm)
+    SU.uAmber.value = dk
+    SU.uRed.value.set('#ff3326').lerp(DARK_AMBER, dk)
     SU.uSkyH.value.copy(grade.skyHorizon)
     SU.uSkyZ.value.copy(grade.skyZenith)
 
@@ -436,7 +434,7 @@ function Rig({ grade, refs }) {
     dm.uColor.value.copy(grade.sunColor)
     dm.uOpacity.value = 0.34 * grade.dust * clamp(grade.sunIntensity / 2.5, 0, 1) * (1 - 0.5 * dk)
 
-    const grainAmp = 0.7 * grade.dust * (1 - 0.55 * dk - 0.65 * nm)
+    const grainAmp = 0.7 * grade.dust * (1 - 0.65 * dk)
     grainMesh.current.visible = grainAmp > 0.01
     if (grainMesh.current.visible) {
       const gu = grainMat.current.uniforms
@@ -448,7 +446,7 @@ function Rig({ grade, refs }) {
       gu.uMouse.value.set(st.cx, st.cy)
       gu.uMouseVel.value.set(st.vx * vclamp, st.vy * vclamp)
       gu.uParallax.value.set(st.px, -st.py)
-      gu.uLight.value.set('#f3e4c2').lerp(GRAIN_DARK_LIGHT, dk).lerp(GRAIN_NIGHT_LIGHT, nm)
+      gu.uLight.value.set('#f3e4c2').lerp(GRAIN_DARK_LIGHT, dk)
       gu.uDark.value.set('#8f7650').lerp(gu.uLight.value, Math.max(grade.night, nm, dk))
     }
 

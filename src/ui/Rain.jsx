@@ -54,7 +54,7 @@ export default function Rain() {
       for (let li = 0; li < LAYERS.length; li++) {
         const L = LAYERS[li]
         ctx.lineWidth = L.w
-        ctx.strokeStyle = `rgba(222, 168, 108, ${(L.a * v).toFixed(3)})`
+        ctx.strokeStyle = `rgba(196, 214, 240, ${(L.a * v).toFixed(3)})`
         ctx.beginPath()
         for (const d of drops) {
           if (d.li !== li) continue

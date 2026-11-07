@@ -1984,7 +1984,13 @@ export function createEngine(ctx, moodName = 'malwiya') {
     if (M.drone) set(droneTrim.gain, M.drone * (0.85 + 0.55 * state.level.drive * (1 - state.level.end)), 1.5) // the drone swells with the journey
   }
   let soundOn = false
-  const masterLevel = () => (soundOn ? 0.55 * (M.trim ?? 1) : 0)
+  // the visitor's volume (0…1, squared so the slider feels even) sits on top of the piece's own level
+  let userVol = 1
+  const masterLevel = () => (soundOn ? 0.55 * (M.trim ?? 1) * userVol * userVol : 0)
+  function setVolume(v) {
+    userVol = Math.min(1, Math.max(0, v))
+    if (soundOn) master.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.06)
+  }
   function setEnabled(on, immediate = false) {
     const t = ctx.currentTime
     soundOn = on
@@ -2062,7 +2068,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
   }
   const moodName0 = () => moodKey
 
-  return { scheduleUntil, setScene, setEnabled, resumeClock, setMood, cheer, mood: moodName0, state, log }
+  return { scheduleUntil, setScene, setEnabled, setVolume, resumeClock, setMood, cheer, mood: moodName0, state, log }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -2071,7 +2077,7 @@ export function createEngine(ctx, moodName = 'malwiya') {
 let ctx = null
 let engine = null
 let timer = 0
-let snapshot = { on: false, ready: false }
+let snapshot = { on: false, ready: false, volume: 1 }
 let pendingScene = { wind: 0, music: 0.4, clarity: 1, pulse: 0, crowd: 0, drive: 0, rain: 0 }
 let pendingMood = 'malwiya'
 const listeners = new Set()
@@ -2081,6 +2087,16 @@ const set = (patch) => {
   emit()
 }
 const KEY = 'osa-sound'
+const VKEY = 'osa-volume'
+const readVolume = () => {
+  try {
+    const v = parseFloat(localStorage.getItem(VKEY))
+    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 1
+  } catch (e) {
+    return 1
+  }
+}
+snapshot.volume = readVolume()
 const store = {
   get() {
     try {
@@ -2178,6 +2194,7 @@ function ensure() {
     /* ignore */
   }
   engine = createEngine(ctx, pendingMood)
+  engine.setVolume(snapshot.volume)
   engine.setScene(pendingScene, true)
   return true
 }
@@ -2219,6 +2236,17 @@ export const audio = {
   },
   toggle() {
     return snapshot.on ? this.disable() : this.enable()
+  },
+  // The visitor's volume, 0…1 (remembered). Turning it up from zero switches the sound on.
+  setVolume(v) {
+    v = Math.min(1, Math.max(0, v))
+    try {
+      localStorage.setItem(VKEY, String(v))
+    } catch (e) {
+      /* storage may be unavailable */
+    }
+    set({ volume: v })
+    if (engine) engine.setVolume(v)
   },
   // The soundtrack follows the scene: wind/sand while there is dust, only music after.
   setScene(p) {

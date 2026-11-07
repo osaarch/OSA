@@ -16,7 +16,7 @@ export const SU = {
   uCrowd: { value: 0 }, // 0 … 1 the bowl fills with spectators
   uBlack: { value: 0 }, // 1 = everything gone
   uDark: { value: 0 }, // 1 = the dark theme: every surface turns black
-  uAmber: { value: 0 }, // 1 = the night theme: black everywhere, only the glazing lit in an earth-amber
+  uAmber: { value: 0 }, // 1 = the dark theme: black everywhere, only the glazing lit in an earth-amber
   uRed: { value: new Color('#ff3326') },
   uSkyH: { value: new Color('#f0d2a0') },
   uSkyZ: { value: new Color('#cfae86') },
@@ -68,7 +68,7 @@ vec3 layerTint(vec3 c, float lumAmt, float hueAmt){
 }
 `
 
-// `keep` (0…1) is how much of a surface's own glow survives the night theme (the glazing keeps all of it).
+// `keep` (0…1) is how much of a surface's own glow survives the dark theme (the glazing keeps all of it).
 function patch(mat, { pars = '', body = '', emissive = '', keep = 0 }) {
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, SU)
@@ -92,7 +92,7 @@ function patch(mat, { pars = '', body = '', emissive = '', keep = 0 }) {
         diffuseColor.rgb *= 1.0 - 0.93 * uDark;
         roughnessFactor = mix(roughnessFactor, clamp(roughnessFactor, 0.3, 0.6), uDark);
         vec3 dRim = vec3(0.42, 0.47, 0.56) * pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 3.0) * 0.16 * uDark;
-        // the night theme: black, but for a thin amber edge and a trace of amber on the upward faces,
+        // the dark theme: black, but for a thin amber edge and a trace of amber on the upward faces,
         // so the black forms still read against the black sky
         float aOff = uAmber * (1.0 - ${keep.toFixed(2)});
         diffuseColor.rgb *= 1.0 - 0.97 * aOff;
@@ -201,7 +201,7 @@ function bowl() {
 // up from within in one even colour (no panes, no mullions, no lines — just a soft drift of
 // brightness across the facade).
 const GLASS_LIT = 'vec3(0.40, 0.76, 1.0)' // sky-blue (tested against red: it reads as light, red melts into the walls)
-const GLASS_AMBER = 'vec3(0.95, 0.5, 0.17)' // the night theme: the glazing lit in an earth-amber, the one colour besides black
+const GLASS_AMBER = 'vec3(0.95, 0.5, 0.17)' // the dark theme: the glazing lit in an earth-amber, the one colour besides black
 function glass() {
   return patch(base('glass', { roughness: 0.08, metalness: 0.3 }), {
     body: /* glsl */ `
@@ -358,7 +358,7 @@ function water() {
       float streak = 0.55 + 0.9 * (r1.x * 0.6 + r2.x * 0.4);
       glow = refl * (0.06 + 0.85 * fres) + uRed * uNight * near * 0.85 * streak;
     `,
-    keep: 0.35, // by night the river keeps a little of the glazing's reflection
+    keep: 0.35, // in the dark theme the river keeps a little of the glazing's reflection
   })
 }
 

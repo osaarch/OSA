@@ -4,13 +4,14 @@ import { audio } from './audio'
 // ─────────────────────────────────────────────────────────────────────────────
 //  THEMES     one switch, three ways to see the Malwiya and the stadium:
 //    day    the usual look — earth and sand, the late-afternoon light
-//    dark   "the mysterious one": no fire, no red — everything turns black (the monument, the
-//           stadium, the ground, the palms) under a smoky, moonless mist
-//    night  moonlit darkness, rain on the screen and rain in the soundtrack (the stadium glows red)
+//    night  the natural night: a moonlit, rainy darkness (the stadium glows red from within); rain also
+//           falls in the soundtrack
+//    dark   two colours only — black, and a warm earth-toned light: the Malwiya alone is lit, and only the
+//           stadium's glazing glows (no rain, no moon)
 //  `night.v` and `dark.v` are the eased 0 → 1 mixes the scenes read every frame; `night.on` /
 //  `dark.on` are the choice. Only one of them is ever on.
 // ─────────────────────────────────────────────────────────────────────────────
-export const THEMES = ['day', 'dark', 'night']
+export const THEMES = ['day', 'night', 'dark']
 const KEY = 'osa-theme'
 const LEGACY = 'osa-night' // the old Day / Night switch
 

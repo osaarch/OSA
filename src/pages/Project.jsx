@@ -141,7 +141,23 @@ function Journey({ project, go, jrRef, onFail }) {
             <b id="pj-chap-t" />
           </div>
 
+          <dl className="pj-read" aria-hidden="true">
+            <div>
+              <dt>{ui.distance}</dt>
+              <dd id="pj-dist">—</dd>
+            </div>
+            <div>
+              <dt>{ui.altitude}</dt>
+              <dd id="pj-alt">—</dd>
+            </div>
+            <div>
+              <dt>{ui.bearing}</dt>
+              <dd id="pj-brg">—</dd>
+            </div>
+          </dl>
+
           <div className="pj-scroll" aria-hidden="true">
+            <span>{ui.scroll}</span>
             <i />
           </div>
 
@@ -158,7 +174,9 @@ function Journey({ project, go, jrRef, onFail }) {
             <div className="pj-load-line">
               <i style={{ transform: `scaleX(${Math.max(0.02, load.progress)})` }} />
             </div>
-            <span>{Math.round(load.progress * 100)}%</span>
+            <span>
+              {ui.loadingStadium} · {Math.round(load.progress * 100)}%
+            </span>
           </div>
         </div>
       </section>
@@ -476,6 +494,7 @@ export default function Project({ slug, go }) {
           </a>
           {project.placeholder && !project.hasImages && <p className="placeholder-note">{ui.placeholderNote}</p>}
         </footer>
+        <p className="site-foot">OSA 2026</p>
       </div>
     </main>
   )

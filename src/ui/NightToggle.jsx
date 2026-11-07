@@ -1,7 +1,7 @@
 import { THEMES, cycleTheme, useTheme } from '../night'
 import { useI18n } from '../i18n'
 
-// The theme switch: day → dark (the mysterious, black one) → night (moonlit, rain) → day.
+// The theme switch: day → night (moonlit, rain) → dark (black and earth-amber light) → day.
 // One small button on the sound / language rail; the icon and the word say which one is on.
 const ICON = {
   // a sun

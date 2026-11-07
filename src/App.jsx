@@ -230,8 +230,10 @@ export default function App() {
 
       <div className="ctl">
         <SoundToggle />
-        <NightToggle />
-        <LangToggle />
+        <div className="ctl-pair">
+          <NightToggle />
+          <LangToggle />
+        </div>
       </div>
 
       <Rain />

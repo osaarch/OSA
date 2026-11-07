@@ -56,7 +56,7 @@ float sandH(vec2 p){
 }
 `
 
-// 1 = the usual glints of the low sun on the sand; the night theme turns them off so the dunes stay truly black
+// 1 = the usual glints of the low sun on the sand; the dark theme turns them off so the dunes stay truly black
 export const groundUniforms = { uSpec: { value: 1 } }
 
 export function createGroundMaterial() {
