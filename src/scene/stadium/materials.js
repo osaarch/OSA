@@ -15,6 +15,7 @@ export const SU = {
   uNight: { value: 0 }, // 0 day … 1 the red-lit night
   uCrowd: { value: 0 }, // 0 … 1 the bowl fills with spectators
   uBlack: { value: 0 }, // 1 = everything gone
+  uDark: { value: 0 }, // 1 = the dark theme: every surface turns black
   uRed: { value: new Color('#ff3326') },
   uSkyH: { value: new Color('#f0d2a0') },
   uSkyZ: { value: new Color('#cfae86') },
@@ -22,7 +23,7 @@ export const SU = {
 
 const NOISE = /* glsl */ `
 varying vec3 vWP;
-uniform float uTime; uniform float uNight; uniform float uCrowd; uniform float uBlack;
+uniform float uTime; uniform float uNight; uniform float uCrowd; uniform float uBlack; uniform float uDark;
 uniform vec3 uRed; uniform vec3 uSkyH; uniform vec3 uSkyZ;
 
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -57,6 +58,13 @@ float grain3(vec3 p, vec3 n, float sc, out vec3 g){
   return w.y * a.x + w.x * b.x + w.z * c.x;
 }
 vec3 bumpN(vec3 N, vec3 g, float k){ return normalize(N - k * (g - dot(g, N) * N)); }
+// the architect's layer colour, turned into a tint for the earth: lighter layers stay lighter, darker ones
+// darker, and a little of the hue comes through — the surface itself is still the same clay and dust
+vec3 layerTint(vec3 c, float lumAmt, float hueAmt){
+  float l = dot(c, vec3(0.299, 0.587, 0.114));
+  vec3 hue = c / max(l, 0.04);
+  return mix(vec3(1.0), hue, hueAmt) * mix(1.0, 0.45 + 1.15 * l, lumAmt);
+}
 `
 
 function patch(mat, { pars = '', body = '', emissive = '' }) {
@@ -72,15 +80,21 @@ function patch(mat, { pars = '', body = '', emissive = '' }) {
         `#include <normal_fragment_maps>
         vec3 nW = inverseTransformDirection(normal, viewMatrix);
         float camD = length(vViewPosition);
+        vec3 vcol = diffuseColor.rgb; // the Rhino layer colour (white where the mesh carries none)
         vec3 glow = vec3(0.0);
         {
         ${body}
-        }`,
+        }
+        // the dark theme: every surface goes black, with a satin sheen so the forms still catch a thin
+        // rim of cold light along their edges (and nothing glows red)
+        diffuseColor.rgb *= 1.0 - 0.93 * uDark;
+        roughnessFactor = mix(roughnessFactor, clamp(roughnessFactor, 0.3, 0.6), uDark);
+        vec3 dRim = vec3(0.42, 0.47, 0.56) * pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 3.0) * 0.16 * uDark;`,
       )
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-        totalEmissiveRadiance += glow * (1.0 - uBlack);${emissive}`,
+        totalEmissiveRadiance += glow * (1.0 - uBlack) * (1.0 - uDark) + dRim * (1.0 - uBlack);${emissive}`,
       )
   }
   mat.customProgramCacheKey = () => 'stadium-' + mat.name
@@ -274,6 +288,7 @@ function ground() {
       vec3 sandA = vec3(0.78, 0.64, 0.46), sandB = vec3(0.6, 0.46, 0.33), sandC = vec3(0.47, 0.35, 0.26);
       vec3 col = mix(sandB, sandA, smoothstep(0.2, 0.85, mid * 0.7 + hgt * 0.4));
       col = mix(col, sandC, smoothstep(0.35, 0.8, big) * 0.65);
+      col *= layerTint(vcol, 0.5, 0.3);
       diffuseColor.rgb = col;
       roughnessFactor = 1.0;
       float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
@@ -289,6 +304,7 @@ function grass() {
       float n = fbm1(vWP.xz * 0.05); float n2 = fbm1(vWP.xz * 0.6);
       vec3 col = mix(vec3(0.17, 0.175, 0.09), vec3(0.37, 0.31, 0.17), smoothstep(0.3, 0.8, n));
       col *= 0.88 + 0.24 * n2;
+      col *= layerTint(vcol, 0.7, 0.2);
       diffuseColor.rgb = col;
       roughnessFactor = 1.0;
       float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
@@ -302,7 +318,8 @@ function paving() {
   return patch(base('paving'), {
     body: /* glsl */ `
       float n = fbm1(vWP.xz * 0.15);
-      diffuseColor.rgb = mix(vec3(0.20, 0.16, 0.13), vec3(0.31, 0.25, 0.19), n);
+      vec3 col = mix(vec3(0.20, 0.16, 0.13), vec3(0.31, 0.25, 0.19), n);
+      diffuseColor.rgb = col * layerTint(vcol, 0.85, 0.3);
       roughnessFactor = 0.95;
       float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
       glow = uRed * uNight * near * 0.1;
@@ -333,8 +350,64 @@ function water() {
   })
 }
 
+
+// ── the plaza, steps and plastered walls around the stadium: pale, dusty lime-plaster ──
+function plaza() {
+  return patch(base('stone'), {
+    body: /* glsl */ `
+      vec3 g; float hgt = grain3(vWP, nW, 0.8, g);
+      float fade = 1.0 - smoothstep(50.0, 320.0, camD);
+      normal = normalize((viewMatrix * vec4(bumpN(nW, g, 0.06 * fade), 0.0)).xyz);
+      nW = inverseTransformDirection(normal, viewMatrix);
+      float n = fbm1(vWP.xz * 0.09 + vWP.y * 0.05);
+      float top = smoothstep(0.4, 0.85, nW.y);
+      vec3 col = mix(vec3(0.60, 0.50, 0.38), vec3(0.74, 0.65, 0.52), smoothstep(0.2, 0.8, n * 0.7 + hgt * 0.4));
+      col = mix(col, vec3(0.78, 0.69, 0.56), 0.35 * top);
+      col *= layerTint(vcol, 0.45, 0.2);
+      diffuseColor.rgb = col;
+      roughnessFactor = 0.96;
+      float near = exp(-pow(length(vWP.xz) / 320.0, 2.0));
+      float side = 1.0 - smoothstep(0.3, 0.72, nW.y);
+      glow = uRed * uNight * near * (0.1 + 0.55 * side);
+    `,
+  })
+}
+
+// ── the entrances: dark, deep-set openings in the bowl's skin ────────────────
+function doors() {
+  return patch(base('doors'), {
+    body: /* glsl */ `
+      float n = fbm1(vWP.xz * 0.6 + vWP.y * 0.3);
+      vec3 col = mix(vec3(0.10, 0.07, 0.05), vec3(0.19, 0.13, 0.09), n);
+      diffuseColor.rgb = col;
+      roughnessFactor = 0.85;
+      // by night a warm light spills out of the entrances
+      glow = vec3(1.0, 0.55, 0.28) * uNight * (0.35 + 0.35 * n);
+    `,
+  })
+}
+
+// ── the surrounding blocks of the city: plain earth masses in the haze ───────
+function blocks() {
+  return patch(base('blocks'), {
+    body: /* glsl */ `
+      float n = fbm1(vWP.xz * 0.05 + vWP.y * 0.12);
+      float top = smoothstep(0.5, 0.9, nW.y);
+      vec3 col = mix(vec3(0.50, 0.40, 0.30), vec3(0.66, 0.55, 0.42), n);
+      col = mix(col, vec3(0.72, 0.62, 0.48), 0.5 * top);
+      diffuseColor.rgb = col;
+      roughnessFactor = 1.0;
+      float near = exp(-pow(length(vWP.xz) / 520.0, 2.0));
+      glow = uRed * uNight * near * 0.1;
+    `,
+  })
+}
+
 export function createMaterials() {
-  return { roof: clay(), bowl: bowl(), wall: glass(), pitch: pitch(), text: lettering(), ground: ground(), grass: grass(), paving: paving(), water: water() }
+  return {
+    roof: clay(), bowl: bowl(), wall: glass(), pitch: pitch(), text: lettering(), ground: ground(), grass: grass(),
+    paving: paving(), water: water(), stone: plaza(), doors: doors(), blocks: blocks(),
+  }
 }
 
 export const SUN_DIR = new Vector3()

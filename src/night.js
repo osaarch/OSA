@@ -2,21 +2,41 @@ import { useSyncExternalStore } from 'react'
 import { audio } from './audio'
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  NIGHT MODE     one switch: the Malwiya and the stadium are seen at night —
-//  moonlit darkness, rain on the screen and rain in the soundtrack.
-//  `night.v` is the eased 0 → 1 mix the scenes read every frame; `night.on` is the choice.
+//  THEMES     one switch, three ways to see the Malwiya and the stadium:
+//    day    the usual look — earth and sand, the late-afternoon light
+//    dark   "the mysterious one": no fire, no red — everything turns black (the monument, the
+//           stadium, the ground, the palms) under a smoky, moonless mist
+//    night  moonlit darkness, rain on the screen and rain in the soundtrack (the stadium glows red)
+//  `night.v` and `dark.v` are the eased 0 → 1 mixes the scenes read every frame; `night.on` /
+//  `dark.on` are the choice. Only one of them is ever on.
 // ─────────────────────────────────────────────────────────────────────────────
-const KEY = 'osa-night'
-const read = () => {
+export const THEMES = ['day', 'dark', 'night']
+const KEY = 'osa-theme'
+const LEGACY = 'osa-night' // the old Day / Night switch
+
+const fromUrl = () => {
   try {
-    return localStorage.getItem(KEY) === 'on'
+    const t = new URLSearchParams(window.location.search).get('theme')
+    return THEMES.includes(t) ? t : null
   } catch (e) {
-    return false
+    return null
+  }
+}
+const read = () => {
+  const u = fromUrl()
+  if (u) return u
+  try {
+    const t = localStorage.getItem(KEY)
+    if (THEMES.includes(t)) return t
+    return localStorage.getItem(LEGACY) === 'on' ? 'night' : 'day'
+  } catch (e) {
+    return 'day'
   }
 }
 
 const initial = read()
-export const night = { on: initial, v: initial ? 1 : 0, t: 0 }
+export const night = { on: initial === 'night', v: initial === 'night' ? 1 : 0, t: 0 }
+export const dark = { on: initial === 'dark', v: initial === 'dark' ? 1 : 0 }
 
 const listeners = new Set()
 let snap = initial
@@ -47,25 +67,38 @@ export function setRainZone(z) {
 }
 
 audio.setRain(0)
-if (typeof document !== 'undefined') document.documentElement.classList.toggle('is-night', initial)
+const mark = (name) => {
+  if (typeof document === 'undefined') return
+  const c = document.documentElement.classList
+  c.toggle('is-night', name === 'night')
+  c.toggle('is-dark', name === 'dark')
+}
+mark(initial)
 
-export function setNight(on) {
-  night.on = on
-  snap = on
+export function setTheme(name) {
+  if (!THEMES.includes(name)) return
+  night.on = name === 'night'
+  dark.on = name === 'dark'
+  snap = name
   try {
-    localStorage.setItem(KEY, on ? 'on' : 'off')
+    localStorage.setItem(KEY, name)
   } catch (e) {
     /* storage may be unavailable */
   }
-  audio.setRain(on ? rainZone.target : 0)
-  document.documentElement.classList.toggle('is-night', on)
+  audio.setRain(night.on ? rainZone.target : 0)
+  mark(name)
   wakers.forEach((fn) => fn())
   listeners.forEach((l) => l())
 }
 
-export const toggleNight = () => setNight(!night.on)
+export const cycleTheme = () => setTheme(THEMES[(THEMES.indexOf(snap) + 1) % THEMES.length])
+export const currentTheme = () => snap
+
+// is a theme still easing in or out? (the frame loops keep drawing while it is)
+export const themeBusy = () => night.v !== (night.on ? 1 : 0) || dark.v !== (dark.on ? 1 : 0)
 
 // Called by every frame loop; time-based so several callers in one frame step it only once.
+// Returns the night mix; the dark mix is read from `dark.v` afterwards.
 export function stepNight() {
   const now = performance.now()
   const dt = Math.min(0.1, Math.max(0, (now - (night.t || now)) / 1000))
@@ -75,6 +108,11 @@ export function stepNight() {
     night.v += (target - night.v) * (1 - Math.exp(-dt * 1.7))
     if (Math.abs(target - night.v) < 0.002) night.v = target
   }
+  const dtarget = dark.on ? 1 : 0
+  if (dark.v !== dtarget) {
+    dark.v += (dtarget - dark.v) * (1 - Math.exp(-dt * 1.7))
+    if (Math.abs(dtarget - dark.v) < 0.002) dark.v = dtarget
+  }
   const dz = rainZone.target - rainZone.v
   if (dz) {
     rainZone.v += dz * (1 - Math.exp(-dt * 2.4))
@@ -83,12 +121,15 @@ export function stepNight() {
   return night.v
 }
 
+const subscribe = (l) => {
+  listeners.add(l)
+  return () => listeners.delete(l)
+}
+// the name of the theme ('day' | 'dark' | 'night')
+export function useTheme() {
+  return useSyncExternalStore(subscribe, () => snap)
+}
+// true while the rainy night is the chosen theme
 export function useNight() {
-  return useSyncExternalStore(
-    (l) => {
-      listeners.add(l)
-      return () => listeners.delete(l)
-    },
-    () => snap,
-  )
+  return useSyncExternalStore(subscribe, () => snap === 'night')
 }

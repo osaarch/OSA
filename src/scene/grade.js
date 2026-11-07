@@ -65,8 +65,39 @@ function nightBlend(u, g, nm) {
   g.dusk = lerp(g.dusk, 1, nm)
 }
 
+// DARK THEME — the mysterious one: the monument, the dunes and the sky go black under a smoky, moonless
+// mist; a low cold light from behind only rims the edges of the tower. No fire, no ember.
+const D_HORIZON = c('#474a53')
+const D_ZENITH = c('#08090b')
+const D_LIGHT = c('#b4bfd2')
+const D_HEMI_SKY = c('#292d35')
+const D_HEMI_GROUND = c('#060607')
+const D_GROUND = c('#0b0b0d')
+const tmpD = new Color()
+
+function darkBlend(u, g, dm) {
+  const live = 1 - smoothstep(0.9, 0.995, u)
+  g.skyHorizon.lerp(tmpD.copy(D_HORIZON).multiplyScalar(live), dm)
+  g.skyZenith.lerp(tmpD.copy(D_ZENITH).multiplyScalar(live), dm)
+  g.fog.lerp(tmpD.copy(D_HORIZON).multiplyScalar(0.9 * live), dm)
+  g.fogDensity = lerp(g.fogDensity, 0.00078, dm)
+  g.sunColor.lerp(D_LIGHT, dm)
+  g.sunIntensity = lerp(g.sunIntensity, 2.8 * live, dm)
+  g.sunElevation = lerp(g.sunElevation, 0.17, dm)
+  g.hemiSky.lerp(D_HEMI_SKY, dm)
+  g.hemiGround.lerp(D_HEMI_GROUND, dm)
+  g.hemiIntensity = lerp(g.hemiIntensity, 0.55 * live, dm)
+  g.fillIntensity = lerp(g.fillIntensity, 0.04 * live, dm)
+  g.ground.lerp(tmpD.copy(D_GROUND).multiplyScalar(live), dm)
+  g.glow = lerp(g.glow, 0.55 * live, dm)
+  g.duskMix = lerp(g.duskMix, 0, dm)
+  g.dust = lerp(g.dust, 0.35 * live, dm)
+  g.dark = dm
+}
+
 export function createGrade() {
   return {
+    dark: 0,
     dusk: 0,
     night: 0,
     skyHorizon: new Color(),
@@ -88,7 +119,7 @@ export function createGrade() {
   }
 }
 
-export function gradeAt(u, g, nm = 0) {
+export function gradeAt(u, g, nm = 0, dm = 0) {
   const dusk = smoothstep(0.44, 0.84, u)
   const night = smoothstep(0.72, 0.985, u)
   g.dusk = dusk
@@ -118,5 +149,7 @@ export function gradeAt(u, g, nm = 0) {
   g.termY = lerp(-16, 72, Math.pow(clamp((u - 0.52) / 0.465), 1.3))
   g.dust = 1 - smoothstep(0.55, 0.9, u)
   if (nm > 0.001) nightBlend(u, g, nm)
+  g.dark = 0
+  if (dm > 0.001) darkBlend(u, g, dm)
   return g
 }

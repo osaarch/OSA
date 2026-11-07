@@ -2,7 +2,7 @@ import { tNow } from '../i18n'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { NeutralToneMapping, PCFSoftShadowMap, ShaderChunk, Vector3 } from 'three'
+import { Color, NeutralToneMapping, PCFSoftShadowMap, ShaderChunk, Vector3 } from 'three'
 import Malwiya from './Malwiya'
 import Ground from './Ground'
 import Sky from './Sky'
@@ -10,7 +10,7 @@ import Dust from './Dust'
 import Veil from './Veil'
 import Grains from './Grains'
 import { createGrade, gradeAt, sunAzimuth } from './grade'
-import { night, setRainZone, stepNight } from '../night'
+import { dark, setRainZone, stepNight, themeBusy } from '../night'
 import { samplePath, lensShift } from './path'
 import { duskUniforms, INTRO_LEN, loadState, world } from './world'
 import { clamp, journey, readScrollProgress, smootherstep, smoothstep, stepJourney } from '../journey'
@@ -28,6 +28,7 @@ const IS_COARSE = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coa
 const SHADOW_SIZE = IS_COARSE ? 2048 : 4096
 const root = typeof document !== 'undefined' ? document.documentElement : null
 
+const GRAIN_DARK_LIGHT = new Color('#bcc4d2') // the sand turns to cold ash in the dark theme
 const fmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const UP = new Vector3(0, 1, 0)
 
@@ -141,14 +142,15 @@ function Rig({ grade, refs }) {
     const storm = world.introDone ? 0 : 1 - smootherstep(1.5, 6.4, it) // 1 → 0
     if (!world.introDone) journey.target = 0 // the journey waits for the dust to clear
 
-    const moved = stepJourney(dt) || night.v !== (night.on ? 1 : 0)
+    const moved = stepJourney(dt) || themeBusy()
     const nm = stepNight()
+    const dk = dark.v
     const u = journey.current
     const settledBlack = u >= 0.9995 && journey.target >= 0.9995 && !moved
     if (settledBlack && world.forceFrames <= 0) return
 
     // ── 1. colour script ────────────────────────────────────────────────────
-    gradeAt(u, grade, nm)
+    gradeAt(u, grade, nm, dk)
 
     // ── 2. pointer: smoothed parallax + a fast "cursor wind" with velocity ──
     st.px += (st.mx - st.px) * (1 - Math.exp(-dt * 3.0))
@@ -244,6 +246,7 @@ function Rig({ grade, refs }) {
 
     duskUniforms.uDuskMix.value = grade.duskMix
     duskUniforms.uTermY.value = grade.termY
+    duskUniforms.uDark.value = dk
 
     const dm = dustMat.current.uniforms
     dm.uTime.value = t
@@ -252,7 +255,7 @@ function Rig({ grade, refs }) {
     dm.uOpacity.value = 0.3 * grade.dust * clamp(grade.sunIntensity / 2.5, 0, 1)
 
     // ── 5. storm veil + sand grains (both react to the cursor) ──────────────
-    const inkL = Math.max(smoothstep(0.645, 0.69, u), nm)
+    const inkL = Math.max(smoothstep(0.645, 0.69, u), nm, dk)
     veilMesh.current.visible = storm > 0.012
     if (veilMesh.current.visible) {
       const vu = veilMat.current.uniforms
@@ -264,7 +267,7 @@ function Rig({ grade, refs }) {
       vu.uMouseVel.value.set(st.vx * 0.5 * vclamp, st.vy * 0.5 * vclamp)
       vu.uColor.value.copy(grade.fog).multiplyScalar(1.04)
     }
-    const grainAmp = (0.8 + 0.6 * storm) * grade.dust
+    const grainAmp = (0.8 + 0.6 * storm) * grade.dust * (1 - 0.55 * dk)
     grainMesh.current.visible = grainAmp > 0.01
     if (grainMesh.current.visible) {
       const gu = grainMat.current.uniforms
@@ -276,6 +279,7 @@ function Rig({ grade, refs }) {
       gu.uMouse.value.set(st.cx, st.cy)
       gu.uMouseVel.value.set(st.vx * vclamp, st.vy * vclamp)
       gu.uParallax.value.set(st.px, -st.py)
+      gu.uLight.value.set('#f3e4c2').lerp(GRAIN_DARK_LIGHT, dk)
       gu.uDark.value.set('#8f7650').lerp(gu.uLight.value, inkL)
     }
 

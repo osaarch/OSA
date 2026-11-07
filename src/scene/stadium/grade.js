@@ -51,8 +51,39 @@ function nightBlend(u, g, nm) {
   g.dusk = lerp(g.dusk, 1, nm)
 }
 
+// DARK THEME — "the mysterious one": no fire, no red, no sunset. A moonless, smoky dusk in which the
+// stadium, the ground, the river and the palms are all black, seen against a pale mist; a low, cold light
+// from behind only rims their edges. It fades to black at the end like the others.
+const D_HORIZON = c('#474a53')
+const D_ZENITH = c('#08090b')
+const D_LIGHT = c('#b4bfd2')
+const D_HEMI_SKY = c('#2a2e36')
+const D_HEMI_GR = c('#050506')
+const tmpD = new Color()
+
+function darkBlend(g, dm) {
+  const live = 1 - g.black
+  g.skyHorizon.lerp(tmpD.copy(D_HORIZON).multiplyScalar(live), dm)
+  g.skyZenith.lerp(tmpD.copy(D_ZENITH).multiplyScalar(live), dm)
+  g.fog.lerp(tmpD.copy(D_HORIZON).multiplyScalar(0.9 * live), dm)
+  g.fogDensity = lerp(g.fogDensity, 0.00078, dm)
+  g.sunColor.lerp(D_LIGHT, dm)
+  g.sunIntensity = lerp(g.sunIntensity, 2.6 * live, dm)
+  g.sunElevation = lerp(g.sunElevation, 0.16, dm)
+  g.hemiSky.lerp(D_HEMI_SKY, dm)
+  g.hemiGround.lerp(D_HEMI_GR, dm)
+  g.hemiIntensity = lerp(g.hemiIntensity, 0.55 * live, dm)
+  g.fillIntensity = lerp(g.fillIntensity, 0.04 * live, dm)
+  g.glow = lerp(g.glow, 0.55 * live, dm) // a pale glow of mist behind the stadium
+  g.dust = lerp(g.dust, 0.35 * live, dm)
+  g.redLight = lerp(g.redLight, 0, dm)
+  g.crowd = lerp(g.crowd, 0, dm)
+  g.dark = dm
+}
+
 export function createGrade() {
   return {
+    dark: 0,
     dusk: 0,
     night: 0,
     black: 0,
@@ -74,7 +105,7 @@ export function createGrade() {
   }
 }
 
-export function gradeAt(u, g, nm = 0) {
+export function gradeAt(u, g, nm = 0, dm = 0) {
   const dusk = smoothstep(0.3, 0.66, u)
   const night = smoothstep(0.58, 0.88, u)
   const black = smoothstep(0.93, 0.995, u)
@@ -103,6 +134,8 @@ export function gradeAt(u, g, nm = 0) {
   g.redLight = smoothstep(0.5, 0.82, u) * live // the red light spilling from the stadium
   g.crowd = smoothstep(0.62, 0.86, u) * live
   if (nm > 0.001) nightBlend(u, g, nm)
+  g.dark = 0
+  if (dm > 0.001) darkBlend(g, dm)
   return g
 }
 

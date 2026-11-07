@@ -46,6 +46,7 @@ export function applyDusk(mat) {
     shader.uniforms.uDuskMix = duskUniforms.uDuskMix
     shader.uniforms.uTermY = duskUniforms.uTermY
     shader.uniforms.uTermSoft = duskUniforms.uTermSoft
+    shader.uniforms.uDark = duskUniforms.uDark
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying float vWY;')
       .replace(
@@ -55,7 +56,16 @@ export function applyDusk(mat) {
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
-        '#include <common>\nvarying float vWY;\nuniform float uDuskMix;\nuniform float uTermY;\nuniform float uTermSoft;',
+        '#include <common>\nvarying float vWY;\nuniform float uDuskMix;\nuniform float uTermY;\nuniform float uTermSoft;\nuniform float uDark;',
+      )
+      .replace(
+        '#include <color_fragment>',
+        // the dark theme: the whole monument turns black (the bump and the glints of the low light stay)
+        '#include <color_fragment>\ndiffuseColor.rgb *= 1.0 - 0.93 * uDark;',
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, clamp(roughnessFactor, 0.3, 0.6), uDark);',
       )
       .replace(
         '#include <opaque_fragment>',
@@ -64,6 +74,6 @@ export function applyDusk(mat) {
          #include <opaque_fragment>`,
       )
   }
-  mat.customProgramCacheKey = () => 'malwiya-dusk'
+  mat.customProgramCacheKey = () => 'malwiya-dusk-2'
   return mat
 }

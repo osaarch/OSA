@@ -95,11 +95,11 @@ is revealed → the project page begins. Scroll back up and it plays in reverse.
 
 | File | Role |
 | --- | --- |
-| `public/assets/stadium/stadium.glb` | The stadium, made from `STADUAM.3dm` (roof planes, bowl, glazing, lettering, site, water, planting) |
+| `public/assets/stadium/stadium.glb` | The stadium, made from the newer `STADUAM_Exterior_.3dm` (roof planes, bowl, glazing, lettering, entrances, plazas and steps, site, water, planting, the surrounding blocks). The layer colours of the Rhino file ride along as vertex colours and tint the earth shaders; the internal floor slabs are left out; the file is meshopt-compressed (1.9 MB) — the loader sets `MeshoptDecoder` |
 | `src/scene/stadium/StadiumScene.jsx` | Loads the model, lights it, owns the render loop (loaded only on this page) |
 | `src/scene/stadium/materials.js` | The clay / rammed-earth look, generated in the shader (no textures) + the red night glow; the lit amber glazing, the muted pitch (105 × 68 m, aligned with the bowl) and the spectators in the seat rows |
 | `src/scene/stadium/path.js` · `grade.js` | The camera path (pure function of scroll) and the colour script |
-| `src/scene/stadium/Foliage.jsx` | Palms and trees scattered over the model's planted ground |
+| `src/scene/stadium/Foliage.jsx` · `palms.json` | **Date palms** (trunk with diamond scars and a fibrous collar, ~45 fronds in four tiers with V-folded leaflets, hanging bunches of dates; 3 levels of detail chosen by how close the camera path comes, 3 variants each, ages from 3 m saplings to 20 m giants). `palms.json` holds the positions: points picked from the model itself looking straight down, only where the top surface is the green planting (never under a roof, on a plaza, a road or bare earth) |
 | `src/scene/stadium/state.js` | Scroll length of the journey (`SJ_VH`) and the four chapter captions |
 
 `scene: 'stadium'` in `src/content.js` switches a project to this journey; without it a project uses the
@@ -113,12 +113,17 @@ frame drum and a swelling pad and drone around the dusk; then the percussion wit
 screen (a last bronze, one long breath on D, the lyre alone). The mapping from scroll to `pulse` / `drive` / `end` is in
 `Scene.jsx`. The first home piece (free-rhythm Bayati: oud phrases, a ney, a drone) is still there: open the site with
 `?music=classic`.
-The stadium plays a **modern desert piece** (`MOODS.desert`, `grooveDesert()`): maqam **Hijaz** on F in a rolling 6/8, a
-frame-drum / hand-clap groove, a sub-bass pedal, a plucked cross-rhythm (4 notes against the 2 beats) echoing like a
-call across dunes, a bowed rababa-like lead and wide pads, with a composed arc: intro → groove that grows with the
-scroll → a hook / call / long breath / answer every 8 bars → on the black logo screen the drums step back and the
-music resolves on a long note. The first version — a club-style Rast groove at 104 bpm — is still there: open the
-site with `?music=club`. Its description follows.
+The stadium plays an **original "athlete" score** (`MOODS.athlete`, `grooveAthlete()`): written in the spirit of a modern
+film about pressure and ambition — a relentless sixteenth-note string ostinato, timpani, a clock-like tick and brass —
+without copying any existing music. D Dorian at 144 bpm over a deep D pedal; the ostinato never lets go (soft and hushed
+at the top of the page, tight and doubled in octaves as the drive rises); timpani and a tick from the third bar, kick
+and hand-claps on the backbeat as it gets tense; every eight bars a climb (a rising sequence, a three-bar brass swell,
+a riser, a timpani roll) breaks on an impact and the theme on the horns; on the black logo screen the strings stop
+mid-phrase for one huge impact, a held low brass and a lone high string. The mapping from scroll is in `StadiumScene.jsx`.
+The earlier stadium pieces are still there: `?music=desert` plays the **modern desert piece** (`MOODS.desert`, `grooveDesert()`):
+maqam **Hijaz** on F in a rolling 6/8, a frame-drum / hand-clap groove, a sub-bass pedal, a plucked cross-rhythm (4 notes
+against the 2 beats) echoing like a call across dunes, a bowed rababa-like lead and wide pads; and `?music=club` the first,
+club-style Rast groove at 104 bpm. Its description follows.
 The club version is a **modern Arabic piece** that shares nothing with it but the engine: maqam **Rast** on C
 at 104 bpm — a soft kick pumping a sub-bass and an airy pad (side-chain), a darbuka playing the *maqsum*
 (teks and soft ghost notes), hand-claps, a shaker, a qanun-like plucked arpeggio in 3+3+2 over the chords
@@ -160,11 +165,17 @@ project page starts on the same left edge (right edge in Arabic) — see the las
   falling-sand texture. The wind/sand fades away at OSA / WORKS and only the music
   stays. The "Sound on/off" button is always in the top-right corner; the choice is remembered. Tune the mood in
   `src/audio.js` (scale `CENTS`, `CHORDS`, phrase rhythm in `phrase()`).
-* **Night mode:** the small moon next to the sound button (also on the "Enter" screen) turns the Malwiya and
-  the stadium into a moonlit, rainy night — a dark blue sky with a moon, rain on the screen (`src/ui/Rain.jsx`)
-  and rain in the soundtrack (`rain` layer in `src/audio.js`). The choice is remembered. The colours are
-  `nightBlend()` in `src/scene/grade.js` (Malwiya) and `src/scene/stadium/grade.js` (stadium: the bowl glows
-  red, the glazing lights sky-blue); the switch itself is `src/night.js`.
+* **Three themes:** the small button next to the sound button (also on the "Enter" screen) cycles **Day → Dark → Night**
+  and the choice is remembered (`?theme=day|dark|night` forces one — handy for sharing a link).
+  * **Day** — the usual look: sand, earth and the late-afternoon light (the stadium's journey still runs golden → dusk →
+    red night → black on its own).
+  * **Dark** — "the mysterious one": no fire and no red; the monument, the stadium, the ground, the river and the palms are
+    all black under a moonless, smoky mist, with a low cold light that only rims their edges (`darkBlend()` in
+    `src/scene/grade.js` and `src/scene/stadium/grade.js`; the shaders darken through the `uDark` uniform).
+  * **Night** — a moonlit, rainy night: a dark blue sky with a moon, rain on the screen (`src/ui/Rain.jsx`) and rain in the
+    soundtrack (`rain` layer in `src/audio.js`); on the stadium the bowl glows red and the glazing lights sky-blue
+    (`nightBlend()` in the same two files).
+  The store and the easing are in `src/night.js`; the button is `src/ui/NightToggle.jsx`.
   **The rain only belongs to the entry journeys:** it falls (and sounds) while the Malwiya / stadium journey is on
   screen, fades out when the screen goes black, and never appears on OSA, WORKS or the project pages
   (`setRainZone()` in `src/night.js`, called by both journeys' frame loops and reset on every page change).

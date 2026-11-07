@@ -197,6 +197,42 @@ const MOODS = {
     },
     trim: 0.9,
   },
+  // the stadium, third version — "athlete": an ORIGINAL score in the spirit of a modern film about ambition and
+  // pressure (not a copy of any film's music): D Dorian over a deep D pedal, a relentless sixteenth-note string
+  // ostinato that never lets go, timpani and a clock-like tick under it, brass swells that climb for four bars,
+  // then an impact and the theme on the horns — the pressure builds with the scroll and breaks at the end.
+  // At 144 bpm (a sixteenth = 0.104 s). See grooveAthlete().
+  athlete: {
+    tonic: 146.83, // D3
+    cents: [0, 200, 300, 500, 700, 900, 1000], // D Dorian:  D  E  F  G  A  B  C
+    chords: [[0, 2, 4]],
+    motifs: [[0, 1, 2]],
+    roots: [0],
+    resolves: [0],
+    ney: [11],
+    startIdx: 7,
+    gap: [3, 6],
+    sport: { bpm: 144 },
+    modern: {
+      kind: 'athlete',
+      echoBeats: 0.75, // a dotted-eighth echo on the long high notes
+      // chord roots of the 8-bar phrase over the D pedal:  Dm · C · G · Dm  |  B° · C · Am · G
+      bars: [0, 6, 3, 0, 5, 6, 4, 3],
+      // the ostinato, 16 notes a bar: scale steps above the chord root (0-2-4 is its triad, 7 the octave)
+      cells: [
+        [0, 4, 2, 4, 0, 4, 2, 4, 0, 4, 2, 4, 0, 4, 2, 7], //   the grind: a triad turning over itself
+        [0, 2, 4, 7, 2, 4, 7, 9, 4, 7, 9, 11, 7, 9, 11, 14], // the climb: a rising sequence, a step higher every beat
+        [7, 4, 7, 9, 7, 4, 7, 11, 7, 4, 7, 9, 7, 11, 9, 7], //  the peak: high and tight
+      ],
+    },
+    // the theme on the horns (scale index 7 = D4)
+    horns: [
+      [7, 9, 11, 14],
+      [11, 10, 9, 7],
+      [7, 11, 13, 11, 9],
+    ],
+    trim: 0.78,
+  },
   // the harbour: a quiet piece for the projects without a 3D journey — maqam HIJAZ on G, sparse and
   // slow, with a sea breeze where the sand would be (no grains, no drum)
   port: {
@@ -1467,6 +1503,107 @@ export function createEngine(ctx, moodName = 'malwiya') {
       at += rhythm[k % rhythm.length]
     })
   }
+  // ── the "athlete" score's voices ──────────────────────────────────────────
+  // spiccato strings: two detuned saws and a thin octave square through a filter that snaps shut, a touch of bow noise —
+  // sixteenth after sixteenth, never rounded off
+  function strings(t, f, vel, dur = 0.1) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    const lp = mk.filter('lowpass', 1000 + 5600 * vel, 0.8)
+    lp.frequency.setValueAtTime(1000 + 5600 * vel, t)
+    lp.frequency.exponentialRampToValueAtTime(650, t + dur * 1.3)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.15 * vel, t + 0.006)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05)
+    for (const [type, det, mul, gv] of [
+      ['sawtooth', -7, 1, 0.5],
+      ['sawtooth', 7, 1, 0.5],
+      ['square', 0, 2, 0.08],
+    ]) {
+      const o = mk.osc(type, f * mul)
+      o.detune.value = det
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(lp)
+      o.start(t)
+      o.stop(t + dur + 0.1)
+    }
+    lp.connect(g)
+    g.connect(ep.m)
+    const [s] = noise()
+    const bp = mk.filter('bandpass', Math.min(7000, f * 3.2), 1.4)
+    const bg = mk.gain(0)
+    bg.gain.setValueAtTime(0.0001, t)
+    bg.gain.linearRampToValueAtTime(0.03 * vel, t + 0.002)
+    bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.03)
+    s.connect(bp)
+    bp.connect(bg)
+    bg.connect(ep.m)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.05)
+  }
+  // timpani: a round sine that falls from a fifth above, a second partial, a thump of felt
+  function timp(t, f, vel) {
+    const o = mk.osc('sine', f)
+    o.frequency.setValueAtTime(f * 1.5, t)
+    o.frequency.exponentialRampToValueAtTime(f, t + 0.06)
+    const g = mk.gain(0)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.linearRampToValueAtTime(0.5 * vel, t + 0.004)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.0)
+    o.connect(g)
+    g.connect(ep.p)
+    o.start(t)
+    o.stop(t + 1.05)
+    const o2 = mk.osc('triangle', f * 1.51)
+    const g2 = mk.gain(0)
+    g2.gain.setValueAtTime(0.0001, t)
+    g2.gain.linearRampToValueAtTime(0.16 * vel, t + 0.003)
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.45)
+    o2.connect(g2)
+    g2.connect(ep.p)
+    o2.start(t)
+    o2.stop(t + 0.5)
+    const [s] = noise()
+    const bp = mk.filter('bandpass', 260, 1.1)
+    const ng = mk.gain(0)
+    ng.gain.setValueAtTime(0.0001, t)
+    ng.gain.linearRampToValueAtTime(0.12 * vel, t + 0.002)
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.07)
+    s.connect(bp)
+    bp.connect(ng)
+    ng.connect(ep.p)
+    s.start(t, rnd(0, 3))
+    s.stop(t + 0.09)
+  }
+  // a brass swell: unison saws that open slowly from a hush to a roar, then are cut at the bar line
+  function brassSwell(t, f, dur, vel) {
+    log.push([t, f, vel])
+    const g = mk.gain(0)
+    const lp = mk.filter('lowpass', 380, 0.9)
+    lp.frequency.setValueAtTime(380, t)
+    lp.frequency.exponentialRampToValueAtTime(2400, t + dur)
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.exponentialRampToValueAtTime(0.13 * vel, t + dur * 0.96)
+    g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.06)
+    for (const [type, det, gv] of [
+      ['sawtooth', -9, 0.5],
+      ['sawtooth', 9, 0.5],
+      ['sawtooth', 1200 + 4, 0.2],
+    ]) {
+      const o = mk.osc(type, f)
+      o.detune.value = det
+      const og = mk.gain(gv)
+      o.connect(og)
+      og.connect(lp)
+      o.start(t)
+      o.stop(t + dur + 0.12)
+    }
+    lp.connect(g)
+    g.connect(ep.d)
+    live.push([g, t + dur + 0.2])
+  }
+
   function grooveModern(t, n, step) {
     const s = n % 16
     const bar = Math.floor(n / 16)
@@ -1698,11 +1835,93 @@ export function createEngine(ctx, moodName = 'malwiya') {
     if (dr > 0.5 && cyc === 7 && d > 0.55 && s >= 10 && s !== 11) frame(t, (0.3 + 0.07 * (s - 10)) * (0.6 + 0.4 * d) * dr, 1)
   }
 
+
+  // ── the stadium, third version: "athlete" ───────────────────────────────────
+  // One bar = 16 sixteenths at 144 bpm (6.7 s per 8 bars… ~13.3 s a phrase). The score is a pressure gauge driven by the scroll:
+  //   always        the D pedal in the bass and the sixteenth-note string ostinato — soft and hushed at the top, tight and
+  //                 doubled in octaves as the drive rises
+  //   bar 3 on      timpani on the downbeat, a clock-like tick on the off-eighths
+  //   drive > .25   a pad under it; kick and hand-claps on the backbeat past .55; a shaker in sixteenths past .45
+  //   bars 5–7      the climb: a rising ostinato, a brass swell over three bars, a riser, a timpani roll on the last bar
+  //   bar 1 (again) an impact and the theme on the horns when the drive is high
+  //   the end       on the black screen the ostinato stops mid-phrase: one huge impact, a held low brass, a lone high string
+  //
+  //   timpani   x . . . . . . . x . . . . . . .      (and on every beat once it is tense)
+  //   tick      . . x . . . x . . . x . . . x .
+  //   claps     . . . . x . . . . . . . x . . .
+  function grooveAthlete(t, n, step) {
+    const X = M.modern
+    const s = n % 16
+    const bar = Math.floor(n / 16)
+    const cyc = bar % 8
+    const p = state.level.pulse
+    const d = state.level.drive
+    const m = state.level.music
+    const end = state.level.end
+    const dr = bar < 2 ? 0 : 1 - clamp((end - 0.15) / 0.55, 0, 1) // how much of the percussion is there
+    const st = 1 - clamp(end / 0.5, 0, 1) // the strings stop as the end arrives
+    const r = end > 0.5 ? 0 : X.bars[cyc]
+    const barLen = 16 * step
+
+    if (s === 0) {
+      // the pedal and the pad
+      if (end <= 0.5) {
+        bass(t, note(-7), barLen * 0.97, (0.45 + 0.45 * d) * (bar === 0 ? 0.8 : 1))
+        if (d > 0.25) mpad(t, [r + 7, r + 9, r + 11], barLen + 0.6)
+        if (d > 0.4 && r !== 0 && cyc !== 0) bass(t, note(r - 7), barLen * 0.5, 0.35 + 0.3 * d) // the chord's own root, under the pedal
+      }
+      if (end > 0.5) {
+        // the ending: one huge impact, a low brass held, a lone high string every second bar
+        if (!state.finalHit) {
+          impact(t, 0.95)
+          timp(t, note(-7), 1)
+          brassSwell(t + 0.02, note(-7), barLen * 1.6, 0.55)
+          state.finalHit = true
+        }
+        if (bar % 2 === 0) air(t + step * 2, note(11), barLen * 2.2, 0.6)
+      } else {
+        state.finalHit = false
+        if (dr > 0.5 && cyc === 0 && bar > 0 && d > 0.35) {
+          impact(t, 0.35 + 0.6 * d)
+          if (d > 0.6 && Math.random() < 0.75) fanfare(t, step)
+        }
+        if (dr > 0.5 && cyc === 4 && d > 0.4) brassSwell(t, note(-7), barLen * 3, 0.35 + 0.65 * d) // the swell climbs for three bars
+        if (cyc === 2 && d > 0.3 && Math.random() < 0.6) air(t + 2 * step, note(r + 14), barLen * 1.5, 0.35 + 0.4 * m)
+      }
+    }
+
+    // the ostinato: sixteenths, accented on the beat; octave doubling at the top of the drive
+    if (st > 0.03 && !(bar === 0 && s < 2)) {
+      const shape = X.cells[cyc < 4 ? (d > 0.8 && cyc % 2 === 1 ? 2 : 0) : cyc < 7 ? 1 : 2]
+      const acc = [1, 0.5, 0.72, 0.5][s % 4]
+      const climb = 0.82 + 0.18 * (cyc / 7)
+      const vel = (0.2 + 0.8 * d) * (0.55 + 0.45 * m) * acc * climb * st
+      strings(t, note(r + 7 + shape[s]), vel, step * 0.95)
+      if (d > 0.5 && (s % 4 === 0 || d > 0.8)) strings(t, note(r + 14 + shape[s]), vel * 0.5, step * 0.9)
+    }
+
+    // the percussion
+    if (dr > 0.05) {
+      if (s === 0 && p > 0.3) timp(t, note(-7) * 1.5, (0.4 + 0.6 * d) * dr)
+      if (s === 8 && p > 0.45) timp(t, note(-7) * 1.5, (0.3 + 0.55 * d) * dr)
+      if ((s === 4 || s === 12) && d > 0.55) timp(t, note(-7) * 1.26, (0.3 + 0.4 * d) * dr)
+      if (s === 14 && d > 0.85) timp(t, note(-7) * 1.5, 0.45 * dr)
+      if ((s === 0 || s === 8) && d > 0.45) kick(t, (0.4 + 0.5 * d) * dr)
+      if ((s === 2 || s === 6 || s === 10 || s === 14) && d > 0.22) tak(t, (0.25 + 0.55 * d) * dr)
+      if ((s === 4 || s === 12) && d > 0.58) clap(t, (0.35 + 0.65 * d) * dr)
+      if (d > 0.45) shaker(t, (s % 4 === 2 ? 1 : 0.45) * (0.3 + 0.7 * d) * dr)
+    }
+
+    // the last bar of the phrase: a riser, then a roll of the timpani into the next downbeat
+    if (dr > 0.5 && cyc === 7 && d > 0.35 && s === 4) riser(t, 12 * step, 0.35 + 0.5 * d)
+    if (dr > 0.5 && cyc === 7 && d > 0.5 && s >= 8) timp(t, note(-7) * (s >= 12 ? 1.5 : 1.26), (0.22 + 0.04 * (s - 8)) * (0.6 + 0.4 * d) * dr)
+  }
+
   function scheduleUntil(horizon) {
     if (!M.modern) scheduleFreeRhythm(horizon)
     else {
       const step = 60 / M.sport.bpm / 4
-      const groove = { desert: grooveDesert, odyssey: grooveOdyssey }[M.modern.kind] || grooveModern
+      const groove = { desert: grooveDesert, odyssey: grooveOdyssey, athlete: grooveAthlete }[M.modern.kind] || grooveModern
       while (state.nextStep < horizon) groove(state.nextStep, state.stepN++, step), (state.nextStep += step)
     }
     const rate = 3 + 55 * state.level.wind

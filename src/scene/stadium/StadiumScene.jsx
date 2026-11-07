@@ -15,13 +15,14 @@ import {
   Vector3,
 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import '../tonemap'
 import Sky from '../Sky'
 import Grains from '../Grains'
 import Foliage from './Foliage'
 import { createMaterials, SU } from './materials'
 import { createGrade, gradeAt, sunAzimuth } from './grade'
-import { night, setRainZone, stepNight } from '../../night'
+import { dark, setRainZone, stepNight, themeBusy } from '../../night'
 import { samplePath, ORBIT_START } from './path'
 import { CHAPTERS, sj, stadiumLoad, stadiumWorld } from './state'
 import { clamp, smoothstep, stepJourney } from '../../journey'
@@ -34,6 +35,7 @@ const root = typeof document !== 'undefined' ? document.documentElement : null
 const STILL = typeof window !== 'undefined' && /[?&]still\b/.test(window.location.search)
 const fmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const UP = new Vector3(0, 1, 0)
+const GRAIN_DARK_LIGHT = new Color('#bcc4d2') // the sand turns to cold ash in the dark theme
 
 // ── the pitch ────────────────────────────────────────────────────────────────
 // The Rhino model leaves the floor of the bowl open. The pitch is a flat shape cut to the outline of
@@ -91,7 +93,7 @@ function StadiumModel({ mats, onGround }) {
           ? (await import('./singleStadium.js')).glbUrl
           : `${import.meta.env.BASE_URL}assets/stadium/stadium.glb`
         const gltf = await new Promise((resolve, reject) =>
-          new GLTFLoader().load(
+          new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
             url,
             resolve,
             (e) => {
@@ -109,7 +111,9 @@ function StadiumModel({ mats, onGround }) {
           const key = o.name
           if (key === 'bowl') bowlGeo = o.geometry
           o.material = mats[key] || mats.ground
-          o.castShadow = key === 'roof' || key === 'bowl' || key === 'wall' || key === 'text'
+          // the Rhino layer colours ride along as vertex colours (the shaders read them as a tint)
+          o.material.vertexColors = !!o.geometry.attributes.color
+          o.castShadow = key === 'roof' || key === 'bowl' || key === 'wall' || key === 'text' || key === 'doors' || key === 'stone'
           o.receiveShadow = key !== 'water'
           o.frustumCulled = false
           if (key === 'grass') grassGeo = o.geometry
@@ -294,10 +298,11 @@ function Rig({ grade, refs }) {
     const dt = Math.min(dtRaw, 0.1)
     const t = clock.elapsedTime
 
-    const moved = stepJourney(dt, 7.4, sj) || night.v !== (night.on ? 1 : 0)
+    const moved = stepJourney(dt, 7.4, sj) || themeBusy()
     const nm = stepNight()
+    const dk = dark.v
     const u = sj.current
-    gradeAt(u, grade, nm)
+    gradeAt(u, grade, nm, dk)
     setRainZone(1 - grade.black) // night rain only falls during the journey, never on the black page after it
 
     // soundtrack: a modern groove from the first bar (kick, darbuka, shaker under a pad and a plucked
@@ -410,6 +415,7 @@ function Rig({ grade, refs }) {
     SU.uNight.value = grade.redLight
     SU.uCrowd.value = grade.crowd
     SU.uBlack.value = grade.black
+    SU.uDark.value = dk
     SU.uSkyH.value.copy(grade.skyHorizon)
     SU.uSkyZ.value.copy(grade.skyZenith)
 
@@ -420,9 +426,9 @@ function Rig({ grade, refs }) {
     dm.uScale.value = (h * gl.getPixelRatio() * 0.5) / Math.tan((P.fov * Math.PI) / 360)
     dm.uCam.value.copy(camera.position)
     dm.uColor.value.copy(grade.sunColor)
-    dm.uOpacity.value = 0.34 * grade.dust * clamp(grade.sunIntensity / 2.5, 0, 1)
+    dm.uOpacity.value = 0.34 * grade.dust * clamp(grade.sunIntensity / 2.5, 0, 1) * (1 - 0.5 * dk)
 
-    const grainAmp = 0.7 * grade.dust
+    const grainAmp = 0.7 * grade.dust * (1 - 0.55 * dk)
     grainMesh.current.visible = grainAmp > 0.01
     if (grainMesh.current.visible) {
       const gu = grainMat.current.uniforms
@@ -434,7 +440,8 @@ function Rig({ grade, refs }) {
       gu.uMouse.value.set(st.cx, st.cy)
       gu.uMouseVel.value.set(st.vx * vclamp, st.vy * vclamp)
       gu.uParallax.value.set(st.px, -st.py)
-      gu.uDark.value.set('#8f7650').lerp(gu.uLight.value, Math.max(grade.night, nm))
+      gu.uLight.value.set('#f3e4c2').lerp(GRAIN_DARK_LIGHT, dk)
+      gu.uDark.value.set('#8f7650').lerp(gu.uLight.value, Math.max(grade.night, nm, dk))
     }
 
     // DOM overlays (CSS variables, no React)
@@ -443,7 +450,7 @@ function Rig({ grade, refs }) {
       root.style.setProperty('--pj-black', grade.black.toFixed(4))
       root.style.setProperty('--pj-logo', smoothstep(0.972, 1.0, u).toFixed(3))
       root.style.setProperty('--pj-hud', (1 - smoothstep(0.9, 0.968, u)).toFixed(3))
-      root.style.setProperty('--pj-ink', u > 0.46 || nm > 0.5 ? '1' : '0')
+      root.style.setProperty('--pj-ink', u > 0.46 || nm > 0.5 || dk > 0.5 ? '1' : '0')
     }
     st.hudT += dt
     if (st.hudT > 0.06) {

@@ -121,8 +121,14 @@ export default function App() {
     // — and inside a project the home page's music is gone: the stadium has its own, the other
     // projects get the quiet harbour piece with a sea breeze
     const proj = route.name === 'project' ? findProject(route.slug) : null
-    // the stadium's score: the modern-desert version (?music=club plays the first, club-style one)
-    const stadiumMood = typeof location !== 'undefined' && /[?&]music=club\b/.test(location.search) ? 'stadium' : 'desert'
+    // the stadium's score: the "athlete" one (an original, relentless string ostinato with timpani and brass);
+    // ?music=desert plays the modern-desert version and ?music=club the first, club-style one
+    const stadiumMood =
+      typeof location !== 'undefined' && /[?&]music=club\b/.test(location.search)
+        ? 'stadium'
+        : typeof location !== 'undefined' && /[?&]music=desert\b/.test(location.search)
+          ? 'desert'
+          : 'athlete'
     const mood = proj ? (proj.scene === 'stadium' ? stadiumMood : 'port') : homeMood()
     audio.setMood(mood)
     if (mood === 'port') audio.setScene({ wind: 0.22, music: 1, clarity: 1, pulse: 0, crowd: 0, drive: 0 })
