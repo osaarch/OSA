@@ -1871,6 +1871,13 @@ html.pj-ready .app .lang {
   width: clamp(54px, 5.4vw, 92px);
   margin-bottom: 0.7em;
 }
+/* the logos never move with the language: they sit on the physical left in English and in Arabic alike */
+.logo-img,
+.logo-slot {
+  justify-self: left;
+  margin-left: 0;
+  margin-right: auto;
+}
 .logo-slot {
   display: grid;
   place-items: center;
@@ -1884,6 +1891,9 @@ html.pj-ready .app .lang {
 }
 .p-logo-row {
   padding: 12vh var(--pad) 0 calc(var(--rail) + var(--pad));
+}
+html[lang='ar'] .p-logo-row {
+  direction: ltr;
 }
 
 .p-concept,
