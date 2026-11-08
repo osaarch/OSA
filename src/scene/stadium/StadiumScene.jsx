@@ -10,6 +10,7 @@ import {
   Mesh,
   NeutralToneMapping,
   PCFSoftShadowMap,
+  PlaneGeometry,
   ShaderMaterial,
   Shape,
   ShapeGeometry,
@@ -117,13 +118,22 @@ function StadiumModel({ mats, onGround, onTint }) {
           o.material = mats[key] || mats.ground
           // the Rhino layer colours ride along as vertex colours (the shaders read them as a tint)
           o.material.vertexColors = !!o.geometry.attributes.color
-          o.castShadow = key === 'roof' || key === 'bowl' || key === 'wall' || key === 'text' || key === 'doors' || key === 'stone'
+          o.castShadow = key === 'roof' || key === 'bowl' || key === 'bowl2' || key === 'wall' || key === 'text' || key === 'doors' || key === 'stone'
           o.receiveShadow = key !== 'water'
           o.frustumCulled = false
           if (key === 'grass') grassGeo = o.geometry
         })
         const pitchMesh = bowlGeo && makePitch(bowlGeo, mats.pitch)
         if (pitchMesh) g.add(pitchMesh)
+        // the second, smaller stadium 550 m to the west has its own 105 × 68 m pitch (outline GRAS STAD in the Rhino file)
+        const pitch2 = new Mesh(new PlaneGeometry(108, 71), mats.pitch2)
+        pitch2.rotation.x = -Math.PI / 2
+        pitch2.rotation.z = Math.atan2(0.1563, 0.9877) // long axis along (0.9877, −0.1563) in x, z
+        pitch2.position.set(-547.1, 0.55, 23.7)
+        pitch2.name = 'pitch2'
+        pitch2.receiveShadow = true
+        pitch2.frustumCulled = false
+        g.add(pitch2)
         stadiumLoad.set({ progress: 0.93 })
         // the earth beyond the site carries the site's own layer colour, so the two meet without a seam
         const ca = groundGeo && groundGeo.attributes.color
@@ -396,7 +406,7 @@ function Rig({ grade, refs }) {
       P.y - st.py * 0.006 * P.r * pm,
       P.z + rz * st.px * 0.012 * P.r * pm,
     )
-    v.f.set(0, P.ty, 0).sub(camera.position)
+    v.f.set(P.tx, P.ty, P.tz).sub(camera.position)
     v.f.applyAxisAngle(UP, -yaw)
     v.r.crossVectors(v.f, UP).normalize()
     v.f.applyAxisAngle(v.r, -pitch)

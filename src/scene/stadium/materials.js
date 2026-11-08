@@ -153,17 +153,18 @@ function clay() {
 // quiet colours of ordinary clothes — bone, sand, faded brick, charcoal, dusty teal, olive —
 // so a full stand reads as a crowd, not as a pattern. Seen from far away (when a person is
 // smaller than a pixel) they melt into an average tone rather than vanishing.
-function bowl() {
-  return patch(base('bowl'), {
+function bowl(cx = 0, cz = 0, name = 'bowl') {
+  return patch(base(name), {
     body: /* glsl */ `
+      vec2 bp = vWP.xz - vec2(${cx.toFixed(2)}, ${cz.toFixed(2)}); // the rows run round this stadium's own centre
       float top = smoothstep(0.2, 0.7, nW.y);
-      float rr = length(vWP.xz * vec2(1.0, 1.25));
+      float rr = length(bp * vec2(1.0, 1.25));
       float rows = 0.5 + 0.5 * sin(rr * 3.4);
-      vec3 col = mix(vec3(0.22, 0.045, 0.04), vec3(0.34, 0.07, 0.055), rows * 0.6 + 0.2 * fbm1(vWP.xz * 0.4));
+      vec3 col = mix(vec3(0.22, 0.045, 0.04), vec3(0.34, 0.07, 0.055), rows * 0.6 + 0.2 * fbm1(bp * 0.4));
 
       float rowW = 1.85, seatW = 1.55;
       float rid = floor(rr / rowW); float rf = fract(rr / rowW) - 0.5;
-      float arc = atan(vWP.z * 1.25, vWP.x) * (rid + 0.5) * rowW;
+      float arc = atan(bp.y * 1.25, bp.x) * (rid + 0.5) * rowW;
       float cid = floor(arc / seatW); float cf = fract(arc / seatW) - 0.5;
       vec2 id = vec2(rid, cid);
       vec2 pp = vec2(cf * seatW, rf * rowW + (h21(id + 3.1) - 0.5) * 0.18);
@@ -241,12 +242,12 @@ function lettering() {
 
 // ── the pitch: sage turf with soft mown bands and faint chalk, in a margin of dry clay ───
 // (105 × 68 m, long axis along x, centred on the middle of the bowl floor)
-function pitch() {
-  return patch(base('pitch', { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), {
+// centre and long axis come from the architect's own pitch outline (GRAS STAD): the main stadium's is turned 15.2° from the x axis
+function pitch(cx = -0.45, cz = 0.0, ax = 0.965, az = -0.2622, name = 'pitch') {
+  return patch(base(name, { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), {
     body: /* glsl */ `
-      // the bowl's long axis is turned 15.2° from the x axis: the pitch follows it
-      vec2 q0 = vWP.xz - vec2(-0.45, 0.0);
-      const vec2 AX = vec2(0.9650, -0.2622);
+      vec2 q0 = vWP.xz - vec2(${cx.toFixed(2)}, ${cz.toFixed(2)});
+      const vec2 AX = vec2(${ax.toFixed(4)}, ${az.toFixed(4)});
       vec2 q = vec2(dot(q0, AX), dot(q0, vec2(-AX.y, AX.x)));
       float n = fbm1(vWP.xz * 0.7); float n2 = fbm1(vWP.xz * 3.5);
       float band = step(0.5, fract(q.x / 15.0));
@@ -310,6 +311,17 @@ function ground() {
       roughnessFactor = 1.0;
       float near = exp(-pow(length(vWP.xz) / (320.0 * uReach), 2.0));
       glow = uRed * uNight * near * 0.2 * (0.5 + 0.5 * mid);
+    `,
+  })
+}
+
+// ── the coloured spheres of the model: they keep the colours the architect gave them ──────────────
+function beads() {
+  return patch(base('beads', { roughness: 0.55 }), {
+    body: /* glsl */ `
+      diffuseColor.rgb = vcol;
+      roughnessFactor = 0.55;
+      glow = vcol * uNight * 0.5;
     `,
   })
 }
@@ -423,8 +435,9 @@ function blocks() {
 
 export function createMaterials() {
   return {
-    roof: clay(), bowl: bowl(), wall: glass(), pitch: pitch(), text: lettering(), ground: ground(), grass: grass(),
-    paving: paving(), water: water(), stone: plaza(), doors: doors(), blocks: blocks(),
+    roof: clay(), bowl: bowl(), bowl2: bowl(-547.1, 23.7, 'bowl2'), wall: glass(), pitch: pitch(),
+    pitch2: pitch(-547.1, 23.7, 0.9877, -0.1563, 'pitch2'), text: lettering(), ground: ground(), grass: grass(),
+    paving: paving(), poles: paving(), beads: beads(), water: water(), stone: plaza(), doors: doors(), blocks: blocks(),
   }
 }
 

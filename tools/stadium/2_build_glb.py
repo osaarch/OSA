@@ -5,15 +5,18 @@ cx,cy,zg=-412.0,-520.0,-48.0
 groups_def = {
  'roof':   [('STADUIM MA',3000)],
  'bowl':   [('STEBS STADIUM',400)],
+ 'bowl2':  [('STADIUM SEAT',900)],   # the second, smaller stadium 550 m to the west: its stands (red seat blocks)
  'wall':   [('Glass Stadium',400),('GLASS 01',400),('smart SCREEN',400)],
  'text':   [('teXT',400)],
  'doors':  [('Doors',400)],
- 'stone':  [('STEBS',700),('out',700),('gr 03',700),('UI',700)],
+ 'stone':  [('STEBS',700),('out',700),('gr 03',700),('UI',700),('34',900)],   # '34' = the second stadium's floor plate
  'ground': [('SITE01',3000),('GROUND',1600),('GROUND 02',1600)],
  'grass':  [('GRASS 01',1600),('GRASS BLAG',1600),('green Roof',1600),('grass Wall',1600)],
  'water':  [('WATER 01',1600),('WATER BLAG',1600),('OUT WATER',1600),('UNDER WATER',1600)],
  'paving': [('STREET 01',1400),('RASSEF 01',1400),('coloume Bridge',700),('ROAD TRAM',1400),('WALKING',1400),('Line Street',1400),('LIGHT',700)],
  'blocks': [('BOX BULIDING',2400)],
+ 'poles':  [('MILINOUOM',1600),('iron',1600),('Default',400),('STAIERS 01',700)],   # lamp posts, railings, small details
+ 'beads':  [('circle red',600),('circle white',600),('circle blue',600),('circle yellow',600)],   # the coloured spheres
 }
 lim={l:r for g in groups_def.values() for l,r in g}
 lay2g={l:k for k,g in groups_def.items() for l,_ in g}
@@ -38,6 +41,10 @@ for k,lst in G.items():
     if not lst: continue
     V=[];F=[];C=[];off=0
     for o in lst:
+        if k=='beads':   # each coloured sphere (4k triangles) becomes a light icosphere of the same size and place
+            v0=o['v']; ctr=(v0.min(0)+v0.max(0))/2; rad=float((v0.max(0)-v0.min(0)).max())/2
+            ic=trimesh.creation.icosphere(subdivisions=2,radius=max(rad,0.05))
+            o=dict(o); o['v']=np.asarray(ic.vertices)+ctr; o['f']=np.asarray(ic.faces)
         V.append(o['v']);F.append(o['f']+off);off+=len(o['v'])
         c=objcolor(o); C.append(np.tile(np.array([c[0],c[1],c[2],255],np.uint8),(len(o['v']),1)))
     V=np.concatenate(V).astype(np.float64);F=np.concatenate(F);C=np.concatenate(C)
