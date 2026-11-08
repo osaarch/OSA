@@ -6,9 +6,9 @@ groups_def = {
  'roof':   [('STADUIM MA',3000)],
  'bowl':   [('STEBS STADIUM',400)],
  'bowl2':  [('STADIUM SEAT',900)],   # the second, smaller stadium 550 m to the west: its stands (red seat blocks)
- 'wall':   [('Glass Stadium',400),('GLASS 01',400),('smart SCREEN',400)],
- 'text':   [('teXT',400)],
- 'doors':  [('Doors',400)],
+ 'wall':   [('Glass Stadium',3000),('GLASS 01',3000),('smart SCREEN',3000)],   # 'GLASS 01' also wraps the second stadium, 550 m away
+ 'text':   [('teXT',3000)],
+ 'doors':  [('Doors',3000)],
  'stone':  [('STEBS',700),('out',700),('gr 03',700),('UI',700),('34',900)],   # '34' = the second stadium's floor plate
  'ground': [('SITE01',3000),('GROUND',1600),('GROUND 02',1600)],
  'grass':  [('GRASS 01',1600),('GRASS BLAG',1600),('green Roof',1600),('grass Wall',1600)],
