@@ -37,7 +37,10 @@ npm run build:single   # optional: ONE self-contained index.html in dist-single/
    `subtitle`, `tagline`, `credit`, `description` (overview paragraphs), `concept { title, text[] }`,
    `stages { title, items[{ title, text }] }`, `sections [{ title, text[] }]` (e.g. *Shared Public Ground*,
    *Envelope and Materials*) and `programme []` — each block appears as soon as it has content.
-   **Project 2 — The Promethean Port** lives in `src/assets/projects/promethean-port/` (`logo.png` is the
+   **Project 2 — Four Gates Cultural Complex** lives in `src/assets/projects/four-gates/` (five renders; the
+   cover is `03-…`). Its programme diagram and the three composition diagrams are drawn in code
+   (`src/ui/GateDiagrams.jsx`); their labels are in `programmeDiagram` and `composition` in `src/content.js`.
+   **Project 3 — The Promethean Port** lives in `src/assets/projects/promethean-port/` (`logo.png` is the
    original logo, unchanged). Its long paragraphs go into `description`, `concept.text`, the `stages` items'
    `text` and `sections` in `src/content.js`.
 

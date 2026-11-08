@@ -234,7 +234,145 @@ const projectData = [
     },
   },
   {
-    // ── PROJECT TWO · The Promethean Port ───────────────────────────────────
+    // ── PROJECT TWO · Four Gates Cultural Complex ───────────────────────────
+    // Images: src/assets/projects/four-gates/  (03-… is the cover; captions by number).
+    // The programme diagram and the three composition diagrams are drawn in code
+    // (src/ui/GateDiagrams.jsx); their labels are in `programmeDiagram` and `composition` below.
+    slug: 'four-gates',
+    coverFile: '03-framing-the-landmark.jpg',
+    coverInGallery: true, // the cover is also one of the five architectural views (it carries a caption)
+    en: {
+      title: 'Four Gates Cultural Complex',
+      year: '2026',
+      location: 'Iraq',
+      type: 'Islamic Cultural Complex / Mixed Use',
+      summary:
+        "Four shrine gates become four open plazas, each opening a clear route into a distinct part of an Islamic cultural complex.",
+      concept: {
+        title: 'Four gates. Four plazas.',
+        text: [
+          "The concept begins with the shrine's four gates. Each becomes an open plaza, creating four points of arrival and a clear route into a distinct part of the complex.",
+          'The plazas connect hotel and medical support, entertainment and dining, education, and cultural activities. Arcaded routes and landscaped courts bring these branches into a connected public realm.',
+        ],
+      },
+      programmeDiagram: {
+        title: 'Four gates programme diagram',
+        desc: 'A central shrine connects through four open plazas to hotel and medical support above, entertainment and dining on the left, education below, and culture on the right. The diagram is conceptual and not to scale.',
+        caption: 'Conceptual programme / Not to scale',
+        labels: {
+          hotel: ['HOTEL +', 'MEDICAL'],
+          entertainment: ['ENTERTAINMENT'],
+          shrine: ['SHRINE'],
+          culture: ['CULTURE'],
+          education: ['EDUCATION'],
+        },
+      },
+      programme: [
+        { title: 'Hotel + Medical Support', text: 'Visitor accommodation and associated medical services.' },
+        { title: 'Entertainment + Dining', text: 'Leisure spaces and restaurant activity.' },
+        { title: 'Education', text: 'Spaces for learning and educational activity.' },
+        { title: 'Culture', text: 'Spaces for cultural activities.' },
+      ],
+      composition: {
+        label: 'Composition',
+        title: 'Form & facade.',
+        text: 'Four shrine gates become open plazas, then organise programme branches connected by shaded pedestrian routes.',
+        steps: [
+          {
+            title: 'Read the four gates',
+            text: "The shrine's four gates establish four points of departure.",
+            tag: 'Arrival / Gateways',
+            alt: 'A central shrine with four openings',
+          },
+          {
+            title: 'Open four plazas',
+            text: 'Each gate is expressed as an open space for arrival and gathering.',
+            tag: 'Shaded arcades',
+            alt: 'The four gates open onto four plazas',
+          },
+          {
+            title: 'Connect the programme',
+            text: 'The plazas lead to four functions, linked by routes and landscaped courts.',
+            tag: 'Landscape / Water',
+            alt: 'Four programme branches linked around a connected public realm',
+          },
+        ],
+      },
+      captions: {
+        '01': { title: 'Open Ground', text: 'Freestanding gate forms mark landscaped courts, giving the open spaces a clear rhythm of arrival and gathering.' },
+        '02': { title: 'The Shared Courtyard', text: 'A pavilion of pointed arches anchors the courtyard, framed by arcades, palm planting and shaded edges.' },
+        '03': { title: 'Framing the Landmark', text: 'Repeated pointed arches frame the route towards the faceted landmark, connecting architectural rhythm with movement through the complex.' },
+        '04': { title: 'Shaded Connections', text: 'Palm planting and repeated arches create a shaded sequence between building edges and shared outdoor spaces.' },
+        '05': { title: 'Water and Pause', text: 'A linear water channel, planted pergolas and seating introduce places to rest along the pedestrian route.' },
+      },
+    },
+    ar: {
+      title: 'مجمع البوابات الأربع الثقافي',
+      year: '2026',
+      location: 'العراق',
+      type: 'مجمع ثقافي إسلامي / متعدد الاستعمالات',
+      summary: 'تتحوّل بوابات المرقد الأربع إلى أربع ساحات مفتوحة، تفتح كل منها طريقًا واضحًا إلى جزء مختلف من المجمّع الثقافي الإسلامي.',
+      concept: {
+        title: 'أربع بوابات. أربع ساحات.',
+        text: [
+          'يبدأ المفهوم من البوابات الأربع للمرقد. تتحوّل كل بوابة إلى ساحة مفتوحة، فتصنع أربع نقاط وصول وطريقًا واضحًا إلى جزء متميّز من المجمّع.',
+          'تربط الساحات بين الفندق والدعم الطبي، والترفيه والمطاعم، والتعليم، والأنشطة الثقافية. وتجمع الممرات المقوّسة والباحات المشجّرة هذه الفروع في فضاء عام متصل.',
+        ],
+      },
+      programmeDiagram: {
+        title: 'مخطط برنامج البوابات الأربع',
+        desc: 'مرقد في الوسط يتصل عبر أربع ساحات مفتوحة بالفندق والدعم الطبي في الأعلى، والترفيه والمطاعم على اليسار، والتعليم في الأسفل، والثقافة على اليمين. المخطط تصوّري وغير مرسوم بمقياس.',
+        caption: 'برنامج تصوّري / غير مرسوم بمقياس',
+        labels: {
+          hotel: ['الفندق', 'والدعم الطبي'],
+          entertainment: ['الترفيه', 'والمطاعم'],
+          shrine: ['المرقد'],
+          culture: ['الثقافة'],
+          education: ['التعليم'],
+        },
+      },
+      programme: [
+        { title: 'الفندق + الدعم الطبي', text: 'إقامة الزوّار والخدمات الطبية المرتبطة بها.' },
+        { title: 'الترفيه + المطاعم', text: 'فضاءات الترفيه والنشاط المطعمي.' },
+        { title: 'التعليم', text: 'فضاءات التعلّم والنشاط التعليمي.' },
+        { title: 'الثقافة', text: 'فضاءات للأنشطة الثقافية.' },
+      ],
+      composition: {
+        label: 'التكوين',
+        title: 'الشكل والواجهة.',
+        text: 'تتحوّل بوابات المرقد الأربع إلى ساحات مفتوحة، ثم تنظّم فروع البرنامج التي تربطها ممرات مشاة مظلّلة.',
+        steps: [
+          {
+            title: 'قراءة البوابات الأربع',
+            text: 'تُرسي بوابات المرقد الأربع أربع نقاط انطلاق.',
+            tag: 'الوصول / المداخل',
+            alt: 'مرقد في الوسط بأربع فتحات',
+          },
+          {
+            title: 'فتح أربع ساحات',
+            text: 'يُعبَّر عن كل بوابة بفضاء مفتوح للوصول والتجمّع.',
+            tag: 'أروقة مظلّلة',
+            alt: 'تنفتح البوابات الأربع على أربع ساحات',
+          },
+          {
+            title: 'ربط البرنامج',
+            text: 'تقود الساحات إلى أربع وظائف، تربطها ممرات وباحات مشجّرة.',
+            tag: 'المشهد الطبيعي / الماء',
+            alt: 'أربعة فروع للبرنامج مرتبطة حول فضاء عام متصل',
+          },
+        ],
+      },
+      captions: {
+        '01': { title: 'أرض مفتوحة', text: 'تحدّد أشكال بوابات قائمة بذاتها باحات مشجّرة، فتمنح الفضاءات المفتوحة إيقاعًا واضحًا للوصول والتجمّع.' },
+        '02': { title: 'الباحة المشتركة', text: 'يرسو في الباحة جناح من العقود المدبّبة، تحيط به الأروقة وأشجار النخيل والأطراف المظلّلة.' },
+        '03': { title: 'تأطير المَعلم', text: 'تؤطّر العقود المدبّبة المتكرّرة الطريق نحو المَعلم المضلّع، رابطةً الإيقاع المعماري بحركة التنقّل في المجمّع.' },
+        '04': { title: 'وصلات مظلّلة', text: 'يصنع غرس النخيل والعقود المتكرّرة تتابعًا مظلّلًا بين حواف المباني والفضاءات الخارجية المشتركة.' },
+        '05': { title: 'الماء والتوقّف', text: 'تقدّم قناة مائية خطية وبرغولات مزروعة ومقاعد أماكنَ للاستراحة على طول مسار المشاة.' },
+      },
+    },
+  },
+  {
+    // ── PROJECT THREE · The Promethean Port ───────────────────────────────────
     // Images + logo: src/assets/projects/promethean-port/  (01-… is the cover; captions by number)
     // The long paragraphs (overview, concept, shared ground, envelope) go into `description`,
     // `concept.text`, `stages` items and `sections` below — each section appears as soon as it has text.
@@ -295,7 +433,7 @@ function buildProjects(lang) {
   return projectData.map((p, i) => {
     const text = p[lang]
     const is3d = Boolean(p.scene)
-    const imgs = projectImages(p.slug, text.captions, { coverFile: p.coverFile, keepCoverInGallery: is3d })
+    const imgs = projectImages(p.slug, text.captions, { coverFile: p.coverFile, keepCoverInGallery: is3d || Boolean(p.coverInGallery) })
     return {
       slug: p.slug,
       scene: p.scene,

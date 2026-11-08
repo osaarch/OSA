@@ -1862,6 +1862,125 @@ html.pj-ready .app .lang {
   display: block;
   margin-bottom: 1em;
 }
+/* ── Four Gates: the programme diagram and the three composition diagrams ─────────
+   Drawn in code (src/ui/GateDiagrams.jsx) in the page's own ink and background, so they
+   stay monochrome and follow the theme. */
+.gd {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+.gd-route {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+.gd-core {
+  fill: var(--bg);
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+.gd-zone {
+  fill: color-mix(in srgb, var(--ink) 9%, transparent);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.gd-mass {
+  fill: color-mix(in srgb, var(--ink) 20%, transparent);
+}
+.gd-plaza {
+  fill: var(--bg);
+  stroke: var(--ink-3);
+  stroke-width: 0.9;
+}
+.gd-dash {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.gd-block {
+  fill: color-mix(in srgb, var(--ink) 36%, transparent);
+}
+.gd-text {
+  fill: var(--ink);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-anchor: middle;
+}
+html[lang='ar'] .gd-text {
+  letter-spacing: 0;
+  font-size: 12px;
+}
+.gd-fig {
+  margin: 0 0 clamp(36px, 7vh, 80px);
+  max-width: 44rem;
+}
+.gd-fig figcaption {
+  margin-top: 0.9em;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+html[lang='ar'] .gd-fig figcaption {
+  letter-spacing: 0;
+  font-size: 13px;
+  text-transform: none;
+}
+.prog-t {
+  display: block;
+  margin-bottom: 0.9em;
+  font-weight: 400;
+}
+.prog-list p {
+  margin: 0;
+  max-width: 24em;
+  font-size: clamp(13px, 0.95vw, 15px);
+  line-height: 1.85;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink-2);
+}
+html[lang='ar'] .prog-list p {
+  font-size: 15px;
+  line-height: 1.95;
+}
+.p-comp > .p-h3 {
+  margin-bottom: 1em;
+}
+.p-comp > .body {
+  margin-bottom: clamp(36px, 7vh, 72px);
+}
+.p-comp ol {
+  grid-template-columns: repeat(3, 1fr);
+}
+.p-comp li .gd {
+  margin-top: 1.4em;
+}
+.st-tag {
+  display: block;
+  margin-top: 1.4em;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+html[lang='ar'] .st-tag {
+  letter-spacing: 0;
+  font-size: 13px;
+  text-transform: none;
+}
+@media (max-width: 900px) {
+  .p-comp ol {
+    grid-template-columns: 1fr;
+  }
+  .p-comp li {
+    max-width: 31rem;
+  }
+}
+
 .logo-img {
   display: block;
   width: clamp(84px, 8vw, 130px);
@@ -1899,6 +2018,10 @@ html[lang='ar'] .p-logo-row {
 .p-concept,
 .p-material {
   margin-top: 0;
+}
+/* a concept that opens the text (no overview above it) keeps the usual distance from the meta line */
+.p-meta + .p-concept {
+  margin-top: 12vh;
 }
 .p-h3 {
   margin: 0 0 1.3em;

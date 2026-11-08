@@ -1,6 +1,7 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
 import { Frame, Reveal } from '../ui/Frame'
+import { ProgrammeDiagram, StageDiagram } from '../ui/GateDiagrams'
 import { href } from '../router'
 import { clamp } from '../journey'
 import { SJ_VH, sj, stadiumWorld, useStadiumLoad } from '../scene/stadium/state'
@@ -71,6 +72,24 @@ export function ProjectLogo({ project, className = '' }) {
     <div className={`logo-slot ${className}`} role="img" aria-label="Project logo placeholder">
       <span>Logo</span>
     </div>
+  )
+}
+
+// The programme: a numbered list of plain lines, or of { title, text } items.
+function ProgrammeList({ items }) {
+  return (
+    <ul className="prog-list">
+      {items.map((it, i) => {
+        const item = typeof it === 'string' ? { title: it } : it
+        return (
+          <Reveal as="li" key={item.title} delay={0.04 * i}>
+            <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
+            {item.text ? <b className="prog-t">{item.title}</b> : item.title}
+            {item.text && <p>{item.text}</p>}
+          </Reveal>
+        )
+      })}
+    </ul>
   )
 }
 
@@ -401,6 +420,44 @@ export default function Project({ slug, go }) {
           </section>
         )}
 
+        {project.programmeDiagram && (
+          <section className="p-desc p-programme p-brief">
+            <Reveal as="h2" className="label">
+              <i>—</i> {ui.programme}
+            </Reveal>
+            <Reveal as="figure" className="gd-fig">
+              <ProgrammeDiagram d={project.programmeDiagram} />
+              <figcaption>{project.programmeDiagram.caption}</figcaption>
+            </Reveal>
+            <ProgrammeList items={project.programme} />
+          </section>
+        )}
+
+        {project.composition && (
+          <section className="p-steps p-comp" aria-label={project.composition.title}>
+            <Reveal as="h2" className="label">
+              <i>—</i> {project.composition.label}
+            </Reveal>
+            <Reveal as="h3" className="p-h3">
+              {project.composition.title}
+            </Reveal>
+            <Reveal as="p" className="body lg">
+              {project.composition.text}
+            </Reveal>
+            <ol>
+              {project.composition.steps.map((s, i) => (
+                <Reveal as="li" key={s.title} delay={0.06 * (i % 3)}>
+                  <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
+                  <StageDiagram n={i} alt={s.alt} />
+                  <b className="st-t">{s.title}</b>
+                  <p>{s.text}</p>
+                  {s.tag && <span className="st-tag">{s.tag}</span>}
+                </Reveal>
+              ))}
+            </ol>
+          </section>
+        )}
+
         {project.formGeneration && (
           <section className="p-steps" aria-label={ui.formGeneration}>
             <Reveal as="h2" className="label">
@@ -466,19 +523,12 @@ export default function Project({ slug, go }) {
             </section>
           ))}
 
-        {project.programme?.length > 0 && (
+        {project.programme?.length > 0 && !project.programmeDiagram && (
           <section className="p-desc p-programme">
             <Reveal as="h2" className="label">
               <i>—</i> {ui.programme}
             </Reveal>
-            <ul className="prog-list">
-              {project.programme.map((t, i) => (
-                <Reveal as="li" key={t} delay={0.04 * i}>
-                  <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
-                  {t}
-                </Reveal>
-              ))}
-            </ul>
+            <ProgrammeList items={project.programme} />
           </section>
         )}
 
