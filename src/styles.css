@@ -32,7 +32,7 @@
   --ink-2: rgba(255, 255, 255, 0.78);
   --ink-3: rgba(255, 255, 255, 0.5);
   --line: rgba(255, 255, 255, 0.18);
-  --sand: #d8c3a0;
+  --sand: #ffffff; /* accents are white: the identity is black and white */
 
   --pad: clamp(20px, 3.4vw, 56px);
   --rail: clamp(0px, 25vw, 430px);
@@ -2146,13 +2146,12 @@ html[lang='ar'] .p-logo-row {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   OSA PAGE — portrait on sandstone, headline, areas of work
+   OSA PAGE — portrait, headline, areas of work
    ═══════════════════════════════════════════════════════════════════════════ */
 .portrait-frame {
-  background: #dccbac; /* sandstone: the white of the photograph becomes this beige */
+  background: #ffffff; /* the photograph keeps its own white wall */
 }
 .portrait-frame .frame-img {
-  mix-blend-mode: multiply;
   /* the photograph is taller than the frame: trim the empty white above the head, never the shirt */
   object-position: 50% 100%;
 }

@@ -74,6 +74,7 @@ const profileShared = {
   portraitCaption: '',
   email: 'osama.architects@gmail.com',
   instagram: 'osa.arch',
+  linkedin: 'osaarch',
   phone: '+964 774 999 8299',
 }
 
@@ -100,7 +101,7 @@ const profileText = {
     worksIntro:
       'Selected architectural projects exploring form, landscape and public life. Each project presents a different approach to context, spatial experience and material expression.',
     contactIntro: 'For project inquiries and collaborations, get in touch.',
-    contactLabels: { email: 'Email', instagram: 'Instagram', phone: 'Phone' },
+    contactLabels: { email: 'Email', instagram: 'Instagram', linkedin: 'LinkedIn', phone: 'Phone' },
   },
   ar: {
     name: 'أسامة',
@@ -123,7 +124,7 @@ const profileText = {
     worksIntro:
       'مشاريع معمارية مختارة تستكشف الشكل والمشهد الطبيعي والحياة العامة. يقدّم كل مشروع مقاربة مختلفة للسياق والتجربة المكانية والتعبير المادي.',
     contactIntro: 'للاستفسار عن المشاريع وفرص التعاون، يسعدني تواصلكم.',
-    contactLabels: { email: 'البريد الإلكتروني', instagram: 'إنستغرام', phone: 'الهاتف' },
+    contactLabels: { email: 'البريد الإلكتروني', instagram: 'إنستغرام', linkedin: 'لينكدإن', phone: 'الهاتف' },
   },
 }
 
@@ -136,6 +137,7 @@ function buildProfile(lang) {
     contact: [
       { label: t.contactLabels.email, value: s.email, href: `mailto:${s.email}` },
       { label: t.contactLabels.instagram, value: `@${s.instagram}`, href: `https://instagram.com/${s.instagram}` },
+      { label: t.contactLabels.linkedin, value: `in/${s.linkedin}`, href: `https://www.linkedin.com/in/${s.linkedin}` },
       { label: t.contactLabels.phone, value: s.phone, href: `tel:${s.phone.replace(/\s/g, '')}`, ltr: true },
     ],
   }

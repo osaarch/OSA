@@ -15,9 +15,6 @@ export default function Osa({ go }) {
         </Reveal>
 
         <div className="osa-text">
-          <Reveal as="p" className="kicker" delay={0.08}>
-            {p.title}
-          </Reveal>
           <Reveal as="h1" id="osa-name" className="osa-name" delay={0.14}>
             {p.name}
           </Reveal>
