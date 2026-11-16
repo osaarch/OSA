@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 1140" role="img" aria-label="Four Gates Cultural Complex">
+<rect width="1140" height="1140" fill="#000"/>
+<defs><clipPath id="p"><polygon points="570,270.0 942.0,858.0 198.0,858.0"/></clipPath></defs>
+<g clip-path="url(#p)">
+<polygon points="446.0,270.0 508.0,368.0 446.0,466.0 384.0,368.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="570.0,270.0 632.0,368.0 570.0,466.0 508.0,368.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="694.0,270.0 756.0,368.0 694.0,466.0 632.0,368.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="384.0,368.0 446.0,466.0 384.0,564.0 322.0,466.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="508.0,368.0 570.0,466.0 508.0,564.0 446.0,466.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="632.0,368.0 694.0,466.0 632.0,564.0 570.0,466.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="756.0,368.0 818.0,466.0 756.0,564.0 694.0,466.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="322.0,466.0 384.0,564.0 322.0,662.0 260.0,564.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="446.0,466.0 508.0,564.0 446.0,662.0 384.0,564.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="570.0,466.0 632.0,564.0 570.0,662.0 508.0,564.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="694.0,466.0 756.0,564.0 694.0,662.0 632.0,564.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="818.0,466.0 880.0,564.0 818.0,662.0 756.0,564.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="260.0,564.0 322.0,662.0 260.0,760.0 198.0,662.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="384.0,564.0 446.0,662.0 384.0,760.0 322.0,662.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="508.0,564.0 570.0,662.0 508.0,760.0 446.0,662.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="632.0,564.0 694.0,662.0 632.0,760.0 570.0,662.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="756.0,564.0 818.0,662.0 756.0,760.0 694.0,662.0" fill="#000" stroke="#fff" stroke-width="15"/>
+<polygon points="880.0,564.0 942.0,662.0 880.0,760.0 818.0,662.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="198.0,662.0 260.0,760.0 198.0,858.0 136.0,760.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="322.0,662.0 384.0,760.0 322.0,858.0 260.0,760.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="446.0,662.0 508.0,760.0 446.0,858.0 384.0,760.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="570.0,662.0 632.0,760.0 570.0,858.0 508.0,760.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="694.0,662.0 756.0,760.0 694.0,858.0 632.0,760.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="818.0,662.0 880.0,760.0 818.0,858.0 756.0,760.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="942.0,662.0 1004.0,760.0 942.0,858.0 880.0,760.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="136.0,760.0 198.0,858.0 136.0,956.0 74.0,858.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="260.0,760.0 322.0,858.0 260.0,956.0 198.0,858.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="384.0,760.0 446.0,858.0 384.0,956.0 322.0,858.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="508.0,760.0 570.0,858.0 508.0,956.0 446.0,858.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="632.0,760.0 694.0,858.0 632.0,956.0 570.0,858.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="756.0,760.0 818.0,858.0 756.0,956.0 694.0,858.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+<polygon points="880.0,760.0 942.0,858.0 880.0,956.0 818.0,858.0" fill="#9a9a9a" stroke="#000" stroke-width="10.5"/>
+<polygon points="1004.0,760.0 1066.0,858.0 1004.0,956.0 942.0,858.0" fill="#ffffff" stroke="#000" stroke-width="10.5"/>
+</g>
+<polygon points="570,270.0 942.0,858.0 198.0,858.0" fill="none" stroke="#fff" stroke-width="15" stroke-linejoin="miter"/>
+</svg>

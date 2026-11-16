@@ -844,7 +844,7 @@ html.is-loading .ctl .lang span.is-on {
 
 .label {
   display: flex;
-  gap: 1.5em;
+  gap: 0;
   margin: 0 0 2.4em;
   font-size: 11px;
   font-weight: 400;
@@ -853,8 +853,7 @@ html.is-loading .ctl .lang span.is-on {
   color: var(--ink-3);
 }
 .label i {
-  font-style: normal;
-  color: var(--sand);
+  display: none; /* the little dash before each section title: one line fewer */
 }
 .kicker {
   margin: 0;
@@ -905,6 +904,18 @@ html.is-loading .ctl .lang span.is-on {
   display: block;
   width: 100%;
   height: auto;
+  filter: grayscale(1);
+  transition: filter 0.8s ease;
+}
+/* every image is black and white; the colour comes back under the pointer (or on a tap) */
+.frame-img:hover,
+.frame-img:active,
+.hero:hover .frame-img,
+.works-stage:hover .slide.is-active .frame-img {
+  filter: none;
+}
+.portrait-frame .frame-img {
+  filter: none;
 }
 .frame-ph {
   position: relative;
@@ -980,7 +991,6 @@ html.is-loading .ctl .lang span.is-on {
 .block {
   margin-top: 10vh;
   padding-top: 3.4vh;
-  border-top: 1px solid var(--line);
 }
 .statement {
   margin: 0 0 1.5em;
@@ -997,7 +1007,6 @@ html.is-loading .ctl .lang span.is-on {
 }
 .details div {
   padding: 1.2em 0 1.5em;
-  border-top: 1px solid var(--line);
 }
 .details dt {
   font-size: 10px;
@@ -1022,7 +1031,6 @@ html.is-loading .ctl .lang span.is-on {
   justify-content: space-between;
   gap: 2em;
   padding: 1.2em 0;
-  border-top: 1px solid var(--line);
   font-size: 14px;
   letter-spacing: 0.04em;
 }
@@ -1304,7 +1312,6 @@ html.is-loading .ctl .lang span.is-on {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 2.6em 3em;
-  border-bottom: 1px solid var(--line);
 }
 .meta-item span {
   display: block;
@@ -1388,7 +1395,6 @@ html.is-loading .ctl .lang span.is-on {
 .p-next {
   margin: 0 var(--pad) 0 calc(var(--rail) + var(--pad));
   padding: 14vh 0 20vh;
-  border-top: 1px solid var(--line);
 }
 .next-link {
   display: flex;
@@ -1853,7 +1859,6 @@ html.pj-ready .app .lang {
 }
 .prog-list li {
   padding: 1.6em 0 2.4em;
-  border-top: 1px solid var(--line);
   font-size: clamp(14px, 1.15vw, 19px);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2058,7 +2063,6 @@ html[lang='ar'] .p-logo-row {
 }
 .p-steps li {
   padding-top: 1.7em;
-  border-top: 1px solid var(--line);
 }
 .st-n {
   display: block;

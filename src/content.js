@@ -161,6 +161,7 @@ const projectData = [
     videoPoster: 'media/rafidain-form-generation-poster.jpg',
     en: {
       title: 'Al Rafidain Stadium',
+      year: '2025',
       location: 'Tikrit, Iraq',
       type: 'Sports Architecture and Landscape',
       format: 'Design Study',
@@ -199,6 +200,7 @@ const projectData = [
     },
     ar: {
       title: 'ملعب الرافدين',
+      year: '2025',
       location: 'تكريت، العراق',
       type: 'العمارة الرياضية والمشهد الطبيعي',
       format: 'دراسة تصميمية',
@@ -245,7 +247,7 @@ const projectData = [
     coverInGallery: true, // the cover is also one of the five architectural views (it carries a caption)
     en: {
       title: 'Four Gates Cultural Complex',
-      year: '2026',
+      year: '2025',
       location: 'Iraq',
       type: 'Islamic Cultural Complex / Mixed Use',
       summary:
@@ -310,7 +312,7 @@ const projectData = [
     },
     ar: {
       title: 'مجمع البوابات الأربع الثقافي',
-      year: '2026',
+      year: '2025',
       location: 'العراق',
       type: 'مجمع ثقافي إسلامي / متعدد الاستعمالات',
       summary: 'تتحوّل بوابات المرقد الأربع إلى أربع ساحات مفتوحة، تفتح كل منها طريقًا واضحًا إلى جزء مختلف من المجمّع الثقافي الإسلامي.',
@@ -375,13 +377,14 @@ const projectData = [
   },
   {
     // ── PROJECT THREE · The Promethean Port ───────────────────────────────────
-    // Images + logo: src/assets/projects/promethean-port/  (01-… is the cover; captions by number)
+    // Images + logo: src/assets/projects/promethean-port/  (10-… is the cover; captions by number)
     // The long paragraphs (overview, concept, shared ground, envelope) go into `description`,
     // `concept.text`, `stages` items and `sections` below — each section appears as soon as it has text.
     slug: 'promethean-port',
-    coverFile: '01-the-promethean-port.jpg',
+    coverFile: '10-public-life-after-dark.jpg',
     en: {
       title: 'The Promethean Port',
+      year: '2026',
       subtitle: 'Tesla Headquarters — Port Said',
       tagline: 'Where Abundance Takes Root',
       location: 'Port Said, Egypt',
@@ -406,6 +409,7 @@ const projectData = [
     },
     ar: {
       title: 'الميناء البروميثي',
+      year: '2026',
       subtitle: 'مقترح مقر تسلا في بورسعيد',
       tagline: 'حيث تتجذّر الوفرة',
       location: 'بورسعيد، مصر',
