@@ -2311,18 +2311,30 @@ html[lang='ar'] .works-list a {
 
 /* ── WORKS: the category chooser — words, and under them an album ───────── */
 .works-choose {
-  padding: clamp(100px, 15vh, 180px) var(--pad) clamp(36px, 6vh, 70px) calc(var(--rail) + var(--pad));
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(90px, 12vh, 150px) var(--pad) clamp(36px, 6vh, 70px) calc(var(--rail) + var(--pad));
+}
+/* the words on the left (never larger than the OSA mark), the open album to their right */
+.wc-zone {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(28px, 3.5vw, 64px);
 }
 .wc-words {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.1em clamp(28px, 4vw, 72px);
-  margin-bottom: clamp(24px, 5vh, 56px);
+  flex-direction: column;
+  gap: 0.3em;
+  font-size: clamp(20px, 2.6vw, 40px);
 }
 .wc-word {
-  font-size: clamp(34px, 5.4vw, 100px);
-  line-height: 1.12;
-  letter-spacing: 0.045em;
+  font-size: 1em;
+  line-height: 1.25;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--ink-2);
@@ -2343,22 +2355,24 @@ html[lang='ar'] .works-list a {
 }
 .wc-albums {
   position: relative;
-  min-height: clamp(300px, calc(100svh - 420px), 620px);
+  height: clamp(280px, 50vh, 520px);
 }
 .wc-album {
   position: absolute;
-  inset: 0 0 auto 0;
-  height: clamp(300px, calc(100svh - 420px), 620px);
+  inset: 0;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(14px);
-  transition: opacity 0.7s ease, transform 0.9s var(--ease-out), visibility 0s 0.7s;
+  transform: translateX(18px);
+  transition: opacity 0.6s ease, transform 0.8s var(--ease-out), visibility 0s 0.6s;
+}
+html[lang='ar'] .wc-album {
+  transform: translateX(-18px);
 }
 .wc-album.is-active {
   opacity: 1;
   visibility: visible;
   transform: none;
-  transition: opacity 0.8s ease 0.15s, transform 1s var(--ease-out) 0.15s;
+  transition: opacity 0.7s ease 0.1s, transform 0.9s var(--ease-out) 0.1s;
 }
 .wc-album-title {
   display: none;
@@ -2378,6 +2392,12 @@ html[lang='ar'] .works-list a {
 }
 .wc-tiles::-webkit-scrollbar {
   display: none;
+}
+html[lang='ar'] .wc-tiles {
+  margin-right: 0;
+  padding-right: 0;
+  margin-left: calc(-1 * var(--pad));
+  padding-left: var(--pad);
 }
 .wc-tiles:active {
   cursor: grabbing;
@@ -2648,17 +2668,22 @@ html[lang='ar'] .works-list a {
     margin-left: var(--pad);
   }
   .works-choose {
+    display: block;
     padding: 130px var(--pad) 60px;
   }
   /* no pointer to hover with: every category is written, with its album under it */
+  .wc-zone {
+    display: block;
+  }
   .wc-words {
     display: none;
   }
   .wc-albums {
-    min-height: 0;
+    height: auto;
   }
   .wc-album,
-  .wc-album.is-active {
+  .wc-album.is-active,
+  html[lang='ar'] .wc-album {
     position: static;
     height: auto;
     opacity: 1;
@@ -2669,9 +2694,9 @@ html[lang='ar'] .works-list a {
   .wc-album-title {
     display: block;
     margin-bottom: 0.5em;
-    font-size: clamp(30px, 9.2vw, 56px);
-    line-height: 1.12;
-    letter-spacing: 0.045em;
+    font-size: clamp(20px, 6vw, 28px);
+    line-height: 1.2;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
     text-decoration: none;
   }
@@ -2681,6 +2706,12 @@ html[lang='ar'] .works-list a {
     margin-right: calc(-1 * var(--pad));
     padding-right: var(--pad);
     touch-action: pan-x pan-y;
+  }
+  html[lang='ar'] .wc-tiles {
+    margin-right: 0;
+    padding-right: 0;
+    margin-left: calc(-1 * var(--pad));
+    padding-left: var(--pad);
   }
   .pr-head,
   .pr-grid,
