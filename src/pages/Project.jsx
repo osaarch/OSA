@@ -2,10 +2,14 @@ import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, use
 import { useI18n } from '../i18n'
 import { Frame, Reveal } from '../ui/Frame'
 import { ProgrammeDiagram, StageDiagram } from '../ui/GateDiagrams'
+
 import { href } from '../router'
 import { Arrow } from '../ui/Arrow'
 import { clamp } from '../journey'
 import { SJ_VH, sj, stadiumWorld, useStadiumLoad } from '../scene/stadium/state'
+
+// the hatched aerial view with its animation loads only on a project that has one
+const SitePlan = lazy(() => import('../ui/SitePlan'))
 
 // The project's own 3D journey is loaded on demand (three.js + the model), only for
 // projects that have one (`scene: 'stadium'` in src/content.js).
@@ -421,6 +425,17 @@ export default function Project({ slug, go }) {
                 </Reveal>
               ))}
             </div>
+          </section>
+        )}
+
+        {project.siteMotion && (
+          <section className="p-desc p-site" aria-label={project.siteMotion.label}>
+            <Reveal as="h2" className="label">
+              {project.siteMotion.label}
+            </Reveal>
+            <Suspense fallback={null}>
+              <SitePlan d={{ ...project.siteMotion, labels: project.programmeDiagram?.labels }} />
+            </Suspense>
           </section>
         )}
 

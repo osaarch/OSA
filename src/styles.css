@@ -1894,6 +1894,11 @@ html.pj-ready .app .lang {
   stroke: var(--ink-3);
   stroke-width: 0.9;
 }
+.gd-ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+}
 .gd-dash {
   fill: none;
   stroke: var(--ink-3);
@@ -2687,4 +2692,125 @@ html[lang='ar'] .works-list a {
   .pr-grid.is-single {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Four Gates: the hatched aerial view and the animation over it (src/ui/SitePlan.jsx) ── */
+.sp {
+  display: grid;
+  grid-template-columns: minmax(0, 720px) minmax(200px, 290px);
+  grid-template-rows: auto 1fr;
+  column-gap: clamp(24px, 3.4vw, 56px);
+  align-items: start;
+  margin: 0;
+}
+.sp .sp-frame {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+.sp .pc-cap {
+  grid-column: 2;
+  grid-row: 1;
+  margin-top: 0;
+  min-height: 11em;
+}
+.sp .pc-dots {
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 0.6em;
+}
+@media (max-width: 900px) {
+  .sp {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .sp .sp-frame,
+  .sp .pc-cap,
+  .sp .pc-dots {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .sp .pc-cap {
+    margin-top: clamp(14px, 2.5vh, 28px);
+    min-height: 9em;
+  }
+}
+.sp-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1400 / 1444;
+}
+.sp-plan {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 1.2s ease;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 100%);
+}
+.sp-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.sp-frame-line,
+.sp-dome {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3;
+  transition: opacity 0.8s ease;
+}
+.sp-square {
+  fill: rgba(255, 255, 255, 0.14);
+  stroke: var(--ink);
+  stroke-width: 4;
+  stroke-linejoin: round;
+  transition: opacity 0.9s ease;
+}
+.sp-route {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  transition: stroke-dashoffset 1.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.sp-gate-wrap {
+  transition: transform 1.6s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.7s ease;
+}
+.sp-gate {
+  fill: var(--ink);
+  stroke: #000;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.sp-name {
+  position: absolute;
+  display: grid;
+  gap: 0.2em;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: clamp(9px, 1.05vw, 13px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: var(--ink);
+  text-shadow: 0 0 5px #000, 0 0 10px #000, 0 0 2px #000;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+.sp-name-shrine {
+  transform: translate(-100%, -50%);
+  text-align: right;
+  padding-right: 0.6em;
+}
+html[lang='ar'] .sp-name {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: clamp(11px, 1.2vw, 15px);
+}
+html[lang='ar'] .sp-name-shrine {
+  text-align: left;
+  transform: translate(-100%, -50%);
 }
