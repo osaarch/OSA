@@ -10,7 +10,7 @@ const ITEMS = [
 // the --menu CSS variable); on every other page the very same element shrinks into
 // the corner, so the interface never "cuts" — it travels.
 export default function Menu({ view, onNavigate }) {
-  const current = view === 'project' ? 'works' : view
+  const current = ['project', 'category', 'product'].includes(view) ? 'works' : view
   return (
     <nav className="menu" aria-label="Primary">
       <ul>

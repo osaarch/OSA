@@ -435,6 +435,58 @@ const projectData = [
   },
 ]
 
+
+// ── PRODUCTS  (the second WORKS category: design objects — furniture, lamps, a podium …) ─────────
+// Add a piece by adding one entry here and dropping its renders into src/assets/projects/<slug>/
+// (01-…, 02-…; the cover is the file named in `coverFile`). A piece with a `model` gets a small
+// 3D viewer sized to the object (public/assets/products/<slug>.glb). `figure` picks the animated
+// concept drawing, if the piece has one. The WORKS chooser shows the category once it has a piece.
+const productData = [
+  {
+    slug: 'graduation-podium',
+    coverFile: '01-front.jpg',
+    model: 'assets/products/graduation-podium.glb',
+    figure: 'podium',
+    en: {
+      title: 'Graduation Podium',
+      location: 'University of Samarra',
+      type: 'Product',
+      captions: {},
+    },
+    ar: {
+      title: 'منصة التخرج',
+      location: 'جامعة سامراء',
+      type: 'منتج',
+      captions: {},
+    },
+  },
+]
+
+// ── WORKS categories: the chooser page and the headings of the lists ──────────
+// `kind: 'project'` categories open the cinematic project pages; `kind: 'piece'` categories open the
+// product pages (a 3D object, if the piece has a model). A category is shown only while it has an
+// entry: give a project (projectData) or a piece (productData) a `category: '<slug>'` and it appears.
+const categoryDefs = [
+  { slug: 'architecture', kind: 'project' },
+  { slug: 'landscape', kind: 'project' },
+  { slug: 'furniture', kind: 'piece' },
+  { slug: 'products', kind: 'piece' },
+]
+const categoryText = {
+  en: {
+    architecture: { title: 'Architecture', text: 'Buildings, landscapes and public space.', one: 'project', many: 'projects' },
+    landscape: { title: 'Landscape', text: 'Open ground, water and planting.', one: 'project', many: 'projects' },
+    furniture: { title: 'Furniture', text: 'Furniture and lamps: pieces made to be used.', one: 'piece', many: 'pieces' },
+    products: { title: 'Products', text: 'Design objects made to be handled.', one: 'piece', many: 'pieces' },
+  },
+  ar: {
+    architecture: { title: 'العمارة', text: 'مبانٍ ومشاهد طبيعية وفضاءات عامة.', one: 'مشروع واحد', two: 'مشروعان', many: 'مشاريع' },
+    landscape: { title: 'المشهد الطبيعي', text: 'أرض مفتوحة وماء ونباتات.', one: 'مشروع واحد', two: 'مشروعان', many: 'مشاريع' },
+    furniture: { title: 'الأثاث', text: 'أثاث وإضاءة: قطع صُنعت لتُستعمل.', one: 'قطعة واحدة', two: 'قطعتان', many: 'قطع' },
+    products: { title: 'المنتجات', text: 'قطع تصميمية تُلمس وتُستعمل.', one: 'قطعة واحدة', two: 'قطعتان', many: 'قطع' },
+  },
+}
+
 function buildProjects(lang) {
   return projectData.map((p, i) => {
     const text = p[lang]
@@ -442,6 +494,7 @@ function buildProjects(lang) {
     const imgs = projectImages(p.slug, text.captions, { coverFile: p.coverFile, keepCoverInGallery: is3d || Boolean(p.coverInGallery) })
     return {
       slug: p.slug,
+      category: p.category || 'architecture',
       scene: p.scene,
       placeholder: p.placeholder,
       ...text,
@@ -457,15 +510,59 @@ function buildProjects(lang) {
   })
 }
 
+
+function buildProducts(lang) {
+  return productData.map((p, i) => {
+    const text = p[lang]
+    const imgs = projectImages(p.slug, text.captions, { coverFile: p.coverFile, keepCoverInGallery: true })
+    return {
+      slug: p.slug,
+      category: p.category || 'products',
+      figure: p.figure,
+      ...text,
+      index: i,
+      cover: imgs.cover,
+      model: p.model ? (__SINGLE__ ? 'single' : import.meta.env.BASE_URL + p.model) : null,
+      gallery: imgs.gallery,
+      hasImages: imgs.count > 0,
+    }
+  })
+}
+
+function buildCategories(lang, projects, products) {
+  const t = categoryText[lang]
+  const count = (n, c) =>
+    lang === 'ar'
+      ? n === 1
+        ? c.one
+        : n === 2
+          ? c.two
+          : `${n} ${c.many}`
+      : `${n} ${n === 1 ? c.one : c.many}`
+  return categoryDefs
+    .map((d) => {
+      const own = d.kind === 'project' ? projects : products
+      const items = own
+        .filter((i) => i.category === d.slug)
+        .map((i) => ({ slug: i.slug, title: i.title, path: d.kind === 'project' ? `/works/${i.slug}` : `/works/piece/${i.slug}`, cover: i.cover }))
+      return { ...d, items, text: t[d.slug].text, title: t[d.slug].title, path: `/works/${d.slug}`, count: items.length, countLabel: count(items.length, t[d.slug]), cover: items[0]?.cover || null }
+    })
+    .filter((c) => c.count > 0)
+}
+
 const CONTENT = {}
 for (const lang of ['en', 'ar']) {
   const projects = buildProjects(lang)
+  const products = buildProducts(lang)
   CONTENT[lang] = {
     lang,
     intro: introText[lang],
     profile: buildProfile(lang),
     projects,
+    products,
+    categories: buildCategories(lang, projects, products),
     findProject: (slug) => projects.find((p) => p.slug === slug),
+    findProduct: (slug) => products.find((p) => p.slug === slug),
   }
 }
 
@@ -475,3 +572,4 @@ export const getContent = (lang) => CONTENT[lang] || CONTENT.en
 // Language-independent lookups (the scene a project uses, …) — English record.
 export const projects = CONTENT.en.projects
 export const findProject = CONTENT.en.findProject
+export const findProduct = CONTENT.en.findProduct

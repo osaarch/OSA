@@ -1,13 +1,23 @@
 import { useEffect, useState } from 'react'
 
 // Tiny hash router. Plain, readable hash names work on every static host (and inside
-// sandboxed frames):   (none) = home  ·  #osa  ·  #works  ·  #works-<project-slug>
+// sandboxed frames):   (none) = home  ·  #osa  ·  #works  ·  #works-<category>  ·  #works-<project-slug>  ·  #works-piece-<slug>
 // The browser's back / forward buttons work between pages.
 // (The older "#/osa" style is still understood so existing links keep working.)
+
+export const CATS = ['architecture', 'landscape', 'furniture', 'products']
 
 export function parseHash(hash = window.location.hash) {
   const h = decodeURIComponent(hash.replace(/^#\/?/, '')).replace(/\/+/g, '-').replace(/-+$/, '')
   if (h === 'osa') return { name: 'osa', path: '/osa' }
+  // WORKS has categories: #works-architecture, #works-landscape, #works-furniture, #works-products;
+  // a design piece is #works-piece-<slug>; an architecture / landscape project is #works-<slug>
+  if (CATS.includes(h.replace(/^works-/, '')) && h.startsWith('works-'))
+    return { name: 'category', cat: h.slice(6), path: `/works/${h.slice(6)}` }
+  if (h.startsWith('works-piece-') && h.length > 12) {
+    const slug = h.slice(12)
+    return { name: 'product', slug, path: `/works/piece/${slug}` }
+  }
   if (h.startsWith('works-') && h.length > 6) {
     const slug = h.slice(6)
     return { name: 'project', slug, path: `/works/${slug}` }

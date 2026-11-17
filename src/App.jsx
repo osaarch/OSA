@@ -11,11 +11,15 @@ import LangToggle from './ui/LangToggle'
 import NightToggle from './ui/NightToggle'
 import Rain from './ui/Rain'
 import { useI18n } from './i18n'
+import { Arrow } from './ui/Arrow'
 import { audio, createEngine, homeMood, renderOffline } from './audio'
 import { setRainZone } from './night'
-import { findProject } from './content'
+import { findProduct, findProject } from './content'
 import Osa from './pages/Osa'
 import Works from './pages/Works'
+import Stage from './pages/Stage'
+import Products from './pages/Products'
+import Product from './pages/Product'
 import Project from './pages/Project'
 
 // The 3D bundle is loaded on demand, so a visitor who lands straight on #works
@@ -47,7 +51,8 @@ if (/[?&]debug\b/.test(window.location.search)) window.__osaAudio = { renderOffl
 
 export default function App() {
   const route = useHashRoute()
-  const { ui } = useI18n()
+  const { ui, categories } = useI18n()
+  const catKind = route.name === 'category' ? categories.find((c) => c.slug === route.cat)?.kind : null
   const [leaving, setLeaving] = useState(false)
   const [entering, setEntering] = useState(true)
   const [sceneWanted, setSceneWanted] = useState(route.name === 'home')
@@ -157,8 +162,11 @@ export default function App() {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'Escape') return
-      if (routeName.current === 'project') go('/works')
-      else if (routeName.current !== 'home') go('/')
+      const here = parseHash()
+      if (here.name === 'project') go(`/works/${findProject(here.slug)?.category || 'architecture'}`)
+      else if (here.name === 'product') go(`/works/${findProduct(here.slug)?.category || 'products'}`)
+      else if (here.name === 'category') go('/works')
+      else if (here.name !== 'home') go('/')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -210,6 +218,10 @@ export default function App() {
       <div className={`pages${leaving ? ' is-leaving' : ''}${entering ? ' entering' : ''}`}>
         {route.name === 'osa' && <Osa key="osa" go={go} />}
         {route.name === 'works' && <Works key="works" go={go} />}
+        {route.name === 'category' && catKind === 'project' && <Stage key={route.cat} cat={route.cat} go={go} />}
+        {route.name === 'category' && catKind === 'piece' && <Products key={route.cat} cat={route.cat} go={go} />}
+        {route.name === 'category' && !catKind && <Works key="works" go={go} />}
+        {route.name === 'product' && <Product key={route.slug} slug={route.slug} go={go} />}
         {route.name === 'project' && <Project key={route.slug} slug={route.slug} go={go} />}
       </div>
 
@@ -222,7 +234,7 @@ export default function App() {
             flyBack()
           }}
         >
-          <span aria-hidden="true">↑</span> {ui.flyBackMalwiya}
+          <Arrow dir="up" className="arr-up" /> {ui.flyBackMalwiya}
         </a>
       )}
 

@@ -1,6 +1,7 @@
 import { scrollMax } from '../journey'
 import { flyTo } from '../router'
 import { useI18n } from '../i18n'
+import { Arrow } from './Arrow'
 
 // Quiet instrument layer that lives over the 3D journey. Everything here is driven
 // by CSS variables written from the render loop (--intro, --menu, --p), so it
@@ -39,7 +40,7 @@ export default function Hud({ onReplay }) {
       </button>
 
       <button className="hud-replay" type="button" onClick={onReplay}>
-        <span aria-hidden="true">↑</span> {ui.flyBack}
+        <Arrow dir="up" className="arr-up" /> {ui.flyBack}
       </button>
 
       <div className="rail" aria-hidden="true">

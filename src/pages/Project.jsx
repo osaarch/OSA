@@ -3,6 +3,7 @@ import { useI18n } from '../i18n'
 import { Frame, Reveal } from '../ui/Frame'
 import { ProgrammeDiagram, StageDiagram } from '../ui/GateDiagrams'
 import { href } from '../router'
+import { Arrow } from '../ui/Arrow'
 import { clamp } from '../journey'
 import { SJ_VH, sj, stadiumWorld, useStadiumLoad } from '../scene/stadium/state'
 
@@ -83,7 +84,6 @@ function ProgrammeList({ items }) {
         const item = typeof it === 'string' ? { title: it } : it
         return (
           <Reveal as="li" key={item.title} delay={0.04 * i}>
-            <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
             {item.text ? <b className="prog-t">{item.title}</b> : item.title}
             {item.text && <p>{item.text}</p>}
           </Reveal>
@@ -142,7 +142,7 @@ function ProjectVideo({ src, poster, label }) {
 }
 
 // ── the 3D journey: a tall, scrollable section with a sticky instrument layer ──
-function Journey({ project, go, jrRef, onFail }) {
+function Journey({ project, go, jrRef, onFail, backPath, backLabel }) {
   const load = useStadiumLoad()
   const { ui } = useI18n()
   useEffect(() => {
@@ -169,14 +169,14 @@ function Journey({ project, go, jrRef, onFail }) {
           </h1>
 
           <a
-            href={href('/works')}
+            href={href(backPath)}
             className="back pj-back"
             onClick={(e) => {
               e.preventDefault()
-              go('/works')
+              go(backPath)
             }}
           >
-            <span aria-hidden="true" className="arr-back">←</span> {ui.allWorks}
+            <Arrow dir="left" className="arr-back" /> {backLabel}
           </a>
 
           <div className="pj-chap" aria-hidden="true">
@@ -228,8 +228,12 @@ function Journey({ project, go, jrRef, onFail }) {
 }
 
 export default function Project({ slug, go }) {
-  const { findProject, projects, ui } = useI18n()
+  const { findProject, projects: allProjects, categories, ui } = useI18n()
   const project = findProject(slug)
+  const cat = project ? categories.find((c) => c.slug === project.category) : null
+  const backPath = `/works/${project?.category || 'architecture'}`
+  const backLabel = cat?.title || ui.worksTitle
+  const projects = allProjects.filter((p) => !project || p.category === project.category)
   const ref = useRef(null)
   const jrRef = useRef(null)
   const [failed3d, setFailed3d] = useState(false)
@@ -290,21 +294,21 @@ export default function Project({ slug, go }) {
         <div className="notfound">
           <p>{ui.notFound}</p>
           <a
-            href={href('/works')}
+            href={href(backPath)}
             className="link-arrow"
             onClick={(e) => {
               e.preventDefault()
-              go('/works')
+              go(backPath)
             }}
           >
-            {ui.backToWorks} <span aria-hidden="true" className="arr">→</span>
+            {ui.worksTitle} <Arrow />
           </a>
         </div>
       </main>
     )
   }
 
-  const next = projects[(project.index + 1) % projects.length]
+  const next = projects[(projects.findIndex((p) => p.slug === project.slug) + 1) % projects.length]
   const meta = [
     [ui.meta.year, project.year],
     [ui.meta.location, project.location],
@@ -319,16 +323,16 @@ export default function Project({ slug, go }) {
   return (
     <main className={`page project${is3d ? ' is-3d' : ''}`} ref={ref} aria-labelledby="project-title">
       {is3d ? (
-        <Journey project={project} go={go} jrRef={jrRef} onFail={onFail} />
+        <Journey project={project} go={go} jrRef={jrRef} onFail={onFail} backPath={backPath} backLabel={backLabel} />
       ) : (
         <header className="hero">
           <div className="hero-media">
-            <Frame src={project.cover} alt={project.title} label={`${project.number} — ${project.title}`} eager />
+            <Frame src={project.cover} alt={project.title} label={project.title} eager />
           </div>
           <div className="hero-shade" />
           <div className="hero-copy">
             <p className="kicker">
-              {project.number} <span>/</span> {project.type}
+              {project.type}
             </p>
             <h1 id="project-title">{project.title}</h1>
             {project.titleAr && (
@@ -341,14 +345,14 @@ export default function Project({ slug, go }) {
             <p className="hero-sum">{project.summary}</p>
           </div>
           <a
-            href={href('/works')}
+            href={href(backPath)}
             className="back"
             onClick={(e) => {
               e.preventDefault()
-              go('/works')
+              go(backPath)
             }}
           >
-            <span aria-hidden="true" className="arr-back">←</span> {ui.allWorks}
+            <Arrow dir="left" className="arr-back" /> {backLabel}
           </a>
         </header>
       )}
@@ -358,7 +362,7 @@ export default function Project({ slug, go }) {
           <header className="pb-head">
             {/* the logo already closed the journey: it is not repeated here, the text simply begins */}
             <p className="kicker">
-              {project.number} <span>/</span> {project.type}
+              {project.type}
             </p>
             <h1 id="project-title">{project.title}</h1>
             {project.titleAr && (
@@ -390,7 +394,7 @@ export default function Project({ slug, go }) {
         {project.description?.length > 0 && (
           <section className="p-desc">
             <Reveal as="h2" className="label">
-              <i>—</i> {ui.overview}
+              {ui.overview}
             </Reveal>
             <div>
               {project.description.map((t, i) => (
@@ -405,7 +409,7 @@ export default function Project({ slug, go }) {
         {project.concept?.text?.length > 0 && (
           <section className="p-desc p-concept">
             <Reveal as="h2" className="label">
-              <i>—</i> {ui.concept}
+              {ui.concept}
             </Reveal>
             <div>
               <Reveal as="h3" className="p-h3">
@@ -423,7 +427,7 @@ export default function Project({ slug, go }) {
         {project.programmeDiagram && (
           <section className="p-desc p-programme p-brief">
             <Reveal as="h2" className="label">
-              <i>—</i> {ui.programme}
+              {ui.programme}
             </Reveal>
             <Reveal as="figure" className="gd-fig">
               <ProgrammeDiagram d={project.programmeDiagram} />
@@ -436,7 +440,7 @@ export default function Project({ slug, go }) {
         {project.composition && (
           <section className="p-steps p-comp" aria-label={project.composition.title}>
             <Reveal as="h2" className="label">
-              <i>—</i> {project.composition.label}
+              {project.composition.label}
             </Reveal>
             <Reveal as="h3" className="p-h3">
               {project.composition.title}
@@ -447,7 +451,6 @@ export default function Project({ slug, go }) {
             <ol>
               {project.composition.steps.map((s, i) => (
                 <Reveal as="li" key={s.title} delay={0.06 * (i % 3)}>
-                  <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
                   <StageDiagram n={i} alt={s.alt} />
                   <b className="st-t">{s.title}</b>
                   <p>{s.text}</p>
@@ -461,13 +464,12 @@ export default function Project({ slug, go }) {
         {project.formGeneration && (
           <section className="p-steps" aria-label={ui.formGeneration}>
             <Reveal as="h2" className="label">
-              <i>—</i> {ui.formGeneration}
+              {ui.formGeneration}
             </Reveal>
             {project.video && <ProjectVideo src={project.video} poster={project.videoPoster} label={ui.formGeneration} />}
             <ol>
               {project.formGeneration.map((s, i) => (
                 <Reveal as="li" key={s.title} delay={0.06 * (i % 3)}>
-                  <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
                   <b className="st-t">{s.title}</b>
                   <p>{s.text}</p>
                 </Reveal>
@@ -479,7 +481,7 @@ export default function Project({ slug, go }) {
         {project.material && (
           <section className="p-desc p-material">
             <Reveal as="h2" className="label">
-              <i>—</i> {project.material.title}
+              {project.material.title}
             </Reveal>
             <div>
               <Reveal as="p" className="body lg">
@@ -492,12 +494,11 @@ export default function Project({ slug, go }) {
         {project.stages && (
           <section className="p-steps" aria-label={project.stages.title}>
             <Reveal as="h2" className="label">
-              <i>—</i> {project.stages.title}
+              {project.stages.title}
             </Reveal>
             <ol>
               {project.stages.items.map((s, i) => (
                 <Reveal as="li" key={s.title} delay={0.06 * (i % 3)}>
-                  <span className="st-n">{String(i + 1).padStart(2, '0')}</span>
                   <b className="st-t">{s.title}</b>
                   {s.text && <p>{s.text}</p>}
                 </Reveal>
@@ -511,7 +512,7 @@ export default function Project({ slug, go }) {
           .map((sec) => (
             <section className="p-desc p-material" key={sec.title}>
               <Reveal as="h2" className="label">
-                <i>—</i> {sec.title}
+              {sec.title}
               </Reveal>
               <div>
                 {sec.text.map((t, i) => (
@@ -526,7 +527,7 @@ export default function Project({ slug, go }) {
         {project.programme?.length > 0 && !project.programmeDiagram && (
           <section className="p-desc p-programme">
             <Reveal as="h2" className="label">
-              <i>—</i> {ui.programme}
+              {ui.programme}
             </Reveal>
             <ProgrammeList items={project.programme} />
           </section>
@@ -553,7 +554,7 @@ export default function Project({ slug, go }) {
 
         <footer className="p-next">
           <Reveal as="p" className="label">
-            <i>→</i> {ui.nextProject}
+            {ui.nextProject}
           </Reveal>
           <a
             href={href(`/works/${next.slug}`)}
@@ -563,7 +564,6 @@ export default function Project({ slug, go }) {
               go(`/works/${next.slug}`)
             }}
           >
-            <span className="next-n">{next.number}</span>
             <span className="next-t">{next.title}</span>
           </a>
           {project.placeholder && !project.hasImages && <p className="placeholder-note">{ui.placeholderNote}</p>}

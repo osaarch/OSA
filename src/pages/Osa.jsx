@@ -1,6 +1,7 @@
 import { useI18n } from '../i18n'
 import { Frame, Reveal } from '../ui/Frame'
 import { href } from '../router'
+import { Arrow } from '../ui/Arrow'
 
 export default function Osa({ go }) {
   const { profile: p, ui } = useI18n()
@@ -27,7 +28,7 @@ export default function Osa({ go }) {
 
           <section className="block">
             <Reveal as="h2" className="label">
-              <i>01</i> {ui.biography}
+              {ui.biography}
             </Reveal>
             {p.biography.map((t, i) => (
               <Reveal as="p" className="body" key={i} delay={0.05 * i}>
@@ -38,7 +39,7 @@ export default function Osa({ go }) {
 
           <section className="block">
             <Reveal as="h2" className="label">
-              <i>02</i> {ui.philosophy}
+              {ui.philosophy}
             </Reveal>
             {p.philosophy.paragraphs.map((t, i) => (
               <Reveal as="p" className="body" key={i} delay={0.05 * i}>
@@ -52,12 +53,11 @@ export default function Osa({ go }) {
 
           <section className="block">
             <Reveal as="h2" className="label">
-              <i>03</i> {ui.areas}
+              {ui.areas}
             </Reveal>
             <Reveal as="dl" className="details areas">
-              {p.areas.map((a, i) => (
+              {p.areas.map((a) => (
                 <div key={a}>
-                  <dt>{String(i + 1).padStart(2, '0')}</dt>
                   <dd>{a}</dd>
                 </div>
               ))}
@@ -66,7 +66,7 @@ export default function Osa({ go }) {
 
           <section className="block">
             <Reveal as="h2" className="label">
-              <i>04</i> {ui.contact}
+              {ui.contact}
             </Reveal>
             <Reveal as="p" className="body contact-intro">
               {p.contactIntro}
@@ -97,7 +97,7 @@ export default function Osa({ go }) {
               }}
               className="link-arrow"
             >
-              {ui.viewWorks} <span aria-hidden="true" className="arr">→</span>
+              {ui.viewWorks} <Arrow />
             </a>
           </Reveal>
           <p className="site-foot">{ui.rights}</p>
