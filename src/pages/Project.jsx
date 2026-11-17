@@ -30,7 +30,7 @@ class Boundary extends Component {
 // Editorial rhythm: full-bleed → pair → offset → pair → full → offset …
 const PATTERN = ['full', 'pair', 'offsetR', 'pair', 'full', 'offsetL']
 
-function buildBlocks(project) {
+export function buildBlocks(project) {
   const imgs = project.hasImages
     ? project.gallery
     : Array.from({ length: 5 }, (_, i) => ({ src: null, caption: '', label: `Image ${String(i + 1).padStart(2, '0')}` }))
@@ -51,7 +51,7 @@ function buildBlocks(project) {
 }
 
 // A caption is either a plain line or { title, text }.
-function Caption({ caption }) {
+export function Caption({ caption }) {
   if (!caption) return null
   if (typeof caption === 'string') return <figcaption>{caption}</figcaption>
   return (

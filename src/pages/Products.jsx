@@ -43,7 +43,7 @@ export default function Products({ go, cat: slug }) {
               </div>
               <div className="pr-cap">
                 <span className="pr-name">{p.title}</span>
-                <span className="pr-meta">{[p.location, p.year].filter(Boolean).join(' · ')}</span>
+                <span className="pr-meta">{p.location}</span>
                 <span className="pr-open">
                   {ui.openPiece} <Arrow />
                 </span>

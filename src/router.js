@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react'
 // The browser's back / forward buttons work between pages.
 // (The older "#/osa" style is still understood so existing links keep working.)
 
-export const CATS = ['architecture', 'landscape', 'furniture', 'products']
+export const CATS = ['architecture', 'landscape', 'products']
 
 export function parseHash(hash = window.location.hash) {
   const h = decodeURIComponent(hash.replace(/^#\/?/, '')).replace(/\/+/g, '-').replace(/-+$/, '')
   if (h === 'osa') return { name: 'osa', path: '/osa' }
-  // WORKS has categories: #works-architecture, #works-landscape, #works-furniture, #works-products;
+  // WORKS has categories: #works-architecture, #works-landscape, #works-products;
   // a design piece is #works-piece-<slug>; an architecture / landscape project is #works-<slug>
   if (CATS.includes(h.replace(/^works-/, '')) && h.startsWith('works-'))
     return { name: 'category', cat: h.slice(6), path: `/works/${h.slice(6)}` }

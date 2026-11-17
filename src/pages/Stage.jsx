@@ -75,7 +75,7 @@ export default function Stage({ go, cat: slug }) {
           {cur.logo && <ProjectLogo project={cur} className="cap-logo" />}
           <span className="cap-t">{cur.title}</span>
           <span className="cap-m">
-            {[cur.location, cur.year, cur.type].filter(Boolean).join(' · ')}
+            {[cur.location, cur.type].filter(Boolean).join(' · ')}
           </span>
         </div>
         <span className="stage-open" aria-hidden="true">
@@ -110,7 +110,6 @@ export default function Stage({ go, cat: slug }) {
               }}
             >
               <span className="t">{p.title}</span>
-              <span className="y">{p.year || ''}</span>
             </a>
           </li>
         ))}

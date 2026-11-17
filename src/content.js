@@ -449,15 +449,60 @@ const productData = [
     figure: 'podium',
     en: {
       title: 'Graduation Podium',
-      location: 'University of Samarra',
-      type: 'Product',
-      captions: {},
+      year: '',
+      location: 'University of Samarra · College of Engineering',
+      type: 'Product Design · Graduation Podium',
+      format: 'Design Object · 3D Model',
+      summary:
+        "A graduation podium for the University of Samarra's College of Engineering. It takes the idea of stepping from Al-Malwiya and its profile from a pointed arch.",
+      description: [
+        'The podium takes one idea from Al-Malwiya: stepping, the way the form climbs in tiers. Its profile comes from a pointed arch.',
+        'The arch is cut in half along its axis, and each half is given the stepping. Mirrored, the stepped halves open outward as two wings, and a stepped arch stands between them on a low base.',
+      ],
+      concept: {
+        title: 'From the Malwiya to the podium',
+        text: [
+          'Al-Malwiya climbs in a spiral of tiers. Only its stepping is taken, not its shape.',
+          'The arch is divided in half, each half steps down like the tiers, and together they become the wings and the centre of the podium.',
+        ],
+      },
+      figureStages: [
+        { title: 'Al-Malwiya', text: 'A spiral that climbs in tiers: the idea of stepping.' },
+        { title: 'The arch', text: 'A pointed gateway arch gives the profile.' },
+        { title: 'Half of the arch', text: 'The arch is cut in half along its axis.' },
+        { title: 'Stepping', text: 'Each half takes the stepping of the Malwiya.' },
+        { title: 'The wings', text: 'Mirrored, the stepped halves open outward.' },
+        { title: 'The podium', text: 'A low base joins the wings and the central arch.' },
+      ],
+      captions: { '01': 'Front', '02': 'Three-quarter', '03': 'From above' },
     },
     ar: {
       title: 'منصة التخرج',
-      location: 'جامعة سامراء',
-      type: 'منتج',
-      captions: {},
+      year: '',
+      location: 'جامعة سامراء · كلية الهندسة',
+      type: 'تصميم منتج · منصة تخرّج',
+      format: 'قطعة تصميمية · نموذج ثلاثي الأبعاد',
+      summary: 'منصة تخرّج لكلية الهندسة في جامعة سامراء. تأخذ فكرة التدرّج من الملوية، وصورتها من قوس مدبّب.',
+      description: [
+        'تأخذ المنصة من الملوية فكرة واحدة: التدرّج، أي صعود الشكل على طبقات. أما صورتها فمن قوس مدبّب.',
+        'يُقسم القوس إلى نصفين على محوره، ويُعطى كل نصف التدرّج. وبالانعكاس ينفتح النصفان المتدرّجان إلى الخارج كجناحين، ويقف بينهما قوس متدرّج فوق قاعدة منخفضة.',
+      ],
+      concept: {
+        title: 'من الملوية إلى المنصة',
+        text: [
+          'تصعد الملوية بحلزون من الطبقات. المأخوذ منها التدرّج فقط، لا شكلها.',
+          'يُقسم القوس إلى نصفين، وينزل كل نصف على درجات مثل الطبقات، ومعًا يصيران جناحي المنصة ووسطها.',
+        ],
+      },
+      figureStages: [
+        { title: 'الملوية', text: 'حلزون يصعد على طبقات: فكرة التدرّج.' },
+        { title: 'القوس', text: 'قوس بوابة مدبّب يعطي الصورة.' },
+        { title: 'نصف القوس', text: 'يُقسم القوس إلى نصفين على محوره.' },
+        { title: 'التدرّج', text: 'يأخذ كل نصف تدرّج الملوية.' },
+        { title: 'الجناحان', text: 'بالانعكاس ينفتح النصفان المتدرّجان إلى الخارج.' },
+        { title: 'المنصة', text: 'قاعدة منخفضة تجمع الجناحين والقوس الأوسط.' },
+      ],
+      captions: { '01': 'من الأمام', '02': 'منظور جانبي', '03': 'من الأعلى' },
     },
   },
 ]
@@ -469,21 +514,18 @@ const productData = [
 const categoryDefs = [
   { slug: 'architecture', kind: 'project' },
   { slug: 'landscape', kind: 'project' },
-  { slug: 'furniture', kind: 'piece' },
   { slug: 'products', kind: 'piece' },
 ]
 const categoryText = {
   en: {
     architecture: { title: 'Architecture', text: 'Buildings, landscapes and public space.', one: 'project', many: 'projects' },
     landscape: { title: 'Landscape', text: 'Open ground, water and planting.', one: 'project', many: 'projects' },
-    furniture: { title: 'Furniture', text: 'Furniture and lamps: pieces made to be used.', one: 'piece', many: 'pieces' },
-    products: { title: 'Products', text: 'Design objects made to be handled.', one: 'piece', many: 'pieces' },
+    products: { title: 'Product', text: 'Design objects: furniture, lamps and pieces made to be handled.', one: 'piece', many: 'pieces' },
   },
   ar: {
     architecture: { title: 'العمارة', text: 'مبانٍ ومشاهد طبيعية وفضاءات عامة.', one: 'مشروع واحد', two: 'مشروعان', many: 'مشاريع' },
     landscape: { title: 'المشهد الطبيعي', text: 'أرض مفتوحة وماء ونباتات.', one: 'مشروع واحد', two: 'مشروعان', many: 'مشاريع' },
-    furniture: { title: 'الأثاث', text: 'أثاث وإضاءة: قطع صُنعت لتُستعمل.', one: 'قطعة واحدة', two: 'قطعتان', many: 'قطع' },
-    products: { title: 'المنتجات', text: 'قطع تصميمية تُلمس وتُستعمل.', one: 'قطعة واحدة', two: 'قطعتان', many: 'قطع' },
+    products: { title: 'المنتج', text: 'قطع تصميمية: أثاث وإضاءة وأعمال تُلمس وتُستعمل.', one: 'قطعة واحدة', two: 'قطعتان', many: 'قطع' },
   },
 }
 
