@@ -13,6 +13,7 @@ import { audio } from './audio'
 // ─────────────────────────────────────────────────────────────────────────────
 export const THEMES = ['day', 'night', 'dark']
 const KEY = 'osa-theme'
+const DEFAULT = 'dark' // what a first-time visitor sees (a saved choice always wins)
 const LEGACY = 'osa-night' // the old Day / Night switch
 
 const fromUrl = () => {
@@ -29,9 +30,9 @@ const read = () => {
   try {
     const t = localStorage.getItem(KEY)
     if (THEMES.includes(t)) return t
-    return localStorage.getItem(LEGACY) === 'on' ? 'night' : 'day'
+    return localStorage.getItem(LEGACY) === 'on' ? 'night' : DEFAULT
   } catch (e) {
-    return 'day'
+    return DEFAULT
   }
 }
 
