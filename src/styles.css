@@ -33,6 +33,13 @@
   --ink-3: rgba(255, 255, 255, 0.5);
   --line: rgba(255, 255, 255, 0.18);
   --sand: #ffffff; /* accents are white: the identity is black and white */
+  --surface: #070707; /* the dark ground of placeholders, stages, media */
+  --faint: rgba(255, 255, 255, 0.1);
+  --track: rgba(255, 255, 255, 0.28);
+  --glass: rgba(0, 0, 0, 0.55);
+  --scroll: #2b2b2b;
+  --tint: 0%; /* how far the corner ink has gone to black (Day only) */
+  --pj-tint: 0%;
 
   --pad: clamp(20px, 3.4vw, 56px);
   --rail: clamp(0px, 25vw, 430px);
@@ -56,6 +63,23 @@
 }
 html.is-intro {
   --hud-in: 0;
+}
+/* DAY — the site is white: white ground, black ink. Night and Dark keep the black site. */
+html:not(.is-night):not(.is-dark) {
+  --bg: #ffffff;
+  --ink: #000000;
+  --ink-2: rgba(0, 0, 0, 0.78);
+  --ink-3: rgba(0, 0, 0, 0.5);
+  --line: rgba(0, 0, 0, 0.16);
+  --sand: #000000;
+  --surface: #f3f3f3;
+  --faint: rgba(0, 0, 0, 0.08);
+  --track: rgba(0, 0, 0, 0.2);
+  --glass: rgba(255, 255, 255, 0.82);
+  --scroll: #c9c9c9;
+  --tint: calc(var(--black) * 100%);
+  --pj-tint: calc(var(--pj-black, 0) * 100%);
+  color-scheme: light;
 }
 
 *,
@@ -88,7 +112,7 @@ a {
 }
 ::selection {
   background: var(--sand);
-  color: #000;
+  color: var(--bg);
 }
 :focus-visible {
   outline: 1px solid var(--sand);
@@ -140,7 +164,7 @@ html.is-loading .stage {
   position: fixed;
   inset: 0;
   z-index: 4;
-  background: #000;
+  background: var(--bg);
   opacity: var(--black);
   pointer-events: none;
 }
@@ -151,6 +175,12 @@ html.is-loading .stage {
   inset: 0;
   z-index: 100;
   background: #000;
+  /* the loading / entry screen is always black, so it keeps the light ink in every theme */
+  --ink: #ffffff;
+  --ink-2: rgba(255, 255, 255, 0.78);
+  --ink-3: rgba(255, 255, 255, 0.5);
+  --line: rgba(255, 255, 255, 0.18);
+  --sand: #ffffff;
   display: grid;
   place-content: center;
   justify-items: center;
@@ -361,7 +391,7 @@ html.is-intro.is-started .intro-skip {
   text-transform: uppercase;
   cursor: pointer;
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff);
+  color: color-mix(in srgb, #000 var(--tint), color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff));
   opacity: 0.74;
   -webkit-tap-highlight-color: transparent;
   transition: opacity 0.4s, color 0.7s;
@@ -410,7 +440,7 @@ html.is-intro.is-started .intro-skip {
   width: 38px;
   height: 118px;
   border-radius: 15px;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--glass);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   opacity: 0;
@@ -446,7 +476,7 @@ html.is-intro.is-started .intro-skip {
   margin: 0;
   padding: 0;
   background: transparent;
-  color: #ffffff;
+  color: var(--ink);
   cursor: pointer;
   transform: translate(-50%, -50%) rotate(-90deg);
 }
@@ -455,7 +485,7 @@ html.is-intro.is-started .intro-skip {
 }
 .vol::-webkit-slider-runnable-track {
   height: 1px;
-  background: linear-gradient(to right, currentColor var(--v), rgba(255, 255, 255, 0.28) var(--v));
+  background: linear-gradient(to right, currentColor var(--v), var(--track) var(--v));
 }
 .vol::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -468,7 +498,7 @@ html.is-intro.is-started .intro-skip {
 }
 .vol::-moz-range-track {
   height: 1px;
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--track);
 }
 .vol::-moz-range-progress {
   height: 1px;
@@ -567,7 +597,7 @@ html.is-loading .ctl .lang span.is-on {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff);
+  color: color-mix(in srgb, #000 var(--tint), color-mix(in srgb, #4b3e2b calc((1 - var(--ink-l)) * 100%), #ffffff));
 }
 .hud > * {
   position: absolute;
@@ -810,9 +840,9 @@ html.is-loading .ctl .lang span.is-on {
   overflow-x: hidden;
   pointer-events: auto;
   overscroll-behavior: contain;
-  background: #000;
+  background: var(--bg);
   scrollbar-width: thin;
-  scrollbar-color: #2b2b2b transparent;
+  scrollbar-color: var(--scroll) transparent;
   animation: pageIn 0.9s ease both;
 }
 @keyframes pageIn {
@@ -922,10 +952,10 @@ html.is-loading .ctl .lang span.is-on {
   width: 100%;
   aspect-ratio: var(--ar, 16 / 9);
   background:
-    linear-gradient(to top right, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.1), transparent calc(50% + 0.5px)),
-    linear-gradient(to bottom right, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.1), transparent calc(50% + 0.5px)),
-    #070707;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+    linear-gradient(to top right, transparent calc(50% - 0.5px), var(--faint), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom right, transparent calc(50% - 0.5px), var(--faint), transparent calc(50% + 0.5px)),
+    var(--surface);
+  border: 1px solid var(--faint);
 }
 .ph-label {
   position: absolute;
@@ -955,7 +985,7 @@ html.is-loading .ctl .lang span.is-on {
 .portrait-frame {
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  background: #0a0a0a;
+  background: var(--surface);
 }
 .portrait-frame .frame-img {
   height: 100%;
@@ -1063,7 +1093,7 @@ html.is-loading .ctl .lang span.is-on {
   top: 8vh;
   bottom: 8vh;
   overflow: hidden;
-  background: #050505;
+  background: var(--surface);
   --enter-clip: 0;
   animation: stageIn 1.4s var(--ease) 0.5s both;
 }
@@ -1338,7 +1368,7 @@ html.is-loading .ctl .lang span.is-on {
   max-width: 34em;
   font-size: clamp(17px, 1.55vw, 26px);
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.86);
+  color: color-mix(in srgb, var(--ink) 86%, transparent);
 }
 .p-seq {
   display: grid;
@@ -1356,7 +1386,7 @@ html.is-loading .ctl .lang span.is-on {
 }
 .shot-media {
   overflow: hidden;
-  background: #060606;
+  background: var(--surface);
   clip-path: inset(0 0 100% 0);
   transition: clip-path 1.4s var(--ease);
   transition-delay: calc(var(--d, 0) * 1s);
@@ -1618,15 +1648,15 @@ html.pj-ready .stage-project {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #ffffff);
+  color: color-mix(in srgb, #000 var(--pj-tint), color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #ffffff));
   transition: color 0.7s ease; /* --pj-ink flips 0 → 1 as the light turns red: dark ink by day, cream by night */
 }
 .pj-sticky::before {
-  /* the last black: whatever the 3D view shows, it ends in pure black */
+  /* the last frame: whatever the 3D view shows, it ends in the site's ground (black; white by Day) */
   content: '';
   position: absolute;
   inset: 0;
-  background: #000;
+  background: var(--bg);
   opacity: var(--pj-black, 0);
   pointer-events: none;
 }
@@ -1657,7 +1687,7 @@ html.pj-ready .app .sound,
 html.pj-ready .app .night-btn,
 html.pj-ready .app .lang {
   color: #4b3e2b; /* fallback */
-  color: color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #ffffff);
+  color: color-mix(in srgb, #000 var(--pj-tint), color-mix(in srgb, #4b3e2b calc((1 - var(--pj-ink, 0)) * 100%), #ffffff));
 }
 html.pj-ready .menu a {
   transition: color 0.7s ease, opacity 0.7s ease, transform 0.9s var(--ease);
@@ -1750,7 +1780,7 @@ html.pj-ready .app .lang {
   pointer-events: none;
   opacity: var(--pj-logo, 0);
   transform: scale(calc(0.94 + 0.06 * var(--pj-logo, 0)));
-  color: #ffffff;
+  color: var(--ink);
 }
 .pj-logo img {
   display: block;
@@ -1785,7 +1815,7 @@ html.pj-ready .app .lang {
 .pj-load-line {
   width: min(240px, 50vw);
   height: 1px;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--line);
 }
 .pj-load-line i {
   display: block;
@@ -1800,7 +1830,7 @@ html.pj-ready .app .lang {
 .p-body {
   position: relative;
   z-index: 2;
-  background: #000;
+  background: var(--bg);
 }
 .page.is-3d .p-body {
   margin-top: -1px;
@@ -2041,7 +2071,7 @@ html[lang='ar'] .p-logo-row {
 }
 .p-video {
   margin: 0 0 clamp(24px, 4.5vh, 52px);
-  background: #060606;
+  background: var(--surface);
 }
 .p-video video {
   pointer-events: none;
@@ -2051,7 +2081,7 @@ html[lang='ar'] .p-logo-row {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  background: #060606;
+  background: var(--surface);
 }
 .p-steps ol {
   list-style: none;
@@ -2484,7 +2514,7 @@ html[lang='ar'] .wc-tiles {
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #050505;
+  background: var(--surface);
 }
 .pr-media .frame-img {
   position: absolute;
@@ -2561,14 +2591,14 @@ html[lang='ar'] .wc-tiles {
   width: 120px;
   height: 1px;
   margin-left: -60px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--track);
   pointer-events: none;
   transition: opacity 0.6s;
 }
 .pv-load i {
   display: block;
   height: 1px;
-  background: #fff;
+  background: var(--ink);
   transform-origin: 0 50%;
   transition: transform 0.3s;
 }
@@ -2654,11 +2684,11 @@ html[lang='ar'] .wc-tiles {
   height: 7px;
   margin: -3.5px 0 0 -3.5px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--track);
   transition: background 0.4s, transform 0.4s;
 }
 .pc-dot.is-on::before {
-  background: #fff;
+  background: var(--ink);
   transform: scale(1.25);
 }
 
@@ -2773,6 +2803,9 @@ html[lang='ar'] .wc-tiles {
   width: 100%;
   aspect-ratio: 1400 / 1444;
 }
+:root:not(.is-night):not(.is-dark) .sp-plan {
+  filter: invert(1);
+}
 .sp-plan {
   position: absolute;
   inset: 0;
@@ -2796,7 +2829,7 @@ html[lang='ar'] .wc-tiles {
   transition: opacity 0.8s ease;
 }
 .sp-square {
-  fill: rgba(255, 255, 255, 0.1);
+  fill: color-mix(in srgb, var(--ink) 10%, transparent);
   stroke: var(--ink);
   stroke-width: 3.4;
   stroke-linejoin: miter;
@@ -2821,7 +2854,7 @@ html[lang='ar'] .wc-tiles {
 }
 .sp-gate {
   fill: var(--ink);
-  stroke: #000;
+  stroke: var(--bg);
   stroke-width: 3;
   stroke-linejoin: round;
 }
@@ -2836,7 +2869,7 @@ html[lang='ar'] .wc-tiles {
   text-transform: uppercase;
   line-height: 1.25;
   color: var(--ink);
-  text-shadow: 0 0 5px #000, 0 0 10px #000, 0 0 2px #000;
+  text-shadow: 0 0 5px var(--bg), 0 0 10px var(--bg), 0 0 2px var(--bg);
   pointer-events: none;
   transition: opacity 0.8s ease;
 }
@@ -2853,4 +2886,22 @@ html[lang='ar'] .sp-name {
 html[lang='ar'] .sp-name-shrine {
   text-align: left;
   transform: translate(-100%, -50%);
+}
+
+/* ── DAY: the corner marks stay readable over photographs ─────────────────────
+   On the white site they are black; over a photograph (a project's cover) the blend turns them light. */
+/* (the home journey and a 3D project's flight have their own ink, so the blend is only for flat pages) */
+html:not(.is-night):not(.is-dark):not(.is-intro):is(:not(.pj-ready), .pj-done) :is(.menu, .ctl, .back) {
+  mix-blend-mode: difference;
+}
+html:not(.is-night):not(.is-dark):not(.is-intro):is(:not(.pj-ready), .pj-done) :is(.menu a, .ctl .sound, .ctl .lang, .ctl .night-btn, .back) {
+  color: #ffffff;
+}
+/* a cover photograph carries its own white type, whatever the theme */
+.hero {
+  --ink: #ffffff;
+  --ink-2: rgba(255, 255, 255, 0.78);
+  --ink-3: rgba(255, 255, 255, 0.5);
+  --line: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }

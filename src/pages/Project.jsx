@@ -286,6 +286,7 @@ export default function Project({ slug, go }) {
       page.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       stadiumWorld.active = false
+      root.classList.remove('pj-done')
       for (const k of ['--pj', '--pj-black', '--pj-logo', '--pj-hud', '--pj-ink']) root.style.removeProperty(k)
     }
   }, [is3d, slug])

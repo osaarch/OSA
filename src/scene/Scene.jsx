@@ -257,7 +257,7 @@ function Rig({ grade, refs }) {
     dm.uOpacity.value = 0.3 * grade.dust * clamp(grade.sunIntensity / 2.5, 0, 1)
 
     // ── 5. storm veil + sand grains (both react to the cursor) ──────────────
-    const inkL = Math.max(smoothstep(0.645, 0.69, u), nm, dk)
+    const inkL = Math.max(nm, dk) // Day ends in white, so its ink stays dark; Night and Dark go light with the sky
     veilMesh.current.visible = storm > 0.012
     if (veilMesh.current.visible) {
       const vu = veilMat.current.uniforms

@@ -490,6 +490,7 @@ function Rig({ grade, refs }) {
     if (moved || stadiumWorld.forceFrames > 0) {
       root.style.setProperty('--pj', u.toFixed(4))
       root.style.setProperty('--pj-black', grade.black.toFixed(4))
+      root.classList.toggle('pj-done', grade.black > 0.98) // the journey is over: the page below is flat
       root.style.setProperty('--pj-logo', smoothstep(0.984, 1.0, u).toFixed(3))
       root.style.setProperty('--pj-hud', (1 - smoothstep(0.9, 0.968, u)).toFixed(3))
       root.style.setProperty('--pj-ink', u > 0.46 || nm > 0.5 || dk > 0.5 ? '1' : '0')

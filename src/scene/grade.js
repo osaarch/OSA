@@ -10,14 +10,14 @@ import { clamp, lerp, smoothstep } from '../journey'
 
 const c = (hex) => new Color(hex)
 
-// Sand beige darkening through earthy brown to black. No orange, no sunset: the light
-// simply withdraws, and the same warm sand hue stays in everything until nothing is left.
-const SKY_HORIZON = [c('#eadcc0'), c('#9b8662'), c('#000000')]
-const SKY_ZENITH = [c('#cdb48c'), c('#4a3d2e'), c('#000000')]
+// Sand beige softening into pale light, then white (the site is white by Day). No orange, no sunset:
+// the light withdraws and the air whitens until nothing is left.
+const SKY_HORIZON = [c('#eadcc0'), c('#b8a47e'), c('#ffffff')]
+const SKY_ZENITH = [c('#cdb48c'), c('#8a7757'), c('#ffffff')]
 const SUN = [c('#fff0d4'), c('#f1dcb2'), c('#cdb58a')]
-const HEMI_SKY = [c('#f6e9d2'), c('#bda98a'), c('#000000')]
-const HEMI_GROUND = [c('#c9b289'), c('#5f4f3a'), c('#000000')]
-const GROUND = [c('#d8c6a3'), c('#8f7c5d'), c('#000000')]
+const HEMI_SKY = [c('#f6e9d2'), c('#cdbb9d'), c('#ffffff')]
+const HEMI_GROUND = [c('#c9b289'), c('#8a785a'), c('#ffffff')]
+const GROUND = [c('#d8c6a3'), c('#b3a07e'), c('#ffffff')]
 
 const tmpA = new Color()
 function tri(set, dusk, night, out) {
