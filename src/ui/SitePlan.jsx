@@ -24,21 +24,67 @@ const DOME = [632, 62]
 const SHRINE = [[545, 2], [722, 2], [722, 165], [545, 165]]
 const GATES = { n: [632, 4], e: [721, 62], s: [632, 163], w: [546, 62] }
 
-// the four squares, traced on the aerial view; each is one gate set down. `from` is the gate it came from.
+// the four squares, traced on the aerial view at their real outlines and with the layers each one is
+// made of (paving, planting, core); each is one gate set down. `from` is the gate it came from,
+// `g` the size of the gate drawn at its centre.
 const SQUARES = [
-  { key: 'entertainment', from: 'n', pts: [[365, 280], [430, 347], [366, 415], [306, 347]], c: [367, 347], label: [366, 436] },
-  { key: 'culture', from: 'e', pts: [[680, 285], [803, 222], [872, 317], [770, 377]], c: [781, 300], label: [790, 402] },
-  { key: 'hotel', from: 'w', pts: [[246, 838], [300, 877], [246, 918], [192, 877]], c: [246, 878], label: [246, 940] },
-  { key: 'education', from: 's', pts: [[678, 684], [716, 730], [671, 768], [632, 722]], c: [674, 726], label: [674, 790] },
+  {
+    key: 'education',
+    from: 'n',
+    g: 1.5,
+    pts: [[365, 246], [462, 345], [369, 455], [268, 350]],
+    inner: [
+      [[366, 268], [430, 347], [368, 431], [305, 347]],
+      [[365, 287], [420, 347], [367, 412], [306, 347]],
+      [[367, 302], [416, 350], [367, 398], [318, 350]],
+      [[365, 323], [391, 347], [365, 372], [341, 347]],
+    ],
+    c: [365, 350],
+    label: [366, 476],
+  },
+  {
+    key: 'culture',
+    from: 'e',
+    g: 1.5,
+    pts: [[658, 282], [806, 181], [902, 309], [754, 410]],
+    inner: [
+      [[705, 287], [803, 224], [870, 312], [776, 384]],
+      [[732, 283], [805, 257], [853, 307], [793, 358]],
+    ],
+    c: [780, 296],
+    label: [800, 434],
+  },
+  {
+    key: 'hotel',
+    from: 'w',
+    g: 1.15,
+    pts: [[197, 880], [249, 842], [298, 878], [249, 922]],
+    inner: [
+      [[225, 875], [250, 857], [276, 875], [250, 897]],
+      [[240, 875], [250, 866], [260, 875], [250, 885]],
+    ],
+    c: [248, 880],
+    label: [248, 962],
+  },
+  {
+    key: 'entertainment',
+    from: 's',
+    g: 0.95,
+    pts: [[643, 724], [679, 696], [704, 727], [670, 756]],
+    inner: [[[652, 726], [672, 712], [690, 728], [670, 744]]],
+    circle: [671, 727, 6],
+    c: [673, 726],
+    label: [674, 806],
+  },
 ]
 
 // the routes that tie the squares back to the shrine along the water axis
 const AXIS = [[632, 166], [592, 380], [553, 590], [521, 905]]
 const BRANCHES = [
-  [[592, 350], [430, 347]],
-  [[600, 305], [680, 300]],
-  [[522, 878], [300, 877]],
-  [[540, 724], [632, 722]],
+  [[592, 350], [462, 345]],
+  [[600, 305], [658, 282]],
+  [[522, 878], [298, 878]],
+  [[540, 724], [643, 724]],
 ]
 
 // a pointed gateway arch, centred on (0, 0)
@@ -99,12 +145,13 @@ export default function SitePlan({ d }) {
 
           {/* the four squares, once the gates have landed */}
           {SQUARES.map((q, i) => (
-            <path
-              key={q.key}
-              d={path(q.pts)}
-              className="sp-square"
-              style={{ opacity: landed ? 1 : 0, transitionDelay: landed ? `${0.9 + i * 0.18}s` : '0s' }}
-            />
+            <g key={q.key} style={{ opacity: landed ? 1 : 0, transition: 'opacity 0.9s ease', transitionDelay: landed ? `${0.9 + i * 0.18}s` : '0s' }}>
+              <path d={path(q.pts)} className="sp-square" />
+              {q.inner.map((p, k) => (
+                <path key={k} d={path(p)} className="sp-square-in" />
+              ))}
+              {q.circle && <circle className="sp-square-in" cx={q.circle[0] * K} cy={q.circle[1] * K} r={q.circle[2] * K} />}
+            </g>
           ))}
 
           {/* routes, drawn from the shrine down the axis and out to each square */}
@@ -136,8 +183,8 @@ export default function SitePlan({ d }) {
                 <g
                   className="sp-gate-wrap"
                   style={{
-                    transform: landed ? 'translate(0px, 0px) scale(1.5)' : `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(1)`,
-                    opacity: on ? (stage >= 3 ? 0.9 : 1) : 0,
+                    transform: landed ? `translate(0px, 0px) scale(${q.g})` : `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(1)`,
+                    opacity: on ? (stage >= 3 ? 0.55 : 1) : 0,
                     transitionDelay: landed ? `${i * 0.18}s` : on ? `${i * 0.1}s` : '0s',
                   }}
                 >

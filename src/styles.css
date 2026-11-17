@@ -2325,7 +2325,7 @@ html[lang='ar'] .works-list a {
   letter-spacing: 0.045em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--ink-3);
+  color: var(--ink-2);
   transition: color 0.5s;
   animation: capIn 1.1s var(--ease-out) both;
 }
@@ -2335,7 +2335,10 @@ html[lang='ar'] .works-list a {
 .wc-word:nth-child(3) {
   animation-delay: 0.24s;
 }
-.wc-word.is-active {
+.wc-zone.has-active .wc-word {
+  color: var(--ink-3);
+}
+.wc-zone.has-active .wc-word.is-active {
   color: var(--ink);
 }
 .wc-albums {
@@ -2762,11 +2765,17 @@ html[lang='ar'] .works-list a {
   transition: opacity 0.8s ease;
 }
 .sp-square {
-  fill: rgba(255, 255, 255, 0.14);
+  fill: rgba(255, 255, 255, 0.1);
   stroke: var(--ink);
-  stroke-width: 4;
-  stroke-linejoin: round;
-  transition: opacity 0.9s ease;
+  stroke-width: 3.4;
+  stroke-linejoin: miter;
+}
+.sp-square-in {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.8;
+  stroke-linejoin: miter;
+  opacity: 0.8;
 }
 .sp-route {
   fill: none;

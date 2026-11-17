@@ -261,18 +261,18 @@ const projectData = [
       },
       siteMotion: {
         label: 'The site',
-        aria: 'Hatched aerial view of the site: the shrine of Imam Ali al-Hadi at the top, and four squares set out below it, one for each of its gates',
+        aria: 'Line drawing of the site: the shrine of Imam Ali al-Hadi at the top, and four squares set out below it, one for each of its gates',
         stages: [
           { title: 'The site', text: 'The shrine of Imam Ali al-Hadi stands at the head of the site. The complex unfolds from it along a water axis.' },
           { title: 'Its four gates', text: 'The shrine has four gates, one on each side.' },
           { title: 'Four gates, four squares', text: 'Each gate is taken from the shrine and set down in the complex as a square.' },
-          { title: 'Four plazas, four uses', text: 'Each square opens a part of the complex: hotel and medical support, entertainment and dining, education, culture.' },
+          { title: 'Four plazas, four uses', text: 'Each square opens a part of the complex: education, culture, hotel and medical support, entertainment and dining.' },
           { title: 'One connected route', text: 'The axis and the arcaded routes tie the four plazas back to the shrine.' },
         ],
       },
       programmeDiagram: {
         title: 'Four gates programme diagram',
-        desc: 'The shrine of Imam Ali al-Hadi stands at the head of the site. A central axis leads from it to four open plazas, one for each of its gates: entertainment and dining and culture on the upper level, hotel and medical support and education below. The diagram is conceptual and not to scale.',
+        desc: 'The shrine of Imam Ali al-Hadi stands at the head of the site. A central axis leads from it to four open plazas, one for each of its gates: education and culture on the upper level, hotel and medical support and entertainment and dining below. The diagram is conceptual and not to scale.',
         caption: 'Conceptual programme / Not to scale',
         labels: {
           hotel: ['HOTEL +', 'MEDICAL'],
@@ -336,18 +336,18 @@ const projectData = [
       },
       siteMotion: {
         label: 'الموقع',
-        aria: 'منظور جوي مخطّط بالخطوط للموقع: مرقد الإمام علي الهادي في الأعلى، وتحته أربع مربعات موزّعة، مربع لكل بوابة من بواباته',
+        aria: 'منظور جوي للموقع مرسوم بالخطوط: مرقد الإمام علي الهادي في الأعلى، وتحته أربع مربعات موزّعة، مربع لكل بوابة من بواباته',
         stages: [
           { title: 'الموقع', text: 'يقف مرقد الإمام علي الهادي في رأس الموقع، ومنه ينفتح المجمّع على محور مائي.' },
           { title: 'بواباته الأربع', text: 'للمرقد أربع بوابات، على كل جانب بوابة.' },
           { title: 'أربع بوابات، أربع مربعات', text: 'تُؤخذ كل بوابة من المرقد وتُوضع في المجمّع مربعًا.' },
-          { title: 'أربع ساحات، أربعة استعمالات', text: 'يفتح كل مربع جزءًا من المجمّع: الفندق والدعم الطبي، الترفيه والمطاعم، التعليم، الثقافة.' },
+          { title: 'أربع ساحات، أربعة استعمالات', text: 'يفتح كل مربع جزءًا من المجمّع: التعليم، الثقافة، الفندق والدعم الطبي، الترفيه والمطاعم.' },
           { title: 'مسار واحد متصل', text: 'يربط المحور والممرات المقوّسة الساحات الأربع بالمرقد.' },
         ],
       },
       programmeDiagram: {
         title: 'مخطط برنامج البوابات الأربع',
-        desc: 'مرقد الإمام علي الهادي في رأس الموقع. يقود منه محور مركزي إلى أربع ساحات مفتوحة، ساحة لكل بوابة من بواباته: الترفيه والمطاعم والثقافة في الأعلى، والفندق والدعم الطبي والتعليم في الأسفل. المخطط تصوّري وغير مرسوم بمقياس.',
+        desc: 'مرقد الإمام علي الهادي في رأس الموقع. يقود منه محور مركزي إلى أربع ساحات مفتوحة، ساحة لكل بوابة من بواباته: التعليم والثقافة في الأعلى، والفندق والدعم الطبي والترفيه والمطاعم في الأسفل. المخطط تصوّري وغير مرسوم بمقياس.',
         caption: 'برنامج تصوّري / غير مرسوم بمقياس',
         labels: {
           hotel: ['الفندق', 'والدعم الطبي'],

@@ -54,10 +54,10 @@ export function ProgrammeDiagram({ d }) {
       </g>
       <g className="gd-text">
         <Label x={210} cy={34} lines={d.labels.shrine} />
-        <Label x={58} cy={128} lines={d.labels.entertainment} />
+        <Label x={58} cy={128} lines={d.labels.education} />
         <Label x={362} cy={128} lines={d.labels.culture} />
         <Label x={58} cy={218} lines={d.labels.hotel} />
-        <Label x={362} cy={218} lines={d.labels.education} />
+        <Label x={362} cy={218} lines={d.labels.entertainment} />
       </g>
     </svg>
   )
