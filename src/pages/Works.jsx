@@ -7,6 +7,64 @@ import { href } from '../router'
 // work opens beneath it like an album: black-and-white pictures that take their colour under the pointer;
 // a click enters the project. The word itself opens the category's own page. A category appears as soon
 // as it has an entry in src/content.js.
+// one row of pictures at their own proportions; the wheel, a drag or a swipe moves along it
+function Strip({ children, label }) {
+  const ref = useRef(null)
+  const drag = useRef({ on: false, x: 0, left: 0, moved: false })
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const onWheel = (e) => {
+      if (el.scrollWidth <= el.clientWidth) return
+      const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      el.scrollLeft += getComputedStyle(el).direction === 'rtl' ? -d : d
+      e.preventDefault()
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
+  const down = (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return
+    drag.current = { on: true, x: e.clientX, left: ref.current.scrollLeft, moved: false }
+  }
+  const move = (e) => {
+    const d = drag.current
+    if (!d.on) return
+    const dx = e.clientX - d.x
+    if (Math.abs(dx) > 4) d.moved = true
+    ref.current.scrollLeft = d.left - dx
+  }
+  const up = () => {
+    drag.current.on = false
+  }
+  // a drag must not open the picture it ended on
+  const click = (e) => {
+    if (drag.current.moved) {
+      e.preventDefault()
+      e.stopPropagation()
+      drag.current.moved = false
+    }
+  }
+
+  return (
+    <div
+      className="wc-tiles"
+      ref={ref}
+      role="list"
+      aria-label={label}
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerLeave={up}
+      onClickCapture={click}
+    >
+      {children}
+    </div>
+  )
+}
+
 export default function Works({ go }) {
   const { categories, ui } = useI18n()
   const [active, setActive] = useState(0)
@@ -57,18 +115,18 @@ export default function Works({ go }) {
 
       <div className="wc-albums">
         {categories.map((c, i) => (
-          <section key={c.slug} className={`wc-album${i === active ? ' is-active' : ''}`} data-n={Math.min(c.items.length, 4)} aria-label={c.title}>
+          <section key={c.slug} className={`wc-album${i === active ? ' is-active' : ''}`} aria-label={c.title}>
             <a href={href(c.path)} className="wc-album-title" onClick={(e) => open(e, c.path)}>
               {c.title}
             </a>
-            <div className="wc-tiles">
+            <Strip label={c.title}>
               {c.items.map((it) => (
-                <a key={it.slug} href={href(it.path)} className="wc-tile" onClick={(e) => open(e, it.path)}>
-                  <Frame src={it.cover} alt={it.title} label={it.title} eager={i === 0} />
+                <a key={it.slug} href={href(it.path)} className="wc-tile" role="listitem" draggable="false" onClick={(e) => open(e, it.path)}>
+                  <Frame src={it.cover} alt={it.title} label={it.title} eager />
                   <span className="wc-tile-t">{it.title}</span>
                 </a>
               ))}
-            </div>
+            </Strip>
           </section>
         ))}
       </div>

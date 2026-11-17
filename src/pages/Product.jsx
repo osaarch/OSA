@@ -76,6 +76,7 @@ export default function Product({ slug, go }) {
   }
 
   const meta = [
+    [ui.meta.year, piece.year],
     [ui.meta.location, piece.location],
     [ui.meta.type, piece.type],
     [ui.meta.format, piece.format],

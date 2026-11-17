@@ -2356,65 +2356,69 @@ html[lang='ar'] .works-list a {
   display: none;
 }
 .wc-tiles {
-  display: grid;
-  gap: clamp(8px, 1vw, 16px);
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(14px, 1.6vw, 28px);
   height: 100%;
+  margin-right: calc(-1 * var(--pad));
+  padding-right: var(--pad);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  cursor: grab;
 }
-.wc-album[data-n='1'] .wc-tiles {
-  grid-template-columns: minmax(0, min(100%, 640px));
+.wc-tiles::-webkit-scrollbar {
+  display: none;
 }
-.wc-album[data-n='2'] .wc-tiles {
-  grid-template-columns: 1fr 1fr;
+.wc-tiles:active {
+  cursor: grabbing;
 }
-.wc-album[data-n='3'] .wc-tiles,
-.wc-album[data-n='4'] .wc-tiles {
-  grid-template-columns: 1.3fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-.wc-album[data-n='3'] .wc-tile:first-child,
-.wc-album[data-n='4'] .wc-tile:first-child {
-  grid-row: span 2;
+/* each picture keeps its own proportions: the height is shared, the width follows the image */
+.wc-tiles {
+  --cap: clamp(44px, 7vh, 60px);
 }
 .wc-tile {
   position: relative;
   display: block;
-  overflow: hidden;
-  min-height: 0;
-  background: #050505;
+  flex: 0 0 auto;
+  height: 100%;
+  box-sizing: border-box;
+  padding-bottom: var(--cap);
   text-decoration: none;
 }
 .wc-tile .frame-img,
 .wc-tile .frame-ph {
-  position: absolute;
-  inset: 0;
-  width: 100%;
+  display: block;
+  width: auto;
   height: 100%;
-  object-fit: cover;
-  transition: filter 0.8s ease, transform 1.6s var(--ease-out);
+  max-width: none;
+  transition: filter 0.8s ease;
+}
+.wc-tile .frame-ph {
+  aspect-ratio: 4 / 3;
 }
 .wc-tile:hover .frame-img,
 .wc-tile:active .frame-img,
 .wc-tile:focus-visible .frame-img {
   filter: none;
-  transform: scale(1.04);
-}
-.wc-tile::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0) 46%);
 }
 .wc-tile-t {
   position: absolute;
-  left: clamp(14px, 1.6vw, 28px);
-  right: clamp(14px, 1.6vw, 28px);
-  bottom: clamp(12px, 1.8vh, 24px);
-  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
   font-size: clamp(11px, 0.9vw, 14px);
+  line-height: 1.5;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  color: var(--ink-2);
+  transition: color 0.5s;
   pointer-events: none;
+}
+.wc-tile:hover .wc-tile-t,
+.wc-tile:focus-visible .wc-tile-t {
+  color: var(--ink);
 }
 
 /* ── PRODUCTS: the grid of pieces ─────────────────────────────────────────── */
@@ -2663,22 +2667,12 @@ html[lang='ar'] .works-list a {
     text-transform: uppercase;
     text-decoration: none;
   }
-  .wc-tiles,
-  .wc-album[data-n] .wc-tiles {
-    height: auto;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: none;
-  }
-  .wc-album[data-n='1'] .wc-tiles {
-    grid-template-columns: 1fr;
-  }
-  .wc-tile {
-    aspect-ratio: 4 / 5;
-  }
-  .wc-tile:first-child {
-    grid-column: 1 / -1;
-    grid-row: auto !important;
-    aspect-ratio: 4 / 3;
+  /* on a phone each album is a row to swipe along, at the pictures' own proportions */
+  .wc-tiles {
+    height: clamp(190px, 52vw, 300px);
+    margin-right: calc(-1 * var(--pad));
+    padding-right: var(--pad);
+    touch-action: pan-x pan-y;
   }
   .pr-head,
   .pr-grid,

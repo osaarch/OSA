@@ -1,60 +1,64 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
-import { PODIUM_PANELS as P } from './podiumPanels'
+import { PODIUM_PANELS as PANELS } from './podiumPanels'
 
 // How the graduation podium came about — a light animation in flat white and grey shapes:
-//   0  Al-Malwiya, a spiral that climbs in tiers (only its stepping is taken)
-//   1  a pointed gateway arch (the profile)            2  the arch is cut in half along its axis
-//   3  each half takes the stepping: the centre arch   4  mirrored, the stepped halves open out as wings
-//   5  a low base joins them: the podium
-// Stage 3 on uses the real outlines of the Rhino model (podiumPanels.js). 1 unit = 1 cm; ground at y = 0.
+//   0  Al-Malwiya, drawn as in the photograph: drum-like tiers, the ramp winding up across them, a lantern on top
+//   1  only its stepping is kept: the Malwiya cut along its axis, one half left, the profile reads as a stair
+//   2  a pointed gateway arch (the profile)            3  the arch is cut in half along its axis
+//   4  each half takes the stepping: the centre arch   5  mirrored, the stepped halves open out as wings
+//   6  a low base joins them: the podium
+// Stage 4 on uses the real outlines of the Rhino model (podiumPanels.js). 1 unit = 1 cm; ground at y = 0.
 
-const STAGES = 6
-const HOLD = [3600, 3000, 2800, 3200, 3200, 5000] // ms each stage stays on screen
+const STAGES = 7
+const HOLD = [3800, 4200, 3000, 2800, 3200, 3200, 5000] // ms each stage stays on screen
 
 const pts = (a) => 'M' + a.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L') + 'Z'
 const mirror = (a) => a.map(([x, y]) => [-x, y])
 
-// ── Al-Malwiya: a cone with a ramp that winds five times round it, a round lantern on top, a plinth below ──
-const H0 = 26 // plinth height
-const CONE = 324 // height of the cone
+// ── Al-Malwiya: tiers (one for each turn of the ramp), each narrower than the one below. Seen from the front
+// the ramp climbs across a tier from its left edge to its right edge; where a turn ends the wall steps inward. ──
+const H0 = 30 // the two-step plinth
+const P = 60 // rise of one turn of the ramp
 const TURNS = 5
-const R0 = 134
-const R1 = 42
-const rAt = (h) => R0 - (R0 - R1) * (h / CONE)
-const RAMP_W = 9 // how far the ramp stands out from the wall
-const RAMP_T = 15 // thickness of the ramp's edge as seen from the front
+const WALL = 48 // height of a tier's wall; the rest of the turn is the ramp's edge
+const R_TIER = [104, 88, 72, 56, 40] // radius of each tier's wall
+const RAMP_OUT = 5 // how far the ramp stands out from the wall
+const ARC = 22 // steps along a half turn
 
-const malBody = pts([[-R0, -H0], [-R1, -H0 - CONE], [R1, -H0 - CONE], [R0, -H0]])
-// the front half of each turn: a ribbon rising from the left edge to the right edge
-const malRamps = (() => {
-  const out = []
-  const pitch = CONE / TURNS
-  for (let k = 0; k < TURNS; k++) {
-    const top = []
-    const bot = []
-    for (let i = 0; i <= 28; i++) {
-      const t = i / 28
-      const phi = -Math.PI / 2 + Math.PI * t
-      const h = k * pitch + pitch * (0.5 * t) + pitch * 0.02
-      const r = rAt(h) + RAMP_W
-      const x = r * Math.sin(phi)
-      top.push([x, -H0 - h])
-      bot.push([x, -H0 - h + RAMP_T * (1 - 0.35 * Math.abs(Math.sin(phi)))])
-    }
-    out.push(pts([...top, ...bot.reverse()]))
-  }
-  return out
-})()
-const malLantern = pts([[-30, -H0 - CONE], [-27, -H0 - CONE - 58], [27, -H0 - CONE - 58], [30, -H0 - CONE]])
-const malCrown = pts([[-34, -H0 - CONE - 58], [-34, -H0 - CONE - 68], [34, -H0 - CONE - 68], [34, -H0 - CONE - 58]])
-const malWindows = [-18, -9, 0, 9, 18]
-  .map((x) => `M${x - 2.8} ${-H0 - CONE - 12} V${-H0 - CONE - 38} a2.8 2.8 0 0 1 5.6 0 V${-H0 - CONE - 12}Z`)
+// a front-half helix edge: from the left (φ = −90°) to the right (φ = +90°) it rises half a pitch
+const edge = (r, off) =>
+  Array.from({ length: ARC + 1 }, (_, i) => {
+    const phi = -Math.PI / 2 + (Math.PI * i) / ARC
+    return [r * Math.sin(phi), -(H0 + off + (P * (phi + Math.PI / 2)) / (2 * Math.PI))]
+  })
+const band = (r, off0, off1) => pts([...edge(r, off0), ...edge(r, off1).reverse()])
+
+const malTiers = R_TIER.map((r, k) => band(r, k * P, k * P + WALL))
+const malRamps = R_TIER.map((r, k) => band(r + RAMP_OUT, k * P + WALL, (k + 1) * P))
+const TOP = H0 + TURNS * P + P / 2 // where the last ramp ends on the right: the lantern stands on this
+// the last turn closes flat under the lantern
+const malCap = pts([...edge(R_TIER[4], TURNS * P), [R_TIER[4], -TOP], [-R_TIER[4], -TOP]])
+const LANT = 40
+const malLantern = pts([[-25, -TOP], [-22, -TOP - LANT], [22, -TOP - LANT], [25, -TOP]])
+const malCrown = pts([[-28, -TOP - LANT], [-28, -TOP - LANT - 9], [28, -TOP - LANT - 9], [28, -TOP - LANT]])
+const malWindows = [-12, -6, 0, 6, 12]
+  .map((x) => `M${x - 2} ${-TOP - 6} V${-TOP - 26} a2 2 0 0 1 4 0 V${-TOP - 6}Z`)
   .join('')
-const malPlinth = pts([[-176, 0], [-176, -H0], [176, -H0], [176, 0]])
-const malNiches = [-140, -105, -70, -35, 0, 35, 70, 105, 140]
-  .map((x) => `M${x - 8} 0 V-9 a8 8 0 0 1 16 0 V0Z`)
+const malPlinthLow = pts([[-150, 0], [-150, -16], [150, -16], [150, 0]])
+const malPlinthUp = pts([[-128, -16], [-128, -H0], [128, -H0], [128, -16]])
+const malNiches = [-120, -90, -60, -30, 0, 30, 60, 90, 120]
+  .map((x) => `M${x - 6} 0 V-6 a6 6 0 0 1 12 0 V0Z`)
   .join('')
+
+// ── its stepping: the right half of the Malwiya's profile as a stair, from the axis outward ──
+const rect = (x1, x2, top) => pts([[x1, 0], [x1, -top], [x2, -top], [x2, 0]])
+const STEP_SLABS = [
+  [150, 16, '#4b4b4b'],
+  [128, H0, '#5c5c5c'],
+  ...R_TIER.map((r, k) => [r + RAMP_OUT, H0 + (k + 1.5) * P, ['#707070', '#8a8a8a', '#a3a3a3', '#bcbcbc', '#d3d3d3'][k]]),
+  [28, TOP + LANT + 9, '#f2f2f2'],
+].map(([x, top, fill]) => ({ d: rect(0, x, top), fill }))
 
 // ── the gateway arch: the left half of the tallest wing panel with its axis moved to x = 0 ──
 const HALF = [[-69.2, 0], [-69.3, -343.2], [-68.3, -350.8], [-65.3, -358.2], [-57.5, -367], [0, -400.5], [0, 0]]
@@ -71,7 +75,7 @@ const gateDoor = archAt(54, 128)
 const byId = (list, id) => list.find((q) => q.id === id).d
 
 // One shape: it fades (and slides) in at stage `at`; after stage `until` it fades out. `fill` is its grey.
-function Part({ d, stage, at, until = STAGES - 1, from, to, delay = 0, fill = '#fff', dim = 1 }) {
+function Part({ d, stage, at, until = STAGES - 1, from, to, delay = 0, fill = '#fff', dim = 1, ghost }) {
   const on = stage >= at && stage <= until
   return (
     <path
@@ -79,7 +83,7 @@ function Part({ d, stage, at, until = STAGES - 1, from, to, delay = 0, fill = '#
       className="pc-part"
       style={{
         fill,
-        opacity: on ? dim : 0,
+        opacity: on ? (ghost !== undefined && stage > at ? ghost : dim) : 0,
         transform: stage < at ? from || to || 'none' : to || 'none',
         transitionDelay: on ? `${delay}s` : '0s',
       }}
@@ -121,59 +125,68 @@ export default function PodiumConcept({ stages = [] }) {
     setPaused(true)
   }
 
-  const wL = P.wingL
-  const wR = P.wingR
-  const ar = P.arch
-  const st = P.steps
+  const wL = PANELS.wingL
+  const wR = PANELS.wingR
+  const ar = PANELS.arch
+  const st = PANELS.steps
   const S = { stage }
 
   return (
     <figure className="pc" ref={ref}>
       <svg viewBox="-430 -446 860 468" className="pc-svg" role="img" aria-label={ui.conceptAria}>
-        {/* 0 · Al-Malwiya */}
-        <Part {...S} d={malPlinth} at={0} until={0} from="translateY(14px)" fill="#6d6d6d" />
-        <Part {...S} d={malBody} at={0} until={0} from="translateY(14px)" fill="#3a3a3a" />
-        {malRamps.map((d, i) => (
-          <Part key={i} {...S} d={d} at={0} until={0} from="translateY(14px)" delay={0.05 * i} fill="#efefef" />
+        {/* 0 · Al-Malwiya, as in the photograph */}
+        <Part {...S} d={malPlinthLow} at={0} until={1} ghost={0.13} from="translateY(14px)" fill="#555" />
+        <Part {...S} d={malPlinthUp} at={0} until={1} ghost={0.13} from="translateY(14px)" fill="#6d6d6d" />
+        <Part {...S} d={malNiches} at={0} until={1} ghost={0.13} from="translateY(14px)" fill="#0b0b0b" />
+        {malTiers.map((d, k) => (
+          <Part key={`t${k}`} {...S} d={d} at={0} until={1} ghost={0.13} from="translateY(14px)" delay={0.06 * k} fill="#3a3a3a" />
         ))}
-        <Part {...S} d={malLantern} at={0} until={0} from="translateY(14px)" fill="#d9d9d9" />
-        <Part {...S} d={malCrown} at={0} until={0} from="translateY(14px)" fill="#f4f4f4" />
-        <Part {...S} d={malWindows} at={0} until={0} from="translateY(14px)" fill="#0b0b0b" />
-        <Part {...S} d={malNiches} at={0} until={0} from="translateY(14px)" fill="#0b0b0b" />
+        {malRamps.map((d, k) => (
+          <Part key={`r${k}`} {...S} d={d} at={0} until={1} ghost={0.13} from="translateY(14px)" delay={0.06 * k} fill="#ececec" />
+        ))}
+        <Part {...S} d={malCap} at={0} until={1} ghost={0.13} from="translateY(14px)" delay={0.3} fill="#3a3a3a" />
+        <Part {...S} d={malLantern} at={0} until={1} ghost={0.13} from="translateY(14px)" delay={0.3} fill="#d9d9d9" />
+        <Part {...S} d={malCrown} at={0} until={1} ghost={0.13} from="translateY(14px)" delay={0.3} fill="#f4f4f4" />
+        <Part {...S} d={malWindows} at={0} until={1} ghost={0.13} from="translateY(14px)" delay={0.3} fill="#0b0b0b" />
 
-        {/* 1 · the gateway arch: a recessed pointed portal, as in the photograph */}
-        <Part {...S} d={gateFrame} at={1} until={1} from="translateY(14px)" fill="#262626" />
-        <Part {...S} d={gateArch1} at={1} until={1} from="translateY(14px)" fill="#4a4a4a" delay={0.1} />
-        <Part {...S} d={gateArch2} at={1} until={1} from="translateY(14px)" fill="#7c7c7c" delay={0.2} />
-        <Part {...S} d={gateArch} at={1} until={1} from="translateY(14px)" fill="#f2f2f2" delay={0.3} />
-        <Part {...S} d={gateDoor} at={1} until={1} from="translateY(14px)" fill="#0b0b0b" delay={0.4} />
+        {/* 1 · only its stepping: the right half of the profile, read as a stair */}
+        {STEP_SLABS.map((q, i) => (
+          <Part key={`s${i}`} {...S} d={q.d} at={1} until={1} fill={q.fill} delay={0.08 * i} />
+        ))}
 
-        {/* 2 · cut in half along the axis */}
-        <Part {...S} d={halfL} at={2} until={2} from="translateX(0px)" to="translateX(-14px)" fill="#f2f2f2" />
-        <Part {...S} d={halfR} at={2} until={2} from="translateX(0px)" to="translateX(14px)" fill="#f2f2f2" />
+        {/* 2 · the gateway arch: a recessed pointed portal, as in the photograph */}
+        <Part {...S} d={gateFrame} at={2} until={2} from="translateY(14px)" fill="#262626" />
+        <Part {...S} d={gateArch1} at={2} until={2} from="translateY(14px)" fill="#4a4a4a" delay={0.1} />
+        <Part {...S} d={gateArch2} at={2} until={2} from="translateY(14px)" fill="#7c7c7c" delay={0.2} />
+        <Part {...S} d={gateArch} at={2} until={2} from="translateY(14px)" fill="#f2f2f2" delay={0.3} />
+        <Part {...S} d={gateDoor} at={2} until={2} from="translateY(14px)" fill="#0b0b0b" delay={0.4} />
 
-        {/* 3 · the halves take the stepping: the centre arch (the tall step at the axis, then lower ones) */}
-        <Part {...S} d={byId(ar, 14)} at={3} from="translateX(130px)" delay={0.3} fill="#a9a9a9" />
-        <Part {...S} d={byId(ar, 17)} at={3} from="translateX(-130px)" delay={0.3} fill="#a9a9a9" />
-        <Part {...S} d={byId(ar, 12)} at={3} from="translateX(70px)" delay={0.15} fill="#c8c8c8" />
-        <Part {...S} d={byId(ar, 16)} at={3} from="translateX(-70px)" delay={0.15} fill="#c8c8c8" />
-        <Part {...S} d={byId(ar, 13)} at={3} fill="#f2f2f2" />
-        <Part {...S} d={byId(ar, 15)} at={3} fill="#f2f2f2" />
-        <Part {...S} d={byId(ar, 66)} at={3} from="translateX(40px)" delay={0.2} fill="#e0e0e0" dim={0.9} />
-        <Part {...S} d={byId(ar, 65)} at={3} from="translateX(-40px)" delay={0.2} fill="#e0e0e0" dim={0.9} />
+        {/* 3 · cut in half along the axis */}
+        <Part {...S} d={halfL} at={3} until={3} from="translateX(0px)" to="translateX(-14px)" fill="#f2f2f2" />
+        <Part {...S} d={halfR} at={3} until={3} from="translateX(0px)" to="translateX(14px)" fill="#f2f2f2" />
 
-        {/* 4 · mirrored, the stepped halves open out as two wings */}
-        <Part {...S} d={byId(wL, 11)} at={4} from="translateX(150px)" delay={0.05} fill="#8b8b8b" />
-        <Part {...S} d={byId(wR, 8)} at={4} from="translateX(-150px)" delay={0.05} fill="#8b8b8b" />
-        <Part {...S} d={byId(wL, 10)} at={4} from="translateX(220px)" delay={0.2} fill="#a0a0a0" />
-        <Part {...S} d={byId(wR, 7)} at={4} from="translateX(-220px)" delay={0.2} fill="#a0a0a0" />
-        <Part {...S} d={byId(wL, 9)} at={4} from="translateX(290px)" delay={0.35} fill="#b6b6b6" />
-        <Part {...S} d={byId(wR, 6)} at={4} from="translateX(-290px)" delay={0.35} fill="#b6b6b6" />
+        {/* 4 · the halves take the stepping: the centre arch (the tall step at the axis, then lower ones) */}
+        <Part {...S} d={byId(ar, 14)} at={4} from="translateX(130px)" delay={0.3} fill="#a9a9a9" />
+        <Part {...S} d={byId(ar, 17)} at={4} from="translateX(-130px)" delay={0.3} fill="#a9a9a9" />
+        <Part {...S} d={byId(ar, 12)} at={4} from="translateX(70px)" delay={0.15} fill="#c8c8c8" />
+        <Part {...S} d={byId(ar, 16)} at={4} from="translateX(-70px)" delay={0.15} fill="#c8c8c8" />
+        <Part {...S} d={byId(ar, 13)} at={4} fill="#f2f2f2" />
+        <Part {...S} d={byId(ar, 15)} at={4} fill="#f2f2f2" />
+        <Part {...S} d={byId(ar, 66)} at={4} from="translateX(40px)" delay={0.2} fill="#e0e0e0" dim={0.9} />
+        <Part {...S} d={byId(ar, 65)} at={4} from="translateX(-40px)" delay={0.2} fill="#e0e0e0" dim={0.9} />
 
-        {/* 5 · a low base joins them */}
-        <Part {...S} d={byId(st, 5)} at={5} from="translateY(26px)" delay={0.1} fill="#3b3b3b" />
-        <Part {...S} d={byId(st, 4)} at={5} from="translateY(26px)" delay={0.25} fill="#2a2a2a" />
-        <Part {...S} d={byId(st, 3)} at={5} from="translateY(26px)" delay={0.4} fill="#1c1c1c" />
+        {/* 5 · mirrored, the stepped halves open out as two wings */}
+        <Part {...S} d={byId(wL, 11)} at={5} from="translateX(150px)" delay={0.05} fill="#8b8b8b" />
+        <Part {...S} d={byId(wR, 8)} at={5} from="translateX(-150px)" delay={0.05} fill="#8b8b8b" />
+        <Part {...S} d={byId(wL, 10)} at={5} from="translateX(220px)" delay={0.2} fill="#a0a0a0" />
+        <Part {...S} d={byId(wR, 7)} at={5} from="translateX(-220px)" delay={0.2} fill="#a0a0a0" />
+        <Part {...S} d={byId(wL, 9)} at={5} from="translateX(290px)" delay={0.35} fill="#b6b6b6" />
+        <Part {...S} d={byId(wR, 6)} at={5} from="translateX(-290px)" delay={0.35} fill="#b6b6b6" />
+
+        {/* 6 · a low base joins them */}
+        <Part {...S} d={byId(st, 5)} at={6} from="translateY(26px)" delay={0.1} fill="#3b3b3b" />
+        <Part {...S} d={byId(st, 4)} at={6} from="translateY(26px)" delay={0.25} fill="#2a2a2a" />
+        <Part {...S} d={byId(st, 3)} at={6} from="translateY(26px)" delay={0.4} fill="#1c1c1c" />
       </svg>
 
       <div className="pc-cap" aria-live="polite">
