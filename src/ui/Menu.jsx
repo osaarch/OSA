@@ -1,4 +1,5 @@
 import { href } from '../router'
+import Damma from './Damma'
 
 const ITEMS = [
   { word: 'OSA', path: '/osa', view: 'osa', n: '01', start: 0 },
@@ -26,12 +27,16 @@ export default function Menu({ view, onNavigate }) {
                 onNavigate(it.path)
               }}
             >
-              <span className="word" aria-hidden="true">
-                {[...it.word].map((ch, i) => (
-                  <span className="ch" key={i} style={{ '--i': it.start + i }}>
-                    {ch}
-                  </span>
-                ))}
+              <span className={`word${it.word === 'OSA' ? ' has-damma' : ''}`} aria-hidden="true">
+                {[...it.word].map((ch, i) => {
+                  const mark = it.word === 'OSA' && i === 0 // the O of OSA carries the damma
+                  return (
+                    <span className={`ch${mark ? ' o' : ''}`} key={i} style={{ '--i': it.start + i }}>
+                      {ch}
+                      {mark && <Damma />}
+                    </span>
+                  )
+                })}
               </span>
             </a>
           </li>

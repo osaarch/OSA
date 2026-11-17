@@ -734,6 +734,27 @@ html.is-loading .ctl .lang span.is-on {
 }
 
 /* ── The wordmark: OSA / WORKS ────────────────────────────────────────────── */
+/* the damma over the O of OSA (see ui/Damma.jsx): the O is a positioned box one em high, the mark hangs
+   above it, and the word's clipping box (for the letters rising into place) is made taller to hold it */
+.o {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+}
+.damma {
+  position: absolute;
+  left: 0.6665em;
+  top: -0.3315em;
+  width: 0.27em;
+  height: 0.3927em;
+  overflow: visible;
+  display: block;
+  pointer-events: none;
+}
+.menu .word.has-damma {
+  padding-top: 0.42em;
+  margin-top: -0.42em;
+}
 .menu {
   --rv: var(--menu);
   position: fixed;

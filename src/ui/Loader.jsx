@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLoadState, world } from '../scene/world'
 import { audio } from '../audio'
 import { useI18n } from '../i18n'
+import Damma from './Damma'
 
 const root = document.documentElement
 
@@ -32,7 +33,13 @@ export default function Loader({ active, failed }) {
 
   return (
     <div className={`loader${done ? ' is-done' : ''}`} role="status" aria-live="polite">
-      <div className="loader-mark">OSA</div>
+      <div className="loader-mark" aria-label="OSA">
+        <span className="o" aria-hidden="true">
+          O
+          <Damma />
+        </span>
+        <span aria-hidden="true">SA</span>
+      </div>
       <div className={`loader-line${waiting ? ' is-full' : ''}`}>
         <i style={{ transform: `scaleX(${waiting ? 1 : Math.max(0.02, s.progress)})` }} />
       </div>
